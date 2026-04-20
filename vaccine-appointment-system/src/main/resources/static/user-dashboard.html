@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Vaccine Appointment System</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+<body>
+    <div class="header">
+        <div class="navbar">
+            <h1>Vaccine Appointment System - User Dashboard</h1>
+            <div class="nav-links">
+                <a href="user-dashboard.html">Dashboard</a>
+                <a href="user-profile.html">My Appointments</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert-container"></div>
+        <div class="card">
+            <h2>Available Vaccines</h2>
+            <div id="vaccine-list" class="vaccine-grid">
+                <!-- Vaccine cards will be loaded here -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Make an Appointment</h2>
+            <form id="appointment-form">
+                <div class="form-group">
+                    <label for="vaccine-select">Select Vaccine</label>
+                    <select id="vaccine-select" class="form-control" required>
+                        <option value="">-- Select a vaccine --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="appointment-time">Appointment Date & Time</label>
+                    <input type="datetime-local" id="appointment-time" class="form-control" required>
+                </div>
+                <button type="submit" class="btn">Schedule Appointment</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const user = getUser();
+        if (!user) {
+            window.location.href = 'index.html';
+        }
+
+        // Load vaccines
+        async function loadVaccines() {
+            try {
+                const data = await apiCall('/vaccines/available');
+                const vaccineList = document.getElementById('vaccine-list');
+                const vaccineSelect = document.getElementById('vaccine-select');
+                vaccineList.innerHTML = '';
+                vaccineSelect.innerHTML = '<option value="">-- Select a vaccine --</option>';
+                data.forEach(vaccine => {
+                    // Vaccine card
+                    const card = document.createElement('div');
+                    card.className = 'vaccine-card';
+                    card.innerHTML = `
+                        <h3>${vaccine.name}</h3>
+                        <p><strong>Manufacturer:</strong> ${vaccine.manufacturer || 'N/A'}</p>
+                        <p><strong>Stock:</strong> <span class="stock">${vaccine.stockQuantity}</span></p>
+                        <p><strong>Status:</strong> ${vaccine.available ? 'Available' : 'Unavailable'}</p>
+                        <p>${vaccine.description || ''}</p>
+                    `;
+                    vaccineList.appendChild(card);
+                    // Option for select
+                    const option = document.createElement('option');
+                    option.value = vaccine.id;
+                    option.textContent = `${vaccine.name} (Stock: ${vaccine.stockQuantity})`;
+                    vaccineSelect.appendChild(option);
+                });
+            } catch (error) {
+                showAlert('Failed to load vaccines', 'error');
+            }
+        }
+
+        // Appointment form submission
+        document.getElementById('appointment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const vaccineId = document.getElementById('vaccine-select').value;
+            const appointmentTime = document.getElementById('appointment-time').value;
+            if (!vaccineId || !appointmentTime) {
+                showAlert('Please fill all fields', 'error');
+                return;
+            }
+            try {
+                const data = await apiCall('/appointments', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        userId: user.id,
+                        vaccineId: parseInt(vaccineId),
+                        appointmentTime: appointmentTime
+                    })
+                });
+                showAlert('Appointment scheduled successfully!', 'success');
+                loadVaccines(); // Refresh list
+            } catch (error) {
+                showAlert(error.message || 'Failed to schedule appointment', 'error');
+            }
+        });
+
+        // Initialize
+        loadVaccines();
+    </script>
+</body>
+</html>

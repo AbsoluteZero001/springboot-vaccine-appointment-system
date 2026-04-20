@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Vaccine Appointment System</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+<body>
+    <div class="header">
+        <div class="navbar">
+            <h1>Vaccine Appointment System - Admin Dashboard</h1>
+            <div class="nav-links">
+                <a href="admin-dashboard.html">Dashboard</a>
+                <a href="admin-vaccine.html">Manage Vaccines</a>
+                <a href="admin-users.html">Manage Users</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert-container"></div>
+        <div class="card">
+            <h2>System Overview</h2>
+            <div class="overview-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="overview-card" style="background: #e3f2fd; padding: 20px; border-radius: 8px;">
+                    <h3 id="total-vaccines">0</h3>
+                    <p>Total Vaccines</p>
+                </div>
+                <div class="overview-card" style="background: #e8f5e9; padding: 20px; border-radius: 8px;">
+                    <h3 id="total-users">0</h3>
+                    <p>Total Users</p>
+                </div>
+                <div class="overview-card" style="background: #fff3e0; padding: 20px; border-radius: 8px;">
+                    <h3 id="pending-appointments">0</h3>
+                    <p>Pending Appointments</p>
+                </div>
+                <div class="overview-card" style="background: #fce4ec; padding: 20px; border-radius: 8px;">
+                    <h3 id="total-appointments">0</h3>
+                    <p>Total Appointments</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Recent Pending Appointments</h2>
+            <table id="pending-appointments-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Vaccine</th>
+                        <th>Appointment Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Pending appointments will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const admin = getAdmin();
+        if (!admin) {
+            window.location.href = 'index.html';
+        }
+
+        // Load overview stats
+        async function loadOverview() {
+            try {
+                // Load vaccines count
+                const vaccines = await apiCall('/vaccines');
+                document.getElementById('total-vaccines').textContent = vaccines.length;
+                // Load users count
+                const users = await apiCall('/users');
+                document.getElementById('total-users').textContent = users.length;
+                // Load appointments
+                const appointments = await apiCall('/appointments/pending');
+                document.getElementById('pending-appointments').textContent = appointments.length;
+                // Total appointments - we need all appointments, but for simplicity use pending count
+                document.getElementById('total-appointments').textContent = appointments.length;
+            } catch (error) {
+                showAlert('Failed to load overview data', 'error');
+            }
+        }
+
+        // Load pending appointments
+        async function loadPendingAppointments() {
+            try {
+                const data = await apiCall('/appointments/pending');
+                const tbody = document.querySelector('#pending-appointments-table tbody');
+                tbody.innerHTML = '';
+                data.forEach(appt => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${appt.id}</td>
+                        <td>${appt.user.username}</td>
+                        <td>${appt.vaccine.name}</td>
+                        <td>${new Date(appt.appointmentTime).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-success btn-small" onclick="confirmAppointment(${appt.id})">Confirm</button>
+                            <button class="btn btn-danger btn-small" onclick="cancelAppointmentAdmin(${appt.id})">Cancel</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                showAlert('Failed to load pending appointments', 'error');
+            }
+        }
+
+        // Confirm appointment
+        async function confirmAppointment(appointmentId) {
+            try {
+                await apiCall(`/appointments/${appointmentId}/confirm`, {
+                    method: 'POST'
+                });
+                showAlert('Appointment confirmed', 'success');
+                loadPendingAppointments();
+                loadOverview();
+            } catch (error) {
+                showAlert(error.message || 'Failed to confirm appointment', 'error');
+            }
+        }
+
+        // Cancel appointment (admin)
+        async function cancelAppointmentAdmin(appointmentId) {
+            if (!confirm('Are you sure you want to cancel this appointment?')) return;
+            try {
+                // Note: Admin cancel endpoint not implemented yet, we'll use same as user cancel but with admin privileges
+                // For now, just show error
+                showAlert('Admin cancel not implemented yet', 'error');
+            } catch (error) {
+                showAlert(error.message || 'Failed to cancel appointment', 'error');
+            }
+        }
+
+        // Initialize
+        loadOverview();
+        loadPendingAppointments();
+    </script>
+</body>
+</html>

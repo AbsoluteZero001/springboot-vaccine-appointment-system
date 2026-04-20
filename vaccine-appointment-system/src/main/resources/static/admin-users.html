@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - Vaccine Appointment System</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+<body>
+    <div class="header">
+        <div class="navbar">
+            <h1>Vaccine Appointment System - Manage Users</h1>
+            <div class="nav-links">
+                <a href="admin-dashboard.html">Dashboard</a>
+                <a href="admin-vaccine.html">Manage Vaccines</a>
+                <a href="admin-users.html">Manage Users</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert-container"></div>
+        <div class="card">
+            <h2>User List</h2>
+            <table id="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Users will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const admin = getAdmin();
+        if (!admin) {
+            window.location.href = 'index.html';
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const data = await apiCall('/users');
+                const tbody = document.querySelector('#users-table tbody');
+                tbody.innerHTML = '';
+                data.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone || 'N/A'}</td>
+                        <td>${user.status === 1 ? 'Active' : 'Inactive'}</td>
+                        <td>
+                            <button class="btn btn-small" onclick="toggleUserStatus(${user.id}, ${user.status})">
+                                ${user.status === 1 ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteUser(${user.id})">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                showAlert('Failed to load users', 'error');
+            }
+        }
+
+        // Toggle user status
+        async function toggleUserStatus(userId, currentStatus) {
+            const newStatus = currentStatus === 1 ? 0 : 1;
+            try {
+                await apiCall(`/users/${userId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status: newStatus })
+                });
+                showAlert('User status updated successfully', 'success');
+                loadUsers();
+            } catch (error) {
+                showAlert(error.message || 'Failed to update user status', 'error');
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user? All their appointments will also be deleted.')) return;
+            try {
+                await apiCall(`/users/${userId}`, {
+                    method: 'DELETE'
+                });
+                showAlert('User deleted successfully', 'success');
+                loadUsers();
+            } catch (error) {
+                showAlert(error.message || 'Failed to delete user', 'error');
+            }
+        }
+
+        // Initialize
+        loadUsers();
+    </script>
+</body>
+</html>

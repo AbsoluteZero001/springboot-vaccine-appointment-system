@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaccine Appointment System - Login</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+<body>
+    <div class="header">
+        <div class="navbar">
+            <h1>Vaccine Appointment System</h1>
+            <div class="nav-links">
+                <a href="index.html" class="guest-only">Home</a>
+                <a href="#" class="auth-only hidden" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container login-container">
+        <div id="alert-container"></div>
+
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" data-tab="user-login" onclick="switchTab('user-login')">User Login</div>
+                <div class="tab" data-tab="user-register" onclick="switchTab('user-register')">User Register</div>
+                <div class="tab" data-tab="admin-login" onclick="switchTab('admin-login')">Admin Login</div>
+            </div>
+
+            <!-- User Login -->
+            <div id="tab-user-login" class="tab-content active">
+                <h2>User Login</h2>
+                <form id="user-login-form">
+                    <div class="form-group">
+                        <label for="user-username">Username</label>
+                        <input type="text" id="user-username" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-password">Password</label>
+                        <input type="password" id="user-password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+            </div>
+
+            <!-- User Register -->
+            <div id="tab-user-register" class="tab-content">
+                <h2>User Registration</h2>
+                <form id="user-register-form">
+                    <div class="form-group">
+                        <label for="reg-username">Username</label>
+                        <input type="text" id="reg-username" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-phone">Phone (optional)</label>
+                        <input type="text" id="reg-phone" class="form-control">
+                    </div>
+                    <button type="submit" class="btn">Register</button>
+                </form>
+            </div>
+
+            <!-- Admin Login -->
+            <div id="tab-admin-login" class="tab-content">
+                <h2>Admin Login</h2>
+                <form id="admin-login-form">
+                    <div class="form-group">
+                        <label for="admin-username">Username</label>
+                        <input type="text" id="admin-username" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Password</label>
+                        <input type="password" id="admin-password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn">Login as Admin</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // User login
+        document.getElementById('user-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('user-username').value;
+            const password = document.getElementById('user-password').value;
+            try {
+                const response = await fetch(API_BASE + '/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setUser(data.user);
+                    showAlert('Login successful!', 'success');
+                    setTimeout(() => window.location.href = 'user-dashboard.html', 1000);
+                } else {
+                    showAlert(data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error', 'error');
+            }
+        });
+
+        // User registration
+        document.getElementById('user-register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = {
+                username: document.getElementById('reg-username').value,
+                password: document.getElementById('reg-password').value,
+                email: document.getElementById('reg-email').value,
+                phone: document.getElementById('reg-phone').value || null
+            };
+            try {
+                const response = await fetch(API_BASE + '/users/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(user)
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showAlert('Registration successful! Please login.', 'success');
+                    switchTab('user-login');
+                } else {
+                    showAlert(data.error || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error', 'error');
+            }
+        });
+
+        // Admin login
+        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            try {
+                const response = await fetch(API_BASE + '/admins/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setAdmin(data.admin);
+                    showAlert('Admin login successful!', 'success');
+                    setTimeout(() => window.location.href = 'admin-dashboard.html', 1000);
+                } else {
+                    showAlert(data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error', 'error');
+            }
+        });
+
+        // Check if already logged in
+        if (getUser()) {
+            window.location.href = 'user-dashboard.html';
+        } else if (getAdmin()) {
+            window.location.href = 'admin-dashboard.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments - Vaccine Appointment System</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+<body>
+    <div class="header">
+        <div class="navbar">
+            <h1>Vaccine Appointment System - My Appointments</h1>
+            <div class="nav-links">
+                <a href="user-dashboard.html">Dashboard</a>
+                <a href="user-profile.html">My Appointments</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert-container"></div>
+        <div class="card">
+            <h2>My Appointments</h2>
+            <table id="appointments-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Vaccine</th>
+                        <th>Appointment Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Appointments will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>My Vaccination Records</h2>
+            <table id="records-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Vaccine</th>
+                        <th>Vaccination Time</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Records will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const user = getUser();
+        if (!user) {
+            window.location.href = 'index.html';
+        }
+
+        // Load appointments
+        async function loadAppointments() {
+            try {
+                const data = await apiCall(`/appointments/user/${user.id}`);
+                const tbody = document.querySelector('#appointments-table tbody');
+                tbody.innerHTML = '';
+                data.forEach(appt => {
+                    const row = document.createElement('tr');
+                    const statusText = {
+                        0: 'Pending',
+                        1: 'Confirmed',
+                        2: 'Completed',
+                        3: 'Cancelled'
+                    }[appt.status] || 'Unknown';
+                    row.innerHTML = `
+                        <td>${appt.id}</td>
+                        <td>${appt.vaccine.name}</td>
+                        <td>${new Date(appt.appointmentTime).toLocaleString()}</td>
+                        <td>${statusText}</td>
+                        <td>
+                            ${appt.status === 0 || appt.status === 1 ?
+                                `<button class="btn btn-danger btn-small" onclick="cancelAppointment(${appt.id})">Cancel</button>` : ''}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                showAlert('Failed to load appointments', 'error');
+            }
+        }
+
+        // Load vaccination records
+        async function loadVaccinationRecords() {
+            try {
+                const data = await apiCall(`/vaccination-records/user/${user.id}`);
+                const tbody = document.querySelector('#records-table tbody');
+                tbody.innerHTML = '';
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    const statusText = record.status === 0 ? 'Scheduled' : 'Administered';
+                    row.innerHTML = `
+                        <td>${record.id}</td>
+                        <td>${record.vaccine.name}</td>
+                        <td>${new Date(record.vaccinationTime).toLocaleString()}</td>
+                        <td>${statusText}</td>
+                        <td>${record.notes || ''}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                // Ignore if no records
+            }
+        }
+
+        // Cancel appointment
+        async function cancelAppointment(appointmentId) {
+            if (!confirm('Are you sure you want to cancel this appointment?')) return;
+            try {
+                await apiCall(`/appointments/${appointmentId}/cancel`, {
+                    method: 'POST',
+                    body: JSON.stringify({ userId: user.id })
+                });
+                showAlert('Appointment cancelled successfully', 'success');
+                loadAppointments();
+            } catch (error) {
+                showAlert(error.message || 'Failed to cancel appointment', 'error');
+            }
+        }
+
+        // Initialize
+        loadAppointments();
+        loadVaccinationRecords();
+    </script>
+</body>
+</html>
