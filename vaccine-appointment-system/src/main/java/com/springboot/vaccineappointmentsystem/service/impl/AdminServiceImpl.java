@@ -4,7 +4,7 @@ import com.springboot.vaccineappointmentsystem.entity.Admin;
 import com.springboot.vaccineappointmentsystem.repository.AdminRepository;
 import com.springboot.vaccineappointmentsystem.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +19,7 @@ public class AdminServiceImpl implements AdminService {
     private AdminRepository adminRepository;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public Optional<Admin> login(String username, String password) {
