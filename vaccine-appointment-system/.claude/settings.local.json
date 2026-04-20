@@ -6,7 +6,11 @@
       "Bash(xargs grep *)",
       "Bash(cat)",
       "Bash(python /tmp/update_pom.py)",
-      "Bash(mvn --version)"
+      "Bash(mvn --version)",
+      "Bash(./mvnw.cmd compile *)",
+      "Bash(./mvnw.cmd clean *)",
+      "Bash(./mvnw.cmd spring-boot:run)",
+      "Bash(./mvnw compile *)"
     ]
   }
 }
