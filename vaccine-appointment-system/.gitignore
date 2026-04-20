@@ -37,3 +37,49 @@ src/main/resources/application-local.yml
 
 # CLAUDE
 .claude
+
+### Backup files ###
+*.backup
+*.bak
+*.backup*
+
+### Temporary files ###
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+### System files ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### Log files ###
+*.log
+logs/
+
+### Merge conflict files ###
+*.orig
+
+
+### Local development files ###
+src/main/resources/application-*.yml
+!src/main/resources/application.yml
+src/main/resources/application-*.properties
+!src/main/resources/application.properties
+
+### Dependency directories (non-Maven projects) ###
+lib/
+vendor/
+
+### Build artifacts ###
+*.jar
+*.war
+*.ear
+*.class
+
+### Build directories (already covered by target/) ###
+build/
+out/
+bin/
