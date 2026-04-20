@@ -8,12 +8,14 @@ CREATE TABLE IF NOT EXISTS `user` (
     `password` VARCHAR(100) NOT NULL,
     `email` VARCHAR(100) NOT NULL UNIQUE,
     `phone` VARCHAR(20),
+    `role` VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT 'USER, ADMIN, etc.',
     `status` TINYINT NOT NULL DEFAULT 1 COMMENT '0: inactive, 1: active',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     INDEX `idx_username` (`username`),
     INDEX `idx_email` (`email`),
+    INDEX `idx_role` (`role`),
     INDEX `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -61,8 +63,8 @@ CREATE TABLE IF NOT EXISTS `appointment` (
     INDEX `idx_vaccine_id` (`vaccine_id`),
     INDEX `idx_status` (`status`),
     INDEX `idx_appointment_time` (`appointment_time`),
-    -- Prevent duplicate pending appointment for same user and vaccine
-    UNIQUE INDEX `uniq_user_vaccine_pending` (`user_id`, `vaccine_id`, `status`) WHERE `status` = 0
+    -- Prevent duplicate appointment with same user, vaccine and status
+    UNIQUE INDEX `uniq_user_vaccine_status` (`user_id`, `vaccine_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Vaccination record table
@@ -80,6 +82,7 @@ CREATE TABLE IF NOT EXISTS `vaccination_record` (
     FOREIGN KEY (`appointment_id`) REFERENCES `appointment`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine`(`id`) ON DELETE CASCADE,
+    UNIQUE INDEX `uniq_appointment` (`appointment_id`),
     INDEX `idx_user_id` (`user_id`),
     INDEX `idx_vaccine_id` (`vaccine_id`),
     INDEX `idx_status` (`status`),
