@@ -52,3 +52,57 @@ INSERT INTO `vaccination_record` (`appointment_id`, `user_id`, `vaccine_id`, `va
 (2, 2, 3, DATE_SUB(NOW(), INTERVAL 1 DAY), 1, 'Single-dose COVID vaccine. Mild sore arm reported.'),
 (8, 2, 8, DATE_ADD(NOW(), INTERVAL 30 DAY), 0, 'Scheduled for MMR vaccination.')
 ON DUPLICATE KEY UPDATE `status` = VALUES(`status`), `notes` = VALUES(`notes`);
+
+-- ============================================
+-- Additional data added on 2026-04-21
+-- ============================================
+
+-- Insert additional users
+-- BCrypt hash for "user123": $2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVXgvC
+INSERT INTO `user` (`username`, `password`, `email`, `phone`, `role`, `status`)
+VALUES ('michael_brown', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVXgvC', 'michael.brown@example.com',
+        '13300133000', 'USER', 1),
+       ('sarah_lee', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVXgvC', 'sarah.lee@example.com',
+        '13200132000', 'USER', 1),
+       ('david_zhang', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVXgvC', 'david.zhang@example.com',
+        '13100131000', 'USER', 1),
+       ('emily_chen', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVXgvC', 'emily.chen@example.com',
+        '13000130000', 'USER', 1),
+       ('william_wu', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVXgvC', 'william.wu@example.com',
+        '12900129000', 'USER', 1)
+ON DUPLICATE KEY UPDATE `password` = VALUES(`password`),
+                        `role`     = VALUES(`role`),
+                        `status`   = VALUES(`status`);
+
+-- Insert additional vaccines
+INSERT INTO `vaccine` (`name`, `manufacturer`, `description`, `stock_quantity`, `available`, `image_url`)
+VALUES ('Varicella (Chickenpox) Vaccine', 'Merck', 'Vaccine for chickenpox, 2 doses recommended', 300, TRUE,
+        'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop'),
+       ('Pneumococcal Conjugate Vaccine (PCV13)', 'Pfizer', 'Protects against 13 types of pneumococcal bacteria', 450,
+        TRUE, 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop'),
+       ('Rotavirus Vaccine', 'GSK', 'Oral vaccine for rotavirus gastroenteritis, 2-3 doses', 250, TRUE,
+        'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop')
+ON DUPLICATE KEY UPDATE `stock_quantity` = VALUES(`stock_quantity`),
+                        `available`      = VALUES(`available`),
+                        `image_url`      = VALUES(`image_url`);
+
+-- Insert additional appointments
+-- User IDs: 7-11 (new users), Vaccine IDs: 9-11 (new vaccines)
+INSERT INTO `appointment` (`user_id`, `vaccine_id`, `appointment_time`, `status`)
+VALUES (7, 9, DATE_ADD(NOW(), INTERVAL 5 DAY), 0),   -- michael_brown, Varicella, pending
+       (8, 10, DATE_ADD(NOW(), INTERVAL 8 DAY), 1),  -- sarah_lee, PCV13, confirmed
+       (9, 11, DATE_ADD(NOW(), INTERVAL 12 DAY), 0), -- david_zhang, Rotavirus, pending
+       (10, 9, DATE_ADD(NOW(), INTERVAL 15 DAY), 2), -- emily_chen, Varicella, completed
+       (11, 10, DATE_ADD(NOW(), INTERVAL 20 DAY), 1) -- william_wu, PCV13, confirmed
+ON DUPLICATE KEY UPDATE `status` = VALUES(`status`);
+
+-- Insert additional vaccination records
+-- Appointment IDs: 9-13 correspond to new appointments above
+INSERT INTO `vaccination_record` (`appointment_id`, `user_id`, `vaccine_id`, `vaccination_time`, `status`, `notes`)
+VALUES (10, 10, 9, DATE_SUB(NOW(), INTERVAL 3 DAY), 1, 'Chickenpox vaccine first dose. No issues.'),
+       (11, 11, 10, DATE_SUB(NOW(), INTERVAL 1 DAY), 1, 'PCV13 administered. Patient reported mild fatigue.'),
+       (9, 7, 9, DATE_ADD(NOW(), INTERVAL 5 DAY), 0, 'Scheduled for Varicella vaccination.'),
+       (12, 8, 10, DATE_ADD(NOW(), INTERVAL 8 DAY), 0, 'Upcoming PCV13 appointment.'),
+       (13, 9, 11, DATE_ADD(NOW(), INTERVAL 12 DAY), 0, 'Rotavirus vaccine scheduled.')
+ON DUPLICATE KEY UPDATE `status` = VALUES(`status`),
+                        `notes`  = VALUES(`notes`);
