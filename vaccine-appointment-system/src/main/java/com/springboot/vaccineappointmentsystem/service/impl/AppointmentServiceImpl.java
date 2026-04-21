@@ -95,6 +95,21 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    public Appointment cancelAppointmentByAdmin(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        if (appointment.getStatus() == 3) {
+            throw new RuntimeException("Appointment already cancelled");
+        }
+        appointment.setStatus(3); // cancelled
+        // Increase stock back
+        Vaccine vaccine = appointment.getVaccine();
+        vaccine.setStockQuantity(vaccine.getStockQuantity() + 1);
+        vaccineRepository.save(vaccine);
+        return appointmentRepository.save(appointment);
+    }
+
+    @Override
     public Appointment confirmAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));

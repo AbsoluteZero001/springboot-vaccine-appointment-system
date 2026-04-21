@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface AppointmentService {
     Appointment createAppointment(Long userId, Long vaccineId, LocalDateTime appointmentTime);
     Appointment cancelAppointment(Long appointmentId, Long userId);
+    Appointment cancelAppointmentByAdmin(Long appointmentId);
     Appointment confirmAppointment(Long appointmentId);
     Appointment completeAppointment(Long appointmentId);
     Optional<Appointment> getAppointmentById(Long id);

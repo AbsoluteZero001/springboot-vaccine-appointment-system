@@ -1,10 +1,15 @@
 package com.springboot.vaccineappointmentsystem.controller;
 
+import com.springboot.vaccineappointmentsystem.config.JwtTokenProvider;
 import com.springboot.vaccineappointmentsystem.entity.Admin;
 import com.springboot.vaccineappointmentsystem.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -19,17 +24,29 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
         String password = credentials.get("password");
-        Optional<Admin> adminOpt = adminService.login(username, password);
-        if (adminOpt.isPresent()) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtTokenProvider.generateToken(authentication);
             Map<String, Object> response = new HashMap<>();
-            response.put("admin", adminOpt.get());
+            response.put("accessToken", jwt);
+            response.put("tokenType", "Bearer");
+            response.put("admin", authentication.getPrincipal());
             response.put("message", "Admin login successful");
             return ResponseEntity.ok(response);
-        } else {
+        } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Invalid username or password");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);

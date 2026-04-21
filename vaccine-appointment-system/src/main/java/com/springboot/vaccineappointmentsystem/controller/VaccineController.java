@@ -1,11 +1,16 @@
 package com.springboot.vaccineappointmentsystem.controller;
 
+import com.springboot.vaccineappointmentsystem.dto.ApiResponse;
 import com.springboot.vaccineappointmentsystem.entity.Vaccine;
+import com.springboot.vaccineappointmentsystem.service.FileStorageService;
 import com.springboot.vaccineappointmentsystem.service.VaccineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +23,9 @@ public class VaccineController {
 
     @Autowired
     private VaccineService vaccineService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @GetMapping
     public List<Vaccine> getAllVaccines() {
@@ -42,6 +50,7 @@ public class VaccineController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createVaccine(@RequestBody Vaccine vaccine) {
         try {
             Vaccine created = vaccineService.createVaccine(vaccine);
@@ -54,6 +63,7 @@ public class VaccineController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateVaccine(@PathVariable Long id, @RequestBody Vaccine vaccineDetails) {
         try {
             Vaccine updated = vaccineService.updateVaccine(id, vaccineDetails);
@@ -66,6 +76,7 @@ public class VaccineController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteVaccine(@PathVariable Long id) {
         try {
             vaccineService.deleteVaccine(id);
@@ -80,6 +91,7 @@ public class VaccineController {
     }
 
     @PatchMapping("/{id}/stock")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateStock(@PathVariable Long id, @RequestBody Map<String, Integer> payload) {
         Integer quantity = payload.get("quantity");
         if (quantity == null) {
@@ -98,6 +110,7 @@ public class VaccineController {
     }
 
     @PatchMapping("/{id}/availability")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> toggleAvailability(@PathVariable Long id, @RequestBody Map<String, Boolean> payload) {
         Boolean available = payload.get("available");
         if (available == null) {
@@ -118,5 +131,43 @@ public class VaccineController {
     @GetMapping("/search")
     public List<Vaccine> searchVaccines(@RequestParam String name) {
         return vaccineService.searchVaccinesByName(name);
+    }
+
+    @PostMapping(value = "/{id}/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> uploadVaccineImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "File is empty");
+                return ResponseEntity.badRequest().body(error);
+            }
+            // Validate file type
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Only image files are allowed");
+                return ResponseEntity.badRequest().body(error);
+            }
+            // Store file and get URL
+            String imageUrl = fileStorageService.storeFile(file);
+            // Update vaccine with image URL
+            Vaccine vaccine = vaccineService.getVaccineById(id)
+                    .orElseThrow(() -> new RuntimeException("Vaccine not found"));
+            vaccine.setImageUrl(imageUrl);
+            Vaccine updated = vaccineService.updateVaccine(id, vaccine);
+            Map<String, Object> response = new HashMap<>();
+            response.put("vaccine", updated);
+            response.put("imageUrl", imageUrl);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to upload image");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 }

@@ -1,6 +1,7 @@
 // Global state
 let currentUser = null;
 let currentAdmin = null;
+let currentToken = null;
 const API_BASE = 'http://localhost:8080/api';
 
 // Helper functions
@@ -21,12 +22,20 @@ function clearAlerts(containerId = 'alert-container') {
 
 async function apiCall(endpoint, options = {}) {
     const url = API_BASE + endpoint;
+    const token = getAuthToken();
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',
         },
     };
+    if (token) {
+        defaultOptions.headers['Authorization'] = 'Bearer ' + token;
+    }
     const finalOptions = { ...defaultOptions, ...options };
+    // Merge headers deeply
+    if (options.headers) {
+        finalOptions.headers = { ...defaultOptions.headers, ...options.headers };
+    }
     try {
         const response = await fetch(url, finalOptions);
         const data = await response.json();
@@ -71,11 +80,32 @@ function getAdmin() {
     return null;
 }
 
-function logout() {
+function setAuthToken(token) {
+    currentToken = token;
+    localStorage.setItem('accessToken', token);
+}
+
+function getAuthToken() {
+    if (currentToken) return currentToken;
+    const stored = localStorage.getItem('accessToken');
+    if (stored) {
+        currentToken = stored;
+        return currentToken;
+    }
+    return null;
+}
+
+function clearAuth() {
     currentUser = null;
     currentAdmin = null;
+    currentToken = null;
     localStorage.removeItem('user');
     localStorage.removeItem('admin');
+    localStorage.removeItem('accessToken');
+}
+
+function logout() {
+    clearAuth();
     window.location.href = '/';
 }
 

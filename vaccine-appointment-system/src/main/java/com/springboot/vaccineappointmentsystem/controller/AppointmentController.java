@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -90,6 +91,19 @@ public class AppointmentController {
     public ResponseEntity<?> confirmAppointment(@PathVariable Long id) {
         try {
             Appointment appointment = appointmentService.confirmAppointment(id);
+            return ResponseEntity.ok(appointment);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PostMapping("/{id}/cancel/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> cancelAppointmentByAdmin(@PathVariable Long id) {
+        try {
+            Appointment appointment = appointmentService.cancelAppointmentByAdmin(id);
             return ResponseEntity.ok(appointment);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();

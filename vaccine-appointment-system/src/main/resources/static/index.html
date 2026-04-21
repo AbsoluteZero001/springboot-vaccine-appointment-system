@@ -108,6 +108,7 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
+                    setAuthToken(data.accessToken);
                     setUser(data.user);
                     showAlert('Login successful!', 'success');
                     setTimeout(() => window.location.href = 'user-dashboard.html', 1000);
@@ -159,6 +160,7 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
+                    setAuthToken(data.accessToken);
                     setAdmin(data.admin);
                     showAlert('Admin login successful!', 'success');
                     setTimeout(() => window.location.href = 'admin-dashboard.html', 1000);

@@ -66,6 +66,9 @@
                     const card = document.createElement('div');
                     card.className = 'vaccine-card';
                     card.innerHTML = `
+                        <div style="text-align: center;">
+                            ${vaccine.imageUrl ? `<img src="${vaccine.imageUrl}" alt="${vaccine.name}" style="max-width: 100%; height: 150px; object-fit: cover; border-radius: 8px;">` : '<div style="height: 150px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: #999;">No Image</div>'}
+                        </div>
                         <h3>${vaccine.name}</h3>
                         <p><strong>Manufacturer:</strong> ${vaccine.manufacturer || 'N/A'}</p>
                         <p><strong>Stock:</strong> <span class="stock">${vaccine.stockQuantity}</span></p>

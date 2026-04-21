@@ -30,6 +30,9 @@ public class Vaccine {
     @Column(nullable = false)
     private Boolean available = true;
 
+    @Column(length = 255)
+    private String imageUrl;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createTime;

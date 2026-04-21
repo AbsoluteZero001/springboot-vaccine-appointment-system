@@ -55,6 +55,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Image</th>
                         <th>Name</th>
                         <th>Manufacturer</th>
                         <th>Stock</th>
@@ -87,12 +88,17 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${vaccine.id}</td>
+                        <td>
+                            ${vaccine.imageUrl ? `<img src="${vaccine.imageUrl}" alt="${vaccine.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">` : 'No Image'}
+                        </td>
                         <td>${vaccine.name}</td>
                         <td>${vaccine.manufacturer || 'N/A'}</td>
                         <td>${vaccine.stockQuantity}</td>
                         <td>${vaccine.available ? 'Yes' : 'No'}</td>
                         <td>
-                            <button class="btn btn-small" onclick="editVaccine(${vaccine.id})">Edit</button>
+                            <button class="btn btn-small" onclick="editVaccine(${vaccine.id})">Edit Stock</button>
+                            <button class="btn btn-small btn-warning" onclick="toggleAvailability(${vaccine.id}, ${vaccine.available})">${vaccine.available ? 'Disable' : 'Enable'}</button>
+                            <button class="btn btn-small btn-info" onclick="uploadImage(${vaccine.id})">Upload Image</button>
                             <button class="btn btn-danger btn-small" onclick="deleteVaccine(${vaccine.id})">Delete</button>
                         </td>
                     `;
@@ -156,6 +162,64 @@
             } catch (error) {
                 showAlert(error.message || 'Failed to delete vaccine', 'error');
             }
+        }
+
+        // Toggle vaccine availability
+        async function toggleAvailability(vaccineId, currentAvailability) {
+            if (!confirm(`Are you sure you want to ${currentAvailability ? 'disable' : 'enable'} this vaccine?`)) return;
+            try {
+                await apiCall(`/vaccines/${vaccineId}/availability`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ available: !currentAvailability })
+                });
+                showAlert('Availability updated successfully', 'success');
+                loadVaccines();
+            } catch (error) {
+                showAlert(error.message || 'Failed to update availability', 'error');
+            }
+        }
+
+        // Upload image for vaccine
+        async function uploadImage(vaccineId) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showAlert('File size must be less than 5MB', 'error');
+                    return;
+                }
+
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    showAlert('Uploading image...', 'info');
+                    const response = await fetch(API_BASE + `/vaccines/${vaccineId}/upload-image`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${getAuthToken()}`
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        showAlert('Image uploaded successfully', 'success');
+                        loadVaccines();
+                    } else {
+                        showAlert(data.error || 'Failed to upload image', 'error');
+                    }
+                } catch (error) {
+                    showAlert('Network error', 'error');
+                }
+            };
+            input.click();
         }
 
         // Initialize

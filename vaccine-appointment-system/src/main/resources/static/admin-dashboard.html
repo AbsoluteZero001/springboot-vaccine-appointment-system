@@ -132,9 +132,12 @@
         async function cancelAppointmentAdmin(appointmentId) {
             if (!confirm('Are you sure you want to cancel this appointment?')) return;
             try {
-                // Note: Admin cancel endpoint not implemented yet, we'll use same as user cancel but with admin privileges
-                // For now, just show error
-                showAlert('Admin cancel not implemented yet', 'error');
+                await apiCall(`/appointments/${appointmentId}/cancel/admin`, {
+                    method: 'POST'
+                });
+                showAlert('Appointment cancelled successfully', 'success');
+                loadPendingAppointments();
+                loadOverview();
             } catch (error) {
                 showAlert(error.message || 'Failed to cancel appointment', 'error');
             }
