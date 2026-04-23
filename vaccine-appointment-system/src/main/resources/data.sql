@@ -12,7 +12,8 @@ ON DUPLICATE KEY UPDATE `password` = VALUES(`password`), `role` = VALUES(`role`)
 INSERT INTO `vaccine` (`name`, `manufacturer`, `description`, `stock_quantity`, `available`, `image_url`) VALUES
 ('Pfizer-BioNTech COVID-19 Vaccine', 'Pfizer, BioNTech', 'mRNA vaccine for COVID-19, requires 2 doses 21 days apart', 1000, TRUE, 'https://images.unsplash.com/photo-1584467735871-8db9ac8d091c?w=400&h=300&fit=crop'),
 ('Moderna COVID-19 Vaccine', 'Moderna', 'mRNA vaccine for COVID-19, requires 2 doses 28 days apart', 800, TRUE, 'https://images.unsplash.com/photo-1584467735871-8db9ac8d091c?w=400&h=300&fit=crop'),
-('Johnson & Johnson COVID-19 Vaccine', 'Janssen', 'Single-dose COVID-19 vaccine', 500, TRUE, 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w-400&h=300&fit=crop'),
+('Johnson & Johnson COVID-19 Vaccine', 'Janssen', 'Single-dose COVID-19 vaccine', 500, TRUE,
+ 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop'),
 ('Influenza Vaccine 2023', 'Various manufacturers', 'Seasonal flu vaccine for 2023-2024 season', 1200, TRUE, 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop'),
 ('Hepatitis B Vaccine', 'GSK', 'Vaccine for Hepatitis B, requires 3 doses over 6 months', 600, TRUE, 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop'),
 ('HPV Vaccine (Gardasil 9)', 'Merck', 'Human Papillomavirus vaccine, 2-3 doses depending on age', 400, TRUE, 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop'),

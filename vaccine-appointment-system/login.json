@@ -1,0 +1,25 @@
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlcjIiLCJhdXRob3JpdGllcyI6IlJPTEVfVVNFUiIsImlhdCI6MTc3NjkxMTM3MywiZXhwIjoxNzc2OTk3NzczfQ.PlNLuIjrLI9xChnID6NR4dnfX-qo4MfqYMqL4tPIXN4",
+  "tokenType": "Bearer",
+  "message": "Login successful",
+  "user": {
+    "id": 6,
+    "username": "testuser2",
+    "password": "$2a$10$PneSEEoj.7coZZ9XoDO3LOssfBYaeto3VgL4A5HM3NNX5uq1nNSE.",
+    "email": "test2@example.com",
+    "phone": "13800138001",
+    "role": "USER",
+    "status": 1,
+    "createTime": "2026-04-23T10:29:16.722322",
+    "updateTime": "2026-04-23T10:29:16.722322",
+    "enabled": true,
+    "authorities": [
+      {
+        "authority": "ROLE_USER"
+      }
+    ],
+    "accountNonLocked": true,
+    "accountNonExpired": true,
+    "credentialsNonExpired": true
+  }
+}
