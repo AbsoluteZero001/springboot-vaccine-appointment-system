@@ -4,6 +4,9 @@ let currentAdmin = null;
 let currentToken = null;
 const API_BASE = 'http://localhost:8080/api';
 
+// Loading state
+let isLoading = false;
+
 // Helper functions
 function showAlert(message, type = 'success', containerId = 'alert-container') {
     const container = document.getElementById(containerId);
@@ -18,6 +21,85 @@ function showAlert(message, type = 'success', containerId = 'alert-container') {
 function clearAlerts(containerId = 'alert-container') {
     const container = document.getElementById(containerId);
     if (container) container.innerHTML = '';
+}
+
+function showLoading(show = true, message = 'Loading...') {
+    let loader = document.getElementById('global-loader');
+    if (!loader && show) {
+        loader = document.createElement('div');
+        loader.id = 'global-loader';
+        loader.className = 'global-loader';
+        loader.innerHTML = `
+            <div class="loader-overlay"></div>
+            <div class="loader-content">
+                <div class="loading"></div>
+                <p>${message}</p>
+            </div>
+        `;
+        document.body.appendChild(loader);
+        // Add styles if not already present
+        if (!document.querySelector('#loader-styles')) {
+            const style = document.createElement('style');
+            style.id = 'loader-styles';
+            style.textContent = `
+                .global-loader {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .loader-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.85);
+                    backdrop-filter: blur(5px);
+                }
+                .loader-content {
+                    position: relative;
+                    z-index: 1;
+                    background: white;
+                    padding: 40px;
+                    border-radius: 20px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+                    text-align: center;
+                    min-width: 200px;
+                }
+                .loader-content .loading {
+                    display: inline-block;
+                    width: 50px;
+                    height: 50px;
+                    border: 3px solid #f3f3f3;
+                    border-top: 3px solid #4361ee;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin-bottom: 20px;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .loader-content p {
+                    margin: 0;
+                    color: #333;
+                    font-weight: 500;
+                    font-size: 16px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+    if (loader) {
+        loader.style.display = show ? 'flex' : 'none';
+    }
+    isLoading = show;
 }
 
 async function apiCall(endpoint, options = {}) {
@@ -36,16 +118,37 @@ async function apiCall(endpoint, options = {}) {
     if (options.headers) {
         finalOptions.headers = { ...defaultOptions.headers, ...options.headers };
     }
+
+    // Show loading for non-GET requests or longer operations
+    const showLoader = options.method && options.method !== 'GET';
+    if (showLoader) {
+        showLoading(true, 'Processing...');
+    }
+
     try {
         const response = await fetch(url, finalOptions);
-        const data = await response.json();
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        let data;
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            data = await response.text();
+        }
+
         if (!response.ok) {
-            throw new Error(data.error || `HTTP ${response.status}`);
+            throw new Error(typeof data === 'object' ? (data.error || `HTTP ${response.status}`) : `HTTP ${response.status}`);
         }
         return data;
     } catch (error) {
         console.error('API call failed:', error);
+        showAlert(error.message || 'Request failed', 'error');
         throw error;
+    } finally {
+        if (showLoader) {
+            setTimeout(() => showLoading(false), 300);
+        }
     }
 }
 
@@ -133,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         guestElements.forEach(el => el.classList.add('hidden'));
     }
 });
-
+    
 // Tab switching
 function switchTab(tabName) {
     document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));

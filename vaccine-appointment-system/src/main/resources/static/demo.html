@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaccine Appointment System - Demo</title>
+    <link rel="stylesheet" href="common.css">
+    <style>
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .demo-section {
+            margin-bottom: 50px;
+        }
+
+        .demo-section h2 {
+            color: #4361ee;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4361ee;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .component-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .component-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .component-title {
+            color: #4361ee;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .color-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .primary-color {
+            background: #4361ee;
+        }
+
+        .secondary-color {
+            background: #7209b7;
+        }
+
+        .success-color {
+            background: #4cc9f0;
+        }
+
+        .danger-color {
+            background: #f72585;
+        }
+
+        .warning-color {
+            background: #f8961e;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="navbar">
+        <h1>Vaccine Appointment System - UI Demo</h1>
+        <div class="nav-links">
+            <a href="index.html">Back to Login</a>
+            <a href="demo.html">Refresh Demo</a>
+        </div>
+    </div>
+</div>
+
+<div class="demo-container">
+    <div class="card" style="text-align: center; margin-bottom: 40px;">
+        <h1 style="color: #4361ee; margin-bottom: 15px;">Modern UI Redesign Complete!</h1>
+        <p style="color: #6c757d; font-size: 1.1rem;">The vaccine appointment system has been updated with modern
+            styling and enhanced user experience.</p>
+    </div>
+
+    <div class="demo-section">
+        <h2>Color Palette</h2>
+        <div class="component-card">
+            <div class="component-title">Modern Color Scheme</div>
+            <p>Updated color palette with gradient effects and modern aesthetics.</p>
+            <div class="color-palette">
+                <div class="color-box primary-color">Primary</div>
+                <div class="color-box secondary-color">Secondary</div>
+                <div class="color-box success-color">Success</div>
+                <div class="color-box danger-color">Danger</div>
+                <div class="color-box warning-color">Warning</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>UI Components</h2>
+        <div class="component-grid">
+            <div class="component-card">
+                <div class="component-title">Buttons</div>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button class="btn">Primary Button</button>
+                    <button class="btn btn-success">Success Button</button>
+                    <button class="btn btn-danger">Danger Button</button>
+                    <button class="btn btn-small">Small Button</button>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-title">Forms</div>
+                <form style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="form-group">
+                        <label for="demo-username">Username</label>
+                        <input type="text" id="demo-username" class="form-control" placeholder="Enter username">
+                    </div>
+                    <div class="form-group">
+                        <label for="demo-password">Password</label>
+                        <input type="password" id="demo-password" class="form-control" placeholder="Enter password">
+                    </div>
+                    <div class="form-group">
+                        <label for="demo-email">Email</label>
+                        <input type="email" id="demo-email" class="form-control" placeholder="Enter email">
+                    </div>
+                    <button type="submit" class="btn">Submit Form</button>
+                </form>
+            </div>
+
+            <div class="component-card">
+                <div class="component-title">Alerts</div>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="alert alert-success">Success alert message</div>
+                    <div class="alert alert-error">Error alert message</div>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-title">Cards</div>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="vaccine-card">
+                        <h3>COVID-19 Vaccine</h3>
+                        <p><strong>Manufacturer:</strong> Pfizer</p>
+                        <p><strong>Stock:</strong> <span class="stock">150</span></p>
+                        <p><strong>Status:</strong> Available</p>
+                        <p>mRNA vaccine for COVID-19 prevention</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>Navigation</h2>
+        <div class="component-card">
+            <div class="component-title">Navigation Bar</div>
+            <p>Modern navigation with gradient background and hover effects.</p>
+            <div style="background: linear-gradient(135deg, #4361ee, #7209b7); padding: 20px; border-radius: 10px; margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="color: white; margin: 0;">System Navigation</h3>
+                    <div style="display: flex; gap: 15px;">
+                        <a href="#"
+                           style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 50px; background: rgba(255, 255, 255, 0.1);">Dashboard</a>
+                        <a href="#"
+                           style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 50px; background: rgba(255, 255, 255, 0.1);">Profile</a>
+                        <a href="#"
+                           style="color: white; text-decoration: none; padding: 8px 16px; border-radius: 50px; background: rgba(255, 255, 255, 0.1);">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>Enhanced Features</h2>
+        <div class="component-grid">
+            <div class="component-card">
+                <div class="component-title">Loading Animation</div>
+                <p>Smooth loading animations for better user experience.</p>
+                <div style="text-align: center; padding: 20px;">
+                    <div class="loading"></div>
+                    <p style="margin-top: 15px; color: #6c757d;">Loading indicator</p>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-title">Responsive Design</div>
+                <p>Fully responsive layout that works on all devices.</p>
+                <ul style="margin-top: 15px; padding-left: 20px; color: #6c757d;">
+                    <li>Mobile-friendly navigation</li>
+                    <li>Adaptive grid layouts</li>
+                    <li>Touch-friendly buttons</li>
+                    <li>Optimized for tablets</li>
+                </ul>
+            </div>
+
+            <div class="component-card">
+                <div class="component-title">Modern Effects</div>
+                <p>Enhanced visual effects for better engagement.</p>
+                <ul style="margin-top: 15px; padding-left: 20px; color: #6c757d;">
+                    <li>Smooth transitions</li>
+                    <li>Hover animations</li>
+                    <li>Gradient backgrounds</li>
+                    <li>Box shadows</li>
+                    <li>Custom scrollbars</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="text-align: center; background: linear-gradient(135deg, #f8fafc, #e2e8f0);">
+        <h3 style="color: #4361ee; margin-bottom: 15px;">Ready to Use!</h3>
+        <p style="color: #6c757d; margin-bottom: 20px;">The vaccine appointment system is now fully styled and ready for
+            use.</p>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <a href="index.html" class="btn">Go to Login</a>
+            <a href="user-dashboard.html" class="btn btn-success">User Dashboard</a>
+            <a href="admin-dashboard.html" class="btn btn-secondary">Admin Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <p>Vaccine Appointment System &copy; 2026 | Modern UI Redesign Demo</p>
+        <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">Enhanced with modern styling, animations, and
+            improved user experience</p>
+    </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+    // Demo form submission
+    document.querySelector('form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        showAlert('Form submitted successfully! (Demo)', 'success');
+    });
+
+    // Demo button interactions
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            if (!this.href) {
+                e.preventDefault();
+                showAlert('Button clicked! (Demo)', 'success');
+            }
+        });
+    });
+</script>
+</body>
+</html>
