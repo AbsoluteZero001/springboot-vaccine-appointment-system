@@ -1,111 +1,309 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Vaccines - Vaccine Appointment System</title>
+    <title>疫苗管理 - 疫苗预约系统</title>
     <link rel="stylesheet" href="common.css">
+    <style>
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .edit-modal.active {
+            display: flex;
+        }
+
+        .edit-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 640px;
+            max-width: 92vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .edit-modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 18px 24px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edit-modal-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .edit-modal-body {
+            padding: 24px;
+        }
+
+        .table-spec {
+            font-size: 0.82rem;
+            color: var(--gray-color);
+        }
+
+        @media (max-width: 768px) {
+            .form-row, .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="header">
         <div class="navbar">
-            <h1>Vaccine Appointment System - Manage Vaccines</h1>
+            <h1>疫苗预约系统 - 疫苗管理</h1>
             <div class="nav-links">
-                <a href="admin-dashboard.html">Dashboard</a>
-                <a href="admin-vaccine.html">Manage Vaccines</a>
-                <a href="admin-users.html">Manage Users</a>
-                <a href="#" onclick="logout()">Logout</a>
+                <a href="admin-dashboard.html">控制台</a>
+                <a href="admin-vaccine.html">疫苗管理</a>
+                <a href="admin-users.html">用户管理</a>
+                <a href="#" onclick="logout()">退出</a>
             </div>
         </div>
     </div>
 
     <div class="container">
         <div id="alert-container"></div>
+
+        <!-- Add Vaccine Form -->
         <div class="card">
-            <h2>Add New Vaccine</h2>
+            <h2>添加新疫苗</h2>
             <form id="add-vaccine-form">
                 <div class="form-group">
-                    <label for="vaccine-name">Vaccine Name</label>
-                    <input type="text" id="vaccine-name" class="form-control" required>
+                    <label for="vaccine-name">疫苗名称 *</label>
+                    <input type="text" id="vaccine-name" class="form-control"
+                           placeholder="如：重组乙型肝炎疫苗（CHO细胞）10μg" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="vaccine-category">分类</label>
+                        <input type="text" id="vaccine-category" class="form-control" placeholder="如：乙肝疫苗">
+                    </div>
+                    <div class="form-group">
+                        <label for="vaccine-brand">品牌</label>
+                        <input type="text" id="vaccine-brand" class="form-control" placeholder="如：Engerix-B">
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label for="vaccine-dosage">剂量规格</label>
+                        <input type="text" id="vaccine-dosage" class="form-control" placeholder="如：10μg/0.5ml">
+                    </div>
+                    <div class="form-group">
+                        <label for="vaccine-technique">制作工艺</label>
+                        <input type="text" id="vaccine-technique" class="form-control" placeholder="如：CHO细胞">
+                    </div>
+                    <div class="form-group">
+                        <label for="vaccine-doses">需接种剂次</label>
+                        <input type="number" id="vaccine-doses" class="form-control" placeholder="如：3" min="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="vaccine-age">适用人群</label>
+                        <input type="text" id="vaccine-age" class="form-control" placeholder="如：全年龄段">
+                    </div>
+                    <div class="form-group">
+                        <label for="vaccine-disease">预防疾病</label>
+                        <input type="text" id="vaccine-disease" class="form-control" placeholder="如：预防乙型肝炎">
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="vaccine-manufacturer">Manufacturer</label>
-                    <input type="text" id="vaccine-manufacturer" class="form-control">
+                    <label for="vaccine-manufacturer">生产厂家</label>
+                    <input type="text" id="vaccine-manufacturer" class="form-control" placeholder="如：华北制药金坦生物">
                 </div>
                 <div class="form-group">
-                    <label for="vaccine-description">Description</label>
-                    <textarea id="vaccine-description" class="form-control" rows="3"></textarea>
+                    <label for="vaccine-schedule">接种时间安排</label>
+                    <textarea id="vaccine-schedule" class="form-control" rows="2"
+                              placeholder="如：周一至周五 8:00-11:30, 14:00-16:30；周末休息"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="vaccine-stock">Stock Quantity</label>
-                    <input type="number" id="vaccine-stock" class="form-control" value="0" min="0" required>
+                    <label for="vaccine-description">疫苗简介</label>
+                    <textarea id="vaccine-description" class="form-control" rows="3"
+                              placeholder="简要描述疫苗的特点和适用信息"></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="vaccine-available">
-                        <input type="checkbox" id="vaccine-available" checked> Available
-                    </label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="vaccine-stock">库存数量 *</label>
+                        <input type="number" id="vaccine-stock" class="form-control" value="100" min="0" required>
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:center; gap:12px; padding-top:28px;">
+                        <input type="checkbox" id="vaccine-available" checked style="width:18px;height:18px;">
+                        <label for="vaccine-available" style="margin:0; cursor:pointer;">上架可用</label>
+                    </div>
                 </div>
-                <button type="submit" class="btn">Add Vaccine</button>
+                <button type="submit" class="btn">添加疫苗</button>
             </form>
         </div>
 
+        <!-- Vaccine List -->
         <div class="card">
-            <h2>Vaccine List</h2>
+            <h2>疫苗列表</h2>
             <table id="vaccines-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Manufacturer</th>
-                        <th>Stock</th>
-                        <th>Available</th>
-                        <th>Actions</th>
+                        <th>疫苗名称</th>
+                        <th>分类</th>
+                        <th>规格/工艺</th>
+                        <th>库存</th>
+                        <th>状态</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- Vaccines will be loaded here -->
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div class="edit-modal" id="editModal">
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3>编辑疫苗</h3>
+                <button class="modal-close" onclick="document.getElementById('editModal').classList.remove('active')">
+                    ✕
+                </button>
+            </div>
+            <div class="edit-modal-body">
+                <form id="edit-vaccine-form">
+                    <div class="form-group">
+                        <label>疫苗名称</label>
+                        <input type="text" id="edit-name" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>分类</label>
+                            <input type="text" id="edit-category" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>品牌</label>
+                            <input type="text" id="edit-brand" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>剂量规格</label>
+                            <input type="text" id="edit-dosage" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>制作工艺</label>
+                            <input type="text" id="edit-technique" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>剂次</label>
+                            <input type="number" id="edit-doses" class="form-control" min="1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>适用人群</label>
+                            <input type="text" id="edit-age" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>预防疾病</label>
+                            <input type="text" id="edit-disease" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>生产厂家</label>
+                        <input type="text" id="edit-manufacturer" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>接种时间安排</label>
+                        <textarea id="edit-schedule" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>简介</label>
+                        <textarea id="edit-description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>库存</label>
+                            <input type="number" id="edit-stock" class="form-control" min="0" required>
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:center; gap:12px; padding-top:28px;">
+                            <input type="checkbox" id="edit-available" style="width:18px;height:18px;">
+                            <label for="edit-available" style="margin:0; cursor:pointer;">上架可用</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">保存修改</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>疫苗预约系统 © 2026 | 管理员后台</p>
+        </div>
+    </footer>
+
     <script src="app.js"></script>
     <script>
-        // Check authentication
         const admin = getAdmin();
         if (!admin) {
             window.location.href = 'index.html';
         }
 
-        // Load vaccines
+        let editVaccineId = null;
+
         async function loadVaccines() {
             try {
                 const data = await apiCall('/vaccines');
                 const tbody = document.querySelector('#vaccines-table tbody');
                 tbody.innerHTML = '';
-                data.forEach(vaccine => {
+                data.forEach(v => {
                     const row = document.createElement('tr');
+                    const spec = [v.dosage, v.technique].filter(Boolean).join(' / ');
+                    const isAvailable = v.available && v.stockQuantity > 0;
                     row.innerHTML = `
-                        <td>${vaccine.id}</td>
+                        <td>${v.id}</td>
+                        <td><strong>${v.name}</strong>${v.brand ? `<br><span class="table-spec">${v.brand}</span>` : ''}</td>
+                        <td>${v.category || '—'}</td>
+                        <td class="table-spec">${spec || '—'}</td>
+                        <td>${v.stockQuantity}</td>
+                        <td><span style="padding:2px 10px; border-radius:50px; font-size:0.8rem; font-weight:600;
+                            background:${isAvailable ? '#f0fdf4' : '#fef2f2'};
+                            color:${isAvailable ? '#16a34a' : '#dc2626'};">${isAvailable ? '上架' : '下架'}</span></td>
                         <td>
-                            ${vaccine.imageUrl ? `<img src="${vaccine.imageUrl}" alt="${vaccine.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">` : 'No Image'}
-                        </td>
-                        <td>${vaccine.name}</td>
-                        <td>${vaccine.manufacturer || 'N/A'}</td>
-                        <td>${vaccine.stockQuantity}</td>
-                        <td>${vaccine.available ? 'Yes' : 'No'}</td>
-                        <td>
-                            <button class="btn btn-small" onclick="editVaccine(${vaccine.id})">Edit Stock</button>
-                            <button class="btn btn-small btn-warning" onclick="toggleAvailability(${vaccine.id}, ${vaccine.available})">${vaccine.available ? 'Disable' : 'Enable'}</button>
-                            <button class="btn btn-small btn-info" onclick="uploadImage(${vaccine.id})">Upload Image</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteVaccine(${vaccine.id})">Delete</button>
+                            <button class="btn btn-small" onclick="openEdit(${v.id})">编辑</button>
+                            <button class="btn btn-small ${v.available ? 'btn-warning' : 'btn-success'}" onclick="toggleAvailability(${v.id}, ${v.available})" style="background:${v.available ? 'var(--danger-color)' : 'var(--success-color)'}">${v.available ? '下架' : '上架'}</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteVaccine(${v.id})">删除</button>
                         </td>
                     `;
                     tbody.appendChild(row);
                 });
             } catch (error) {
-                showAlert('Failed to load vaccines', 'error');
+                showAlert('加载疫苗列表失败', 'error');
             }
         }
 
@@ -114,123 +312,110 @@
             e.preventDefault();
             const vaccine = {
                 name: document.getElementById('vaccine-name').value,
+                category: document.getElementById('vaccine-category').value || null,
+                brand: document.getElementById('vaccine-brand').value || null,
+                dosage: document.getElementById('vaccine-dosage').value || null,
+                technique: document.getElementById('vaccine-technique').value || null,
+                dosesRequired: document.getElementById('vaccine-doses').value ? parseInt(document.getElementById('vaccine-doses').value) : null,
+                ageRange: document.getElementById('vaccine-age').value || null,
+                targetDisease: document.getElementById('vaccine-disease').value || null,
                 manufacturer: document.getElementById('vaccine-manufacturer').value || null,
+                scheduleInfo: document.getElementById('vaccine-schedule').value || null,
                 description: document.getElementById('vaccine-description').value || null,
                 stockQuantity: parseInt(document.getElementById('vaccine-stock').value),
                 available: document.getElementById('vaccine-available').checked
             };
             try {
-                await apiCall('/vaccines', {
-                    method: 'POST',
-                    body: JSON.stringify(vaccine)
-                });
-                showAlert('Vaccine added successfully', 'success');
+                await apiCall('/vaccines', {method: 'POST', body: JSON.stringify(vaccine)});
+                showAlert('疫苗添加成功', 'success');
                 loadVaccines();
-                // Reset form
                 document.getElementById('add-vaccine-form').reset();
+                document.getElementById('vaccine-available').checked = true;
+                document.getElementById('vaccine-stock').value = 100;
             } catch (error) {
-                showAlert(error.message || 'Failed to add vaccine', 'error');
+                showAlert(error.message || '添加失败', 'error');
             }
         });
 
-        // Edit vaccine (simplified - just open prompt)
-        async function editVaccine(vaccineId) {
-            // In a real app, you'd have a proper edit form
-            const newStock = prompt('Enter new stock quantity:');
-            if (newStock === null) return;
+        // Open edit modal
+        async function openEdit(vaccineId) {
             try {
-                await apiCall(`/vaccines/${vaccineId}/stock`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ quantity: parseInt(newStock) })
-                });
-                showAlert('Stock updated successfully', 'success');
-                loadVaccines();
+                const data = await apiCall(`/vaccines/${vaccineId}`);
+                editVaccineId = vaccineId;
+                document.getElementById('edit-name').value = data.name || '';
+                document.getElementById('edit-category').value = data.category || '';
+                document.getElementById('edit-brand').value = data.brand || '';
+                document.getElementById('edit-dosage').value = data.dosage || '';
+                document.getElementById('edit-technique').value = data.technique || '';
+                document.getElementById('edit-doses').value = data.dosesRequired || '';
+                document.getElementById('edit-age').value = data.ageRange || '';
+                document.getElementById('edit-disease').value = data.targetDisease || '';
+                document.getElementById('edit-manufacturer').value = data.manufacturer || '';
+                document.getElementById('edit-schedule').value = data.scheduleInfo || '';
+                document.getElementById('edit-description').value = data.description || '';
+                document.getElementById('edit-stock').value = data.stockQuantity || 0;
+                document.getElementById('edit-available').checked = data.available;
+                document.getElementById('editModal').classList.add('active');
             } catch (error) {
-                showAlert(error.message || 'Failed to update vaccine', 'error');
+                showAlert('加载疫苗信息失败', 'error');
             }
         }
 
-        // Delete vaccine
+        // Save edit
+        document.getElementById('edit-vaccine-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!editVaccineId) return;
+            const vaccine = {
+                name: document.getElementById('edit-name').value,
+                category: document.getElementById('edit-category').value || null,
+                brand: document.getElementById('edit-brand').value || null,
+                dosage: document.getElementById('edit-dosage').value || null,
+                technique: document.getElementById('edit-technique').value || null,
+                dosesRequired: document.getElementById('edit-doses').value ? parseInt(document.getElementById('edit-doses').value) : null,
+                ageRange: document.getElementById('edit-age').value || null,
+                targetDisease: document.getElementById('edit-disease').value || null,
+                manufacturer: document.getElementById('edit-manufacturer').value || null,
+                scheduleInfo: document.getElementById('edit-schedule').value || null,
+                description: document.getElementById('edit-description').value || null,
+                stockQuantity: parseInt(document.getElementById('edit-stock').value),
+                available: document.getElementById('edit-available').checked
+            };
+            try {
+                await apiCall(`/vaccines/${editVaccineId}`, {method: 'PUT', body: JSON.stringify(vaccine)});
+                showAlert('疫苗更新成功', 'success');
+                document.getElementById('editModal').classList.remove('active');
+                loadVaccines();
+            } catch (error) {
+                showAlert(error.message || '更新失败', 'error');
+            }
+        });
+
         async function deleteVaccine(vaccineId) {
-            if (!confirm('Are you sure you want to delete this vaccine?')) return;
+            if (!confirm('确定要删除此疫苗吗？')) return;
             try {
-                await apiCall(`/vaccines/${vaccineId}`, {
-                    method: 'DELETE'
-                });
-                showAlert('Vaccine deleted successfully', 'success');
+                await apiCall(`/vaccines/${vaccineId}`, {method: 'DELETE'});
+                showAlert('疫苗已删除', 'success');
                 loadVaccines();
             } catch (error) {
-                showAlert(error.message || 'Failed to delete vaccine', 'error');
+                showAlert(error.message || '删除失败', 'error');
             }
         }
 
-        // Toggle vaccine availability
-        async function toggleAvailability(vaccineId, currentAvailability) {
-            if (!confirm(`Are you sure you want to ${currentAvailability ? 'disable' : 'enable'} this vaccine?`)) return;
+        async function toggleAvailability(vaccineId, current) {
+            if (!confirm(`确定要${current ? '下架' : '上架'}此疫苗吗？`)) return;
             try {
                 await apiCall(`/vaccines/${vaccineId}/availability`, {
                     method: 'PATCH',
-                    body: JSON.stringify({ available: !currentAvailability })
+                    body: JSON.stringify({available: !current})
                 });
-                showAlert('Availability updated successfully', 'success');
+                showAlert('状态已更新', 'success');
                 loadVaccines();
             } catch (error) {
-                showAlert(error.message || 'Failed to update availability', 'error');
+                showAlert(error.message || '更新失败', 'error');
             }
         }
 
-        // Upload image for vaccine
-        async function uploadImage(vaccineId) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                // Check file size (max 5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    showAlert('File size must be less than 5MB', 'error');
-                    return;
-                }
-
-                // Create form data
-                const formData = new FormData();
-                formData.append('file', file);
-
-                try {
-                    showAlert('Uploading image...', 'info');
-                    const response = await fetch(API_BASE + `/vaccines/${vaccineId}/upload-image`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${getAuthToken()}`
-                        },
-                        body: formData
-                    });
-
-                    const data = await response.json();
-                    if (response.ok) {
-                        showAlert('Image uploaded successfully', 'success');
-                        loadVaccines();
-                    } else {
-                        showAlert(data.error || 'Failed to upload image', 'error');
-                    }
-                } catch (error) {
-                    showAlert('Network error', 'error');
-                }
-            };
-            input.click();
-        }
-
-        // Initialize
         loadVaccines();
     </script>
-
-    <footer class="footer">
-        <div class="container">
-            <p>Vaccine Appointment System &copy; 2026 | Manage Vaccines</p>
-            <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">Add, edit, and manage vaccine inventory</p>
-        </div>
-    </footer>
 </body>
 </html>

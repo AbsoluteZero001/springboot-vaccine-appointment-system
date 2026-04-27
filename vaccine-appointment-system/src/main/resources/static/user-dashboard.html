@@ -1,127 +1,404 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard - Vaccine Appointment System</title>
+    <title>疫苗预约 - 用户中心</title>
     <link rel="stylesheet" href="common.css">
 </head>
 <body>
-    <div class="header">
-        <div class="navbar">
-            <h1>Vaccine Appointment System - User Dashboard</h1>
-            <div class="nav-links">
-                <a href="user-dashboard.html">Dashboard</a>
-                <a href="user-profile.html">My Appointments</a>
-                <a href="#" onclick="logout()">Logout</a>
-            </div>
-        </div>
-    </div>
 
+<!-- ============ Header ============ -->
+<header class="site-header">
     <div class="container">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">💉</div>
+            <span class="logo-text">疫苗预约系统</span>
+        </a>
+        <nav class="main-nav">
+            <a href="user-dashboard.html" class="active">疫苗列表</a>
+            <a href="user-profile.html">我的预约</a>
+            <a href="#" onclick="logout()">退出登录</a>
+        </nav>
+    </div>
+</header>
+
+<!-- ============ Main Content ============ -->
+<main class="homepage-main">
+    <div class="container">
+
         <div id="alert-container"></div>
-        <div class="card">
-            <h2>Available Vaccines</h2>
-            <div id="vaccine-list" class="vaccine-grid">
-                <!-- Vaccine cards will be loaded here -->
+
+        <!-- Welcome Banner -->
+        <div class="dashboard-banner" id="welcomeBanner">
+            <div>
+                <h2 id="welcomeText">欢迎回来</h2>
+                <p id="welcomeSubtext">选择疫苗，在线预约接种时间</p>
+            </div>
+            <div class="banner-stats">
+                <div class="banner-stat">
+                    <h3 id="statVaccines">22</h3>
+                    <p>可用疫苗</p>
+                </div>
+                <div class="banner-stat">
+                    <h3 id="statCategories">10</h3>
+                    <p>疫苗种类</p>
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <h2>Make an Appointment</h2>
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-tabs" id="filterTabs">
+                <button class="filter-tab active" data-category="all">全部疫苗</button>
+            </div>
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="搜索疫苗名称或品牌..." oninput="filterVaccines()">
+            </div>
+        </div>
+
+        <!-- Vaccine Grid -->
+        <div class="vaccine-grid-modern" id="vaccineGrid">
+            <!-- Cards rendered by JS -->
+        </div>
+
+    </div>
+</main>
+
+<!-- ============ Appointment Modal ============ -->
+<div class="modal-overlay" id="bookingModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>预约接种</h3>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-vaccine-summary" id="modalVaccineSummary">
+                <!-- Filled by JS -->
+            </div>
+            <div class="schedule-notice" id="modalScheduleNotice">
+                <span class="notice-icon">🕐</span>
+                <span id="modalScheduleText">请选择预约时间</span>
+            </div>
             <form id="appointment-form">
                 <div class="form-group">
-                    <label for="vaccine-select">Select Vaccine</label>
-                    <select id="vaccine-select" class="form-control" required>
-                        <option value="">-- Select a vaccine --</option>
-                    </select>
+                    <label>选择预约日期</label>
+                    <input type="date" id="appointment-date" class="form-control" onchange="updateTimeSlots()">
                 </div>
                 <div class="form-group">
-                    <label for="appointment-time">Appointment Date & Time</label>
-                    <input type="datetime-local" id="appointment-time" class="form-control" required>
+                    <label>选择预约时段</label>
+                    <select id="appointment-time" class="form-control">
+                        <option value="">请先选择日期</option>
+                    </select>
                 </div>
-                <button type="submit" class="btn">Schedule Appointment</button>
+                <button type="submit" class="btn">确认预约</button>
             </form>
         </div>
     </div>
+</div>
+
+<!-- ============ Footer ============ -->
+<footer class="footer">
+    <div class="container">
+        <p>疫苗预约系统 © 2026 | 守护健康，疫苗先行</p>
+    </div>
+</footer>
 
     <script src="app.js"></script>
     <script>
-        // Check authentication
+        // ========== Auth Check ==========
         const user = getUser();
         if (!user) {
             window.location.href = 'index.html';
         }
 
-        // Load vaccines
+        // Set welcome message
+        document.getElementById('welcomeText').textContent =
+            '欢迎回来，' + (user.username || '用户') + ' 👋';
+        document.getElementById('welcomeSubtext').textContent =
+            '选择疫苗，在线预约接种时间 · ' + new Date().toLocaleDateString('zh-CN');
+
+        // ========== State ==========
+        let allVaccines = [];
+        let currentVaccine = null;
+        let categories = new Set();
+
+        // ========== Load Vaccines ==========
         async function loadVaccines() {
             try {
                 const data = await apiCall('/vaccines/available');
-                const vaccineList = document.getElementById('vaccine-list');
-                const vaccineSelect = document.getElementById('vaccine-select');
-                vaccineList.innerHTML = '';
-                vaccineSelect.innerHTML = '<option value="">-- Select a vaccine --</option>';
-                data.forEach(vaccine => {
-                    // Vaccine card
-                    const card = document.createElement('div');
-                    card.className = 'vaccine-card';
-                    card.innerHTML = `
-                        <div style="text-align: center;">
-                            ${vaccine.imageUrl ? `<img src="${vaccine.imageUrl}" alt="${vaccine.name}" style="max-width: 100%; height: 150px; object-fit: cover; border-radius: 8px;">` : '<div style="height: 150px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: #999;">No Image</div>'}
-                        </div>
-                        <h3>${vaccine.name}</h3>
-                        <p><strong>Manufacturer:</strong> ${vaccine.manufacturer || 'N/A'}</p>
-                        <p><strong>Stock:</strong> <span class="stock">${vaccine.stockQuantity}</span></p>
-                        <p><strong>Status:</strong> ${vaccine.available ? 'Available' : 'Unavailable'}</p>
-                        <p>${vaccine.description || ''}</p>
-                    `;
-                    vaccineList.appendChild(card);
-                    // Option for select
-                    const option = document.createElement('option');
-                    option.value = vaccine.id;
-                    option.textContent = `${vaccine.name} (Stock: ${vaccine.stockQuantity})`;
-                    vaccineSelect.appendChild(option);
-                });
+                allVaccines = data;
+                renderFilters();
+                renderVaccines(allVaccines);
+                updateStats();
             } catch (error) {
-                showAlert('Failed to load vaccines', 'error');
+                showAlert('加载疫苗数据失败', 'error');
             }
         }
 
-        // Appointment form submission
-        document.getElementById('appointment-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const vaccineId = document.getElementById('vaccine-select').value;
-            const appointmentTime = document.getElementById('appointment-time').value;
-            if (!vaccineId || !appointmentTime) {
-                showAlert('Please fill all fields', 'error');
+        // ========== Render Category Filters ==========
+        function renderFilters() {
+            categories = new Set(allVaccines.map(v => v.category).filter(Boolean));
+            const container = document.getElementById('filterTabs');
+            container.innerHTML = '<button class="filter-tab active" data-category="all" onclick="filterByCategory(this, \'all\')">全部疫苗</button>';
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-tab';
+                btn.dataset.category = cat;
+                btn.textContent = cat;
+                btn.onclick = function () {
+                    filterByCategory(this, cat);
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // ========== Filter & Search ==========
+        let activeCategory = 'all';
+
+        function filterByCategory(btn, category) {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            activeCategory = category;
+            filterVaccines();
+        }
+
+        function filterVaccines() {
+            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+            let filtered = allVaccines;
+
+            if (activeCategory !== 'all') {
+                filtered = filtered.filter(v => v.category === activeCategory);
+            }
+            if (keyword) {
+                filtered = filtered.filter(v =>
+                    (v.name || '').toLowerCase().includes(keyword) ||
+                    (v.brand || '').toLowerCase().includes(keyword) ||
+                    (v.targetDisease || '').toLowerCase().includes(keyword)
+                );
+            }
+            renderVaccines(filtered);
+        }
+
+        // ========== Render Vaccine Cards ==========
+        function renderVaccines(vaccines) {
+            const grid = document.getElementById('vaccineGrid');
+            if (vaccines.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <span class="empty-icon">🔍</span>
+                        <h3>未找到匹配的疫苗</h3>
+                        <p>请尝试其他搜索关键词或筛选条件</p>
+                    </div>
+                `;
                 return;
             }
+
+            grid.innerHTML = vaccines.map(v => {
+                const stockClass = v.stockQuantity > 50 ? 'in-stock' : (v.stockQuantity > 0 ? 'low-stock' : 'out-of-stock');
+                const stockText = v.stockQuantity > 50 ? '库存充足' : (v.stockQuantity > 0 ? '库存紧张' : '已缺货');
+                const canBook = v.stockQuantity > 0;
+
+                const tags = [];
+                if (v.category) tags.push(`<span class="vaccine-badge category">${v.category}</span>`);
+                if (v.technique) tags.push(`<span class="vaccine-badge technique">${v.technique}</span>`);
+                if (v.dosage) tags.push(`<span class="vaccine-badge dosage">${v.dosage}</span>`);
+                if (v.targetDisease) tags.push(`<span class="vaccine-badge disease">${v.targetDisease}</span>`);
+
+                return `
+                    <div class="vaccine-card-modern">
+                        <div class="vaccine-card-header">
+                            <div class="badge-group">${tags.join('')}</div>
+                        </div>
+                        <div class="vaccine-card-body">
+                            <h3>${v.name || '未知疫苗'}</h3>
+                            <div class="brand">${v.brand ? '品牌：' + v.brand : ''}${v.manufacturer ? ' | ' + v.manufacturer : ''}</div>
+                            <div class="spec-grid">
+                                ${v.dosage ? `<div class="spec-item"><span class="label">剂量</span> ${v.dosage}</div>` : ''}
+                                ${v.technique ? `<div class="spec-item"><span class="label">工艺</span> ${v.technique}</div>` : ''}
+                                ${v.dosesRequired ? `<div class="spec-item"><span class="label">剂次</span> ${v.dosesRequired}剂</div>` : ''}
+                                ${v.ageRange ? `<div class="spec-item"><span class="label">适用</span> ${v.ageRange}</div>` : ''}
+                            </div>
+                            ${v.description ? `<div class="description">${v.description}</div>` : ''}
+                        </div>
+                        <div class="vaccine-card-footer">
+                            <div>
+                                <div class="stock-info">
+                                    <span class="${stockClass}">●</span>
+                                    <span>${stockText}（${v.stockQuantity}剂）</span>
+                                </div>
+                                ${v.scheduleInfo ? `<div class="schedule-hint">🕐 ${v.scheduleInfo.substring(0, 20)}${v.scheduleInfo.length > 20 ? '...' : ''}</div>` : ''}
+                            </div>
+                            <button class="btn-book" data-vaccine-id="${v.id}" ${canBook ? '' : 'disabled'}>
+                                ${canBook ? '立即预约' : '已缺货'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ========== Update Stats ==========
+        function updateStats() {
+            const cats = new Set(allVaccines.map(v => v.category).filter(Boolean));
+            document.getElementById('statVaccines').textContent = allVaccines.length;
+            document.getElementById('statCategories').textContent = cats.size;
+        }
+
+        // ========== Booking Modal ==========
+        function openBooking(vaccine) {
+            currentVaccine = vaccine;
+            const summary = document.getElementById('modalVaccineSummary');
+            summary.innerHTML = `
+                <div class="summary-row">
+                    <span class="label">疫苗名称</span>
+                    <span class="value">${vaccine.name}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">品牌</span>
+                    <span class="value">${vaccine.brand || '—'}</span>
+                </div>
+                <div class="divider"></div>
+                <div class="summary-row">
+                    <span class="label">剂量规格</span>
+                    <span class="value">${vaccine.dosage || '—'}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">需接种剂次</span>
+                    <span class="value">${vaccine.dosesRequired || '—'} 剂</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">适用人群</span>
+                    <span class="value">${vaccine.ageRange || '—'}</span>
+                </div>
+            `;
+
+            const notice = document.getElementById('modalScheduleNotice');
+            if (vaccine.scheduleInfo) {
+                notice.style.display = 'flex';
+                document.getElementById('modalScheduleText').textContent = '接种时间：' + vaccine.scheduleInfo;
+            } else {
+                notice.style.display = 'none';
+            }
+
+            document.getElementById('appointment-date').value = '';
+            document.getElementById('appointment-time').innerHTML = '<option value="">请先选择日期</option>';
+            document.getElementById('bookingModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('bookingModal').classList.remove('active');
+            currentVaccine = null;
+        }
+
+        function updateTimeSlots() {
+            const dateVal = document.getElementById('appointment-date').value;
+            const select = document.getElementById('appointment-time');
+            if (!dateVal) {
+                select.innerHTML = '<option value="">请先选择日期</option>';
+                return;
+            }
+
+            const date = new Date(dateVal);
+            const day = date.getDay();
+
+            // Generate time slots based on day of week
+            let slots = [];
+            if (day === 0) {
+                slots = [{text: '周日休息，请选择工作日', value: ''}];
+            } else if (day === 6) {
+                slots = [
+                    {text: '08:00 - 08:30', value: '08:00'},
+                    {text: '08:30 - 09:00', value: '08:30'},
+                    {text: '09:00 - 09:30', value: '09:00'},
+                    {text: '09:30 - 10:00', value: '09:30'},
+                    {text: '10:00 - 10:30', value: '10:00'},
+                    {text: '10:30 - 11:00', value: '10:30'},
+                    {text: '11:00 - 11:30', value: '11:00'}
+                ];
+            } else {
+                slots = [
+                    {text: '08:00 - 08:30', value: '08:00'},
+                    {text: '08:30 - 09:00', value: '08:30'},
+                    {text: '09:00 - 09:30', value: '09:00'},
+                    {text: '09:30 - 10:00', value: '09:30'},
+                    {text: '10:00 - 10:30', value: '10:00'},
+                    {text: '10:30 - 11:00', value: '10:30'},
+                    {text: '11:00 - 11:30', value: '11:00'},
+                    {text: '14:00 - 14:30', value: '14:00'},
+                    {text: '14:30 - 15:00', value: '14:30'},
+                    {text: '15:00 - 15:30', value: '15:00'},
+                    {text: '15:30 - 16:00', value: '15:30'},
+                    {text: '16:00 - 16:30', value: '16:00'}
+                ];
+            }
+
+            select.innerHTML = slots.map(s =>
+                `<option value="${s.value}" ${s.value === '' ? 'disabled' : ''}>${s.text}</option>`
+            ).join('');
+        }
+
+        // ========== Submit Booking ==========
+        document.getElementById('appointment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dateVal = document.getElementById('appointment-date').value;
+            const timeVal = document.getElementById('appointment-time').value;
+
+            if (!dateVal || !timeVal) {
+                showAlert('请选择预约日期和时间', 'error');
+                return;
+            }
+
+            if (!currentVaccine) {
+                showAlert('请选择疫苗', 'error');
+                return;
+            }
+
+            const date = new Date(dateVal);
+            const day = date.getDay();
+            if (day === 0) {
+                showAlert('周日休息，请选择工作日预约', 'error');
+                return;
+            }
+
+            const appointmentTime = dateVal + 'T' + timeVal + ':00';
+
             try {
-                const data = await apiCall('/appointments', {
+                await apiCall('/appointments', {
                     method: 'POST',
                     body: JSON.stringify({
                         userId: user.id,
-                        vaccineId: parseInt(vaccineId),
+                        vaccineId: currentVaccine.id,
                         appointmentTime: appointmentTime
                     })
                 });
-                showAlert('Appointment scheduled successfully!', 'success');
-                loadVaccines(); // Refresh list
+                showAlert('预约成功！请按时前往接种', 'success');
+                closeModal();
+                loadVaccines(); // Refresh stock
             } catch (error) {
-                showAlert(error.message || 'Failed to schedule appointment', 'error');
+                showAlert(error.message || '预约失败，请稍后重试', 'error');
             }
         });
 
-        // Initialize
+        // ========== Close modal on overlay click ==========
+        document.getElementById('bookingModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('bookingModal')) {
+                closeModal();
+            }
+        });
+
+        // ========== Event Delegation for Book Buttons ==========
+        document.getElementById('vaccineGrid').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-book');
+            if (!btn || btn.disabled) return;
+            const vaccineId = parseInt(btn.dataset.vaccineId);
+            const vaccine = allVaccines.find(v => v.id === vaccineId);
+            if (vaccine) openBooking(vaccine);
+        });
+
+        // ========== Init ==========
         loadVaccines();
     </script>
-
-    <footer class="footer">
-        <div class="container">
-            <p>Vaccine Appointment System &copy; 2026 | User Dashboard</p>
-            <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">Schedule your vaccination appointments
-                easily and securely</p>
-        </div>
-    </footer>
 </body>
 </html>

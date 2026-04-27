@@ -40,6 +40,32 @@ CREATE TABLE IF NOT EXISTS `vaccine` (
     `stock_quantity` INT NOT NULL DEFAULT 0,
     `available` BOOLEAN NOT NULL DEFAULT TRUE COMMENT '是否上架',
     `image_url` VARCHAR(255) COMMENT '疫苗图片URL',
+    `category` VARCHAR
+(
+    50
+) COMMENT '疫苗分类，如乙肝疫苗、HPV疫苗',
+    `brand` VARCHAR
+(
+    100
+) COMMENT '品牌名，如Engerix-B、Gardasil 9',
+    `dosage` VARCHAR
+(
+    50
+) COMMENT '剂量规格，如10μg/0.5ml、20μg/1.0ml',
+    `technique` VARCHAR
+(
+    100
+) COMMENT '制作工艺，如CHO细胞、汉逊酵母、酿酒酵母',
+    `schedule_info` TEXT COMMENT '接种时间安排说明',
+    `doses_required` INT COMMENT '所需接种剂次',
+    `age_range` VARCHAR
+(
+    100
+) COMMENT '适用年龄段',
+    `target_disease` VARCHAR
+(
+    200
+) COMMENT '预防疾病',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),

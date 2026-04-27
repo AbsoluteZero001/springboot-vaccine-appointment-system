@@ -82,6 +82,30 @@ public class VaccineServiceImpl implements VaccineService {
                 vaccine.setImageUrl(newImageUrl);
             }
         }
+        if (vaccineDetails.getCategory() != null) {
+            vaccine.setCategory(vaccineDetails.getCategory());
+        }
+        if (vaccineDetails.getBrand() != null) {
+            vaccine.setBrand(vaccineDetails.getBrand());
+        }
+        if (vaccineDetails.getDosage() != null) {
+            vaccine.setDosage(vaccineDetails.getDosage());
+        }
+        if (vaccineDetails.getTechnique() != null) {
+            vaccine.setTechnique(vaccineDetails.getTechnique());
+        }
+        if (vaccineDetails.getScheduleInfo() != null) {
+            vaccine.setScheduleInfo(vaccineDetails.getScheduleInfo());
+        }
+        if (vaccineDetails.getDosesRequired() != null) {
+            vaccine.setDosesRequired(vaccineDetails.getDosesRequired());
+        }
+        if (vaccineDetails.getAgeRange() != null) {
+            vaccine.setAgeRange(vaccineDetails.getAgeRange());
+        }
+        if (vaccineDetails.getTargetDisease() != null) {
+            vaccine.setTargetDisease(vaccineDetails.getTargetDisease());
+        }
         return vaccineRepository.save(vaccine);
     }
 

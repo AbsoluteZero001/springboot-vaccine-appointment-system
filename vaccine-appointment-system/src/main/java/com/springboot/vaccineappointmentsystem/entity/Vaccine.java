@@ -33,6 +33,30 @@ public class Vaccine {
     @Column(length = 255)
     private String imageUrl;
 
+    @Column(length = 50)
+    private String category;
+
+    @Column(length = 100)
+    private String brand;
+
+    @Column(length = 50)
+    private String dosage;
+
+    @Column(length = 100)
+    private String technique;
+
+    @Column(columnDefinition = "TEXT")
+    private String scheduleInfo;
+
+    @Column
+    private Integer dosesRequired;
+
+    @Column(length = 100)
+    private String ageRange;
+
+    @Column(length = 200)
+    private String targetDisease;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createTime;
