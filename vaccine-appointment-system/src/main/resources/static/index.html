@@ -1,101 +1,393 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vaccine Appointment System - Login</title>
+    <title>疫苗预约系统 - 守护健康，疫苗先行</title>
     <link rel="stylesheet" href="common.css">
 </head>
 <body>
-    <div class="header">
-        <div class="navbar">
-            <h1>Vaccine Appointment System</h1>
-            <div class="nav-links">
-                <a href="index.html" class="guest-only">Home</a>
-                <a href="#" class="auth-only hidden" onclick="logout()">Logout</a>
+
+<!-- ============ Header ============ -->
+<header class="site-header">
+    <div class="container">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">💉</div>
+            <span class="logo-text">疫苗预约系统</span>
+        </a>
+        <nav class="main-nav">
+            <a href="index.html" class="active">首页</a>
+            <a href="#about">疫苗资讯</a>
+            <a href="#about">预约指南</a>
+            <a href="#footer">关于我们</a>
+        </nav>
+    </div>
+</header>
+
+<!-- ============ Hero Section ============ -->
+<section class="hero-section">
+    <div class="hero-particles">
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+        <div class="hero-particle"></div>
+    </div>
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>守护健康，<span>疫苗先行</span></h1>
+            <p>
+                国家免疫规划信息平台 · 在线预约 · 安全接种<br>
+                为全生命周期健康保驾护航
+            </p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <h3>10万+</h3>
+                    <p>服务人次</p>
+                </div>
+                <div class="hero-stat">
+                    <h3>50+</h3>
+                    <p>疫苗种类</p>
+                </div>
+                <div class="hero-stat">
+                    <h3>99%</h3>
+                    <p>满意度</p>
+                </div>
+            </div>
+        </div>
+        <div class="hero-poster">
+            <div class="hero-poster-content">
+                <span class="hero-poster-icon">🛡️</span>
+                <h3>全民疫苗接种</h3>
+                <p>保护自己，守护家人</p>
+                <span class="poster-badge">立即预约</span>
             </div>
         </div>
     </div>
+</section>
 
-    <div class="container login-container">
-        <div id="alert-container"></div>
+<!-- ============ Main Content ============ -->
+<main class="homepage-main">
+    <div class="container">
+        <div class="homepage-layout">
 
-        <div class="card">
-            <div class="tabs">
-                <div class="tab active" data-tab="user-login" onclick="switchTab('user-login')">User Login</div>
-                <div class="tab" data-tab="user-register" onclick="switchTab('user-register')">User Register</div>
-                <div class="tab" data-tab="admin-login" onclick="switchTab('admin-login')">Admin Login</div>
+            <!-- ======== Left Column ======== -->
+            <div class="homepage-left">
+
+                <!-- Carousel: Vaccine News -->
+                <div class="section-title">
+                    <span class="icon">📢</span>
+                    <h2>疫苗防控热点资讯</h2>
+                    <a href="#" class="more-link">更多 →</a>
+                </div>
+
+                <div class="carousel-container" id="newsCarousel">
+                    <div class="carousel-track" id="carouselTrack">
+                        <!-- Slide 1 -->
+                        <div class="carousel-slide">
+                            <div class="carousel-slide-inner">
+                                <div class="carousel-image"
+                                     style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                    <span class="slide-icon">🦠</span>
+                                    <div class="carousel-image-bg"></div>
+                                </div>
+                                <div class="carousel-info">
+                                    <span class="carousel-tag hot">热点</span>
+                                    <h3>新冠疫苗加强针接种通知</h3>
+                                    <p>
+                                        根据国家卫健委最新部署，即日起开展新冠疫苗加强针接种工作。建议已完成基础免疫满6个月的18岁以上人群尽快接种。</p>
+                                    <span class="carousel-date">2026-04-27 · 国家卫健委</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 2 -->
+                        <div class="carousel-slide">
+                            <div class="carousel-slide-inner">
+                                <div class="carousel-image"
+                                     style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                                    <span class="slide-icon">🌡️</span>
+                                    <div class="carousel-image-bg"></div>
+                                </div>
+                                <div class="carousel-info">
+                                    <span class="carousel-tag new">提醒</span>
+                                    <h3>秋冬季流感疫苗预约已开放</h3>
+                                    <p>
+                                        2026年度流感疫苗预约接种已全面开放。老人、儿童及慢性病患者为重点推荐人群，建议在流感季来临前完成接种。</p>
+                                    <span class="carousel-date">2026-04-26 · 疾控中心</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 3 -->
+                        <div class="carousel-slide">
+                            <div class="carousel-slide-inner">
+                                <div class="carousel-image"
+                                     style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                                    <span class="slide-icon">🎗️</span>
+                                    <div class="carousel-image-bg"></div>
+                                </div>
+                                <div class="carousel-info">
+                                    <span class="carousel-tag hot">关注</span>
+                                    <h3>HPV疫苗扩龄至9-45岁</h3>
+                                    <p>
+                                        九价HPV疫苗接种年龄已正式扩展至9-45岁女性，预约需求激增。建议适龄人群尽早预约，早接种早受益。</p>
+                                    <span class="carousel-date">2026-04-25 · 药监局</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 4 -->
+                        <div class="carousel-slide">
+                            <div class="carousel-slide-inner">
+                                <div class="carousel-image"
+                                     style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
+                                    <span class="slide-icon">👶</span>
+                                    <div class="carousel-image-bg"></div>
+                                </div>
+                                <div class="carousel-info">
+                                    <span class="carousel-tag info">科普</span>
+                                    <h3>儿童疫苗接种时间表须知</h3>
+                                    <p>
+                                        按照国家免疫规划程序，儿童需按时完成卡介苗、乙肝疫苗、脊髓灰质炎疫苗等免费疫苗接种。家长可在线预约，方便快捷。</p>
+                                    <span class="carousel-date">2026-04-24 · 中国疾控</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 5 -->
+                        <div class="carousel-slide">
+                            <div class="carousel-slide-inner">
+                                <div class="carousel-image"
+                                     style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                                    <span class="slide-icon">💪</span>
+                                    <div class="carousel-image-bg"></div>
+                                </div>
+                                <div class="carousel-info">
+                                    <span class="carousel-tag info">知识</span>
+                                    <h3>带状疱疹疫苗保护效力超90%</h3>
+                                    <p>
+                                        重组带状疱疹疫苗在我国获批上市，适用于50岁及以上成人，保护效力超过90%，建议中老年人积极接种预防。</p>
+                                    <span class="carousel-date">2026-04-23 · 健康报</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="carousel-controls">
+                        <button class="carousel-btn" onclick="prevSlide()">‹</button>
+                        <button class="carousel-btn" onclick="nextSlide()">›</button>
+                    </div>
+
+                    <!-- Indicators -->
+                    <div class="carousel-indicators" id="carouselIndicators">
+                        <button class="carousel-dot active" onclick="goToSlide(0)"></button>
+                        <button class="carousel-dot" onclick="goToSlide(1)"></button>
+                        <button class="carousel-dot" onclick="goToSlide(2)"></button>
+                        <button class="carousel-dot" onclick="goToSlide(3)"></button>
+                        <button class="carousel-dot" onclick="goToSlide(4)"></button>
+                    </div>
+                </div>
+
+                <!-- Info Cards -->
+                <div class="section-title" style="margin-top: 8px;">
+                    <span class="icon">✨</span>
+                    <h2>平台服务</h2>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-card-icon blue">📋</div>
+                        <h3>在线预约</h3>
+                        <p>足不出户即可预约疫苗接种，选择就近接种点与合适时间段，方便快捷。</p>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-icon green">🔒</div>
+                        <h3>安全可靠</h3>
+                        <p>严格保护个人隐私信息，所有数据加密传输，符合国家信息安全等级保护要求。</p>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-icon purple">📊</div>
+                        <h3>接种记录</h3>
+                        <p>在线查看个人完整疫苗接种记录，电子凭证随时下载，入学出国必备。</p>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-icon pink">⏰</div>
+                        <h3>智能提醒</h3>
+                        <p>接种前自动推送提醒通知，续种时间智能计算，不再错过任何一针疫苗。</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- User Login -->
-            <div id="tab-user-login" class="tab-content active">
-                <h2>User Login</h2>
-                <form id="user-login-form">
-                    <div class="form-group">
-                        <label for="user-username">Username</label>
-                        <input type="text" id="user-username" class="form-control" required>
+            <!-- ======== Right Column - Login Card ======== -->
+            <div class="homepage-right">
+                <div class="login-card">
+                    <div class="login-card-header">
+                        <h2>欢迎登录</h2>
+                        <p>登录后即可预约疫苗接种</p>
                     </div>
-                    <div class="form-group">
-                        <label for="user-password">Password</label>
-                        <input type="password" id="user-password" class="form-control" required>
+
+                    <div class="login-tabs">
+                        <button class="login-tab active" data-tab="user-login" onclick="switchTab('user-login')">
+                            用户登录
+                        </button>
+                        <button class="login-tab" data-tab="user-register" onclick="switchTab('user-register')">
+                            用户注册
+                        </button>
                     </div>
-                    <button type="submit" class="btn">Login</button>
-                </form>
+
+                    <div id="alert-container" style="padding: 12px 28px 0;"></div>
+
+                    <!-- User Login -->
+                    <div id="tab-user-login" class="login-tab-content active">
+                        <form id="user-login-form">
+                            <div class="form-group">
+                                <label for="user-username">用户名</label>
+                                <input type="text" id="user-username" class="form-control" placeholder="请输入用户名"
+                                       required>
+                            </div>
+                            <div class="form-group">
+                                <label for="user-password">密码</label>
+                                <input type="password" id="user-password" class="form-control" placeholder="请输入密码"
+                                       required>
+                            </div>
+                            <button type="submit" class="btn">登 录</button>
+                        </form>
+                    </div>
+
+                    <!-- User Register -->
+                    <div id="tab-user-register" class="login-tab-content">
+                        <form id="user-register-form">
+                            <div class="form-group">
+                                <label for="reg-username">用户名</label>
+                                <input type="text" id="reg-username" class="form-control" placeholder="请设置用户名"
+                                       required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-password">密码</label>
+                                <input type="password" id="reg-password" class="form-control" placeholder="请设置密码"
+                                       required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-email">邮箱</label>
+                                <input type="email" id="reg-email" class="form-control" placeholder="请输入邮箱地址"
+                                       required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-phone">手机号（选填）</label>
+                                <input type="text" id="reg-phone" class="form-control" placeholder="请输入手机号码">
+                            </div>
+                            <button type="submit" class="btn">注 册</button>
+                        </form>
+                    </div>
+
+                    <div class="login-divider">— 管理员入口 —</div>
+                    <div class="login-card-admin-link">
+                        <a href="#" onclick="switchTab('admin-login'); return false;">管理员登录 →</a>
+                    </div>
+
+                    <!-- Admin Login (hidden panel accessible via link above) -->
+                    <div id="tab-admin-login" class="login-tab-content">
+                        <form id="admin-login-form">
+                            <div class="form-group">
+                                <label for="admin-username">管理员用户名</label>
+                                <input type="text" id="admin-username" class="form-control"
+                                       placeholder="请输入管理员账号" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="admin-password">密码</label>
+                                <input type="password" id="admin-password" class="form-control" placeholder="请输入密码"
+                                       required>
+                            </div>
+                            <button type="submit" class="btn">管理员登录</button>
+                        </form>
+                        <div style="text-align: center; margin-top: 12px;">
+                            <a href="#" onclick="switchTab('user-login'); return false;"
+                               style="color: var(--gray-color); font-size: 0.85rem; text-decoration: none;">←
+                                返回用户登录</a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- User Register -->
-            <div id="tab-user-register" class="tab-content">
-                <h2>User Registration</h2>
-                <form id="user-register-form">
-                    <div class="form-group">
-                        <label for="reg-username">Username</label>
-                        <input type="text" id="reg-username" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-password">Password</label>
-                        <input type="password" id="reg-password" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-email">Email</label>
-                        <input type="email" id="reg-email" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-phone">Phone (optional)</label>
-                        <input type="text" id="reg-phone" class="form-control">
-                    </div>
-                    <button type="submit" class="btn">Register</button>
-                </form>
-            </div>
-
-            <!-- Admin Login -->
-            <div id="tab-admin-login" class="tab-content">
-                <h2>Admin Login</h2>
-                <form id="admin-login-form">
-                    <div class="form-group">
-                        <label for="admin-username">Username</label>
-                        <input type="text" id="admin-username" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="admin-password">Password</label>
-                        <input type="password" id="admin-password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn">Login as Admin</button>
-                </form>
-            </div>
         </div>
     </div>
+</main>
+
+<!-- ============ Footer ============ -->
+<footer class="footer" id="footer">
+    <div class="container">
+        <p>疫苗预约系统 © 2026 | 守护健康，疫苗先行</p>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px;">国家免疫规划信息平台 · 安全 · 便捷 · 可靠</p>
+    </div>
+</footer>
 
     <script src="app.js"></script>
     <script>
-        // Tab switching
+        // ========== Tab Switching ==========
         function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            // Update tab buttons
+            document.querySelectorAll('.login-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.login-tab-content').forEach(content => content.classList.remove('active'));
+
+            const tabBtn = document.querySelector(`.login-tab[data-tab="${tabName}"]`);
+            if (tabBtn) tabBtn.classList.add('active');
+
             document.getElementById(`tab-${tabName}`).classList.add('active');
         }
 
-        // User login
+        // ========== Carousel ==========
+        let currentSlide = 0;
+        const totalSlides = 5;
+        let autoPlayInterval;
+
+        function updateCarousel() {
+            const track = document.getElementById('carouselTrack');
+            const dots = document.querySelectorAll('.carousel-dot');
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+            resetAutoPlay();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+            resetAutoPlay();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+            resetAutoPlay();
+        }
+
+        function startAutoPlay() {
+            autoPlayInterval = setInterval(nextSlide, 4000);
+        }
+
+        function resetAutoPlay() {
+            clearInterval(autoPlayInterval);
+            startAutoPlay();
+        }
+
+        // Pause on hover
+        document.getElementById('newsCarousel').addEventListener('mouseenter', () => {
+            clearInterval(autoPlayInterval);
+        });
+        document.getElementById('newsCarousel').addEventListener('mouseleave', () => {
+            startAutoPlay();
+        });
+
+        // ========== User Login ==========
         document.getElementById('user-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('user-username').value;
@@ -110,17 +402,17 @@
                 if (response.ok) {
                     setAuthToken(data.accessToken);
                     setUser(data.user);
-                    showAlert('Login successful!', 'success');
+                    showAlert('登录成功！', 'success');
                     setTimeout(() => window.location.href = 'user-dashboard.html', 1000);
                 } else {
-                    showAlert(data.error || 'Login failed', 'error');
+                    showAlert(data.error || '登录失败，请检查用户名和密码', 'error');
                 }
             } catch (error) {
-                showAlert('Network error', 'error');
+                showAlert('网络连接失败，请稍后重试', 'error');
             }
         });
 
-        // User registration
+        // ========== User Registration ==========
         document.getElementById('user-register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const user = {
@@ -137,17 +429,17 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    showAlert('Registration successful! Please login.', 'success');
+                    showAlert('注册成功！请登录', 'success');
                     switchTab('user-login');
                 } else {
-                    showAlert(data.error || 'Registration failed', 'error');
+                    showAlert(data.error || '注册失败', 'error');
                 }
             } catch (error) {
-                showAlert('Network error', 'error');
+                showAlert('网络连接失败，请稍后重试', 'error');
             }
         });
 
-        // Admin login
+        // ========== Admin Login ==========
         document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('admin-username').value;
@@ -162,30 +454,27 @@
                 if (response.ok) {
                     setAuthToken(data.accessToken);
                     setAdmin(data.admin);
-                    showAlert('Admin login successful!', 'success');
+                    showAlert('管理员登录成功！', 'success');
                     setTimeout(() => window.location.href = 'admin-dashboard.html', 1000);
                 } else {
-                    showAlert(data.error || 'Login failed', 'error');
+                    showAlert(data.error || '登录失败，请检查管理员账号和密码', 'error');
                 }
             } catch (error) {
-                showAlert('Network error', 'error');
+                showAlert('网络连接失败，请稍后重试', 'error');
             }
         });
 
-        // Check if already logged in
+        // ========== Auto-redirect if already logged in ==========
         if (getUser()) {
             window.location.href = 'user-dashboard.html';
         } else if (getAdmin()) {
             window.location.href = 'admin-dashboard.html';
         }
-    </script>
 
-    <footer class="footer">
-        <div class="container">
-            <p>Vaccine Appointment System &copy; 2026 | Designed with ❤️ for public health</p>
-            <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">Secure, fast, and reliable vaccination
-                scheduling</p>
-        </div>
-    </footer>
+        // ========== Init Carousel ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            startAutoPlay();
+        });
+    </script>
 </body>
 </html>
