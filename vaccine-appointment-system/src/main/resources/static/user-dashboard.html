@@ -282,6 +282,9 @@
                 notice.style.display = 'none';
             }
 
+            // Set min date to today (cannot select past dates)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('appointment-date').setAttribute('min', today);
             document.getElementById('appointment-date').value = '';
             document.getElementById('appointment-time').innerHTML = '<option value="">请先选择日期</option>';
             document.getElementById('bookingModal').classList.add('active');

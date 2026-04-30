@@ -59,6 +59,10 @@ public class AppointmentServiceImpl implements AppointmentService {
             if (hasPendingAppointment(userId, vaccineId)) {
                 throw new RuntimeException("You already have a pending appointment for this vaccine");
             }
+            // Reject past appointment times
+            if (appointmentTime.isBefore(LocalDateTime.now())) {
+                throw new RuntimeException("Cannot book an appointment in the past");
+            }
             // Create appointment
             Appointment appointment = new Appointment();
             appointment.setUser(user);
