@@ -262,8 +262,14 @@ INSERT INTO `user` (`username`, `password`, `email`, `phone`, `role`, `status`) 
 ON DUPLICATE KEY UPDATE `password` = VALUES(`password`), `role` = VALUES(`role`), `status` = VALUES(`status`);
 
 -- ============================================
--- Sample Appointments (updated vaccine IDs)
+-- Sample Appointments
+-- Clear existing test data first to prevent duplicates on restart
+-- (Admin-created data is managed through the admin panel)
 -- ============================================
+DELETE
+FROM `vaccination_record`;
+DELETE
+FROM `appointment`;
 INSERT INTO `appointment` (`user_id`, `vaccine_id`, `appointment_time`, `status`) VALUES (1, 1,
                                                                                           DATE_ADD(NOW(), INTERVAL 7 DAY),
                                                                                           0), -- testuser, 乙肝CHO 10μg, pending
