@@ -11,8 +11,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   sql:
     init:
-      mode: always
-      continue-on-error: true
+      mode: never
   jpa:
     hibernate:
       ddl-auto: update
