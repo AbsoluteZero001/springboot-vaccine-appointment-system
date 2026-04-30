@@ -1,5 +1,6 @@
 package com.springboot.vaccineappointmentsystem.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "vaccination_record")
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class VaccinationRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
