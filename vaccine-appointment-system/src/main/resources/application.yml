@@ -33,9 +33,7 @@ spring:
       password: ''
       timeout: 5000ms
   cache:
-    type: redis
-    redis:
-      time-to-live: 600000
+    type: none
   security:
     user:
       name: admin
