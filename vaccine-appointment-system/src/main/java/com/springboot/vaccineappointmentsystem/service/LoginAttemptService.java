@@ -89,9 +89,9 @@ public class LoginAttemptService {
             case 4:
                 return "登录失败，请检查用户名或密码";
             case 3:
-                return "已连续失败2次，请谨慎输入（5次将冻结30秒）";
+                return "已连续失败2次，请谨慎输入（5次错误将冻结30秒）";
             case 2:
-                return "登录失败3次，请注意：5次错误将冻结30秒";
+                return "登录失败3次，请注意（5次错误将冻结30秒）";
             case 1:
                 return "登录失败4次，再失败1次将冻结30秒";
             default:
