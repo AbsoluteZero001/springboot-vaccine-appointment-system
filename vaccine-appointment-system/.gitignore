@@ -73,6 +73,10 @@ src/main/resources/application-*.properties
 lib/
 vendor/
 
+### Node modules ###
+node_modules/
+frontend/node_modules/
+
 ### Build artifacts ###
 *.jar
 *.war
