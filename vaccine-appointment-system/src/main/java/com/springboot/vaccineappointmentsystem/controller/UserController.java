@@ -2,6 +2,7 @@ package com.springboot.vaccineappointmentsystem.controller;
 
 import com.springboot.vaccineappointmentsystem.config.JwtTokenProvider;
 import com.springboot.vaccineappointmentsystem.entity.User;
+import com.springboot.vaccineappointmentsystem.service.LoginAttemptService;
 import com.springboot.vaccineappointmentsystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,9 @@ public class UserController {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    private LoginAttemptService loginAttemptService;
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
@@ -46,11 +50,21 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("username");
         String password = credentials.get("password");
+
+        // Check if username is currently frozen
+        String blockMsg = loginAttemptService.checkBlocked(username);
+        if (blockMsg != null) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", blockMsg);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+        }
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password)
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            loginAttemptService.recordSuccess(username);
             String jwt = jwtTokenProvider.generateToken(authentication);
             Map<String, Object> response = new HashMap<>();
             response.put("accessToken", jwt);
@@ -59,8 +73,9 @@ public class UserController {
             response.put("message", "Login successful");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            String errorMsg = loginAttemptService.recordFailedAttempt(username);
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid username or password");
+            error.put("error", errorMsg);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
     }
