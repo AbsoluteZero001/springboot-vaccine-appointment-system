@@ -52,11 +52,9 @@ public class UserController {
         String password = credentials.get("password");
 
         // Check if username is currently frozen
-        String blockMsg = loginAttemptService.checkBlocked(username);
-        if (blockMsg != null) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", blockMsg);
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+        Map<String, Object> blockResult = loginAttemptService.checkBlocked(username);
+        if (blockResult != null) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(blockResult);
         }
 
         try {
@@ -73,9 +71,7 @@ public class UserController {
             response.put("message", "Login successful");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            String errorMsg = loginAttemptService.recordFailedAttempt(username);
-            Map<String, String> error = new HashMap<>();
-            error.put("error", errorMsg);
+            Map<String, Object> error = loginAttemptService.recordFailedAttempt(username);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
     }

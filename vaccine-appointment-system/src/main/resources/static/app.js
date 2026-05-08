@@ -244,3 +244,55 @@ function switchTab(tabName) {
     document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(`tab-${tabName}`).classList.add('active');
 }
+
+// ========== Login Message (single fixed line, never stacks) ==========
+let _loginMsgTimer = null;
+
+function setupLoginMessage(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return null;
+    // Remove any existing message element first
+    const existing = container.querySelector('.login-msg');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.className = 'login-msg';
+    container.appendChild(el);
+    return el;
+}
+
+function setLoginMessage(el, data) {
+    if (!el) return;
+    // Clear any running countdown
+    if (_loginMsgTimer) {
+        clearInterval(_loginMsgTimer);
+        _loginMsgTimer = null;
+    }
+
+    if (!data) {
+        el.className = 'login-msg';
+        el.textContent = '';
+        return;
+    }
+
+    const isFrozen = data.frozen === true;
+    el.className = 'login-msg ' + (isFrozen ? 'login-msg-freeze' : 'login-msg-error');
+
+    if (isFrozen && data.freezeSeconds > 0) {
+        let remaining = data.freezeSeconds;
+        const update = () => {
+            el.textContent = remaining > 0
+                ? '正在冷却中：' + remaining + 's'
+                : '';
+            if (remaining <= 0) {
+                clearInterval(_loginMsgTimer);
+                _loginMsgTimer = null;
+                el.className = 'login-msg';
+            }
+            remaining--;
+        };
+        update();
+        _loginMsgTimer = setInterval(update, 1000);
+    } else {
+        el.textContent = data.error || '';
+    }
+}

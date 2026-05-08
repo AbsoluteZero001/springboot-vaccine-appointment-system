@@ -238,8 +238,6 @@
                         </button>
                     </div>
 
-                    <div id="alert-container" style="padding: 12px 28px 0;"></div>
-
                     <!-- User Login -->
                     <div id="tab-user-login" class="login-tab-content active">
                         <form id="user-login-form">
@@ -253,6 +251,7 @@
                                 <input type="password" id="user-password" class="form-control" placeholder="请输入密码"
                                        required>
                             </div>
+                            <div id="login-msg-container"></div>
                             <button type="submit" class="btn">登 录</button>
                         </form>
                     </div>
@@ -279,6 +278,7 @@
                                 <label for="reg-phone">手机号（选填）</label>
                                 <input type="text" id="reg-phone" class="form-control" placeholder="请输入手机号码">
                             </div>
+                            <div id="reg-msg-container"></div>
                             <button type="submit" class="btn">注 册</button>
                         </form>
                     </div>
@@ -365,6 +365,10 @@
             startAutoPlay();
         });
 
+        // ========== Login Message Elements (single line, never stacks) ==========
+        const loginMsgEl = setupLoginMessage('login-msg-container');
+        const regMsgEl = setupLoginMessage('reg-msg-container');
+
         // ========== User Login ==========
         document.getElementById('user-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -378,15 +382,16 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
+                    setLoginMessage(loginMsgEl, null);
                     setAuthToken(data.accessToken);
                     setUser(data.user);
                     showAlert('登录成功！', 'success');
                     setTimeout(() => window.location.href = 'user-dashboard.html', 1000);
                 } else {
-                    showAlert(data.error || '用户名或密码错误，请检查输入后重试', 'error');
+                    setLoginMessage(loginMsgEl, data);
                 }
             } catch (error) {
-                showAlert('网络连接失败，请稍后重试', 'error');
+                setLoginMessage(loginMsgEl, {error: '网络连接失败，请稍后重试'});
             }
         });
 
@@ -407,13 +412,14 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
+                    setLoginMessage(regMsgEl, null);
                     showAlert('注册成功！请登录', 'success');
                     switchTab('user-login');
                 } else {
-                    showAlert(data.error || '注册失败', 'error');
+                    setLoginMessage(regMsgEl, {error: data.error || '注册失败'});
                 }
             } catch (error) {
-                showAlert('网络连接失败，请稍后重试', 'error');
+                setLoginMessage(regMsgEl, {error: '网络连接失败，请稍后重试'});
             }
         });
 
