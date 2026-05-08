@@ -1,8 +1,6 @@
 package com.springboot.vaccineappointmentsystem.service;
 
 import com.springboot.vaccineappointmentsystem.entity.Appointment;
-import com.springboot.vaccineappointmentsystem.entity.User;
-import com.springboot.vaccineappointmentsystem.entity.Vaccine;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,5 +16,9 @@ public interface AppointmentService {
     List<Appointment> getAppointmentsByUser(Long userId);
     List<Appointment> getAppointmentsByVaccine(Long vaccineId);
     List<Appointment> getPendingAppointments();
+
+    List<Appointment> getAllAppointments();
+
+    List<Appointment> getAppointmentsByStatus(Integer status);
     boolean hasPendingAppointment(Long userId, Long vaccineId);
 }

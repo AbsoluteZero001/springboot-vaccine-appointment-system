@@ -2,9 +2,11 @@ package com.springboot.vaccineappointmentsystem.service.impl;
 
 import com.springboot.vaccineappointmentsystem.entity.Appointment;
 import com.springboot.vaccineappointmentsystem.entity.User;
+import com.springboot.vaccineappointmentsystem.entity.VaccinationRecord;
 import com.springboot.vaccineappointmentsystem.entity.Vaccine;
 import com.springboot.vaccineappointmentsystem.repository.AppointmentRepository;
 import com.springboot.vaccineappointmentsystem.repository.UserRepository;
+import com.springboot.vaccineappointmentsystem.repository.VaccinationRecordRepository;
 import com.springboot.vaccineappointmentsystem.repository.VaccineRepository;
 import com.springboot.vaccineappointmentsystem.service.AppointmentService;
 import com.springboot.vaccineappointmentsystem.service.RedisLockService;
@@ -29,6 +31,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private VaccineRepository vaccineRepository;
+
+    @Autowired
+    private VaccinationRecordRepository vaccinationRecordRepository;
 
     @Autowired
     private RedisLockService redisLockService;
@@ -132,7 +137,19 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new RuntimeException("Only confirmed appointments can be completed");
         }
         appointment.setStatus(2); // completed
-        return appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.save(appointment);
+
+        // Auto-create vaccination record with administered status
+        VaccinationRecord record = new VaccinationRecord();
+        record.setAppointment(saved);
+        record.setUser(saved.getUser());
+        record.setVaccine(saved.getVaccine());
+        record.setVaccinationTime(LocalDateTime.now());
+        record.setStatus(1); // administered
+        record.setNotes("管理员完成接种");
+        vaccinationRecordRepository.save(record);
+
+        return saved;
     }
 
     @Override
@@ -153,6 +170,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<Appointment> getPendingAppointments() {
         return appointmentRepository.findByStatus(0);
+    }
+
+    @Override
+    public List<Appointment> getAllAppointments() {
+        return appointmentRepository.findAllWithDetails();
+    }
+
+    @Override
+    public List<Appointment> getAppointmentsByStatus(Integer status) {
+        return appointmentRepository.findByStatusWithDetails(status);
     }
 
     @Override

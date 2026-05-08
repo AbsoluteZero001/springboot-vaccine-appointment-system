@@ -23,7 +23,6 @@ public class VaccinationRecord {
     @JoinColumn(name = "appointment_id", nullable = false)
     private Appointment appointment;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

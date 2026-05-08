@@ -3,35 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Users - Vaccine Appointment System</title>
+    <title>用户管理 - 疫苗预约系统</title>
     <link rel="stylesheet" href="common.css">
 </head>
 <body>
-    <div class="header">
-        <div class="navbar">
-            <h1>Vaccine Appointment System - Manage Users</h1>
-            <div class="nav-links">
-                <a href="admin-dashboard.html">Dashboard</a>
-                <a href="admin-vaccine.html">Manage Vaccines</a>
-                <a href="admin-users.html">Manage Users</a>
-                <a href="#" onclick="logout()">Logout</a>
-            </div>
+<header class="site-header">
+    <div class="container">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">💉</div>
+            <span class="logo-text">疫苗预约系统</span>
+        </a>
+        <nav class="main-nav">
+            <a href="admin-dashboard.html">预约审核</a>
+            <a href="admin-vaccine.html">疫苗管理</a>
+            <a href="admin-users.html" class="active">用户管理</a>
+            <a href="#" onclick="logout()">退出登录</a>
+        </nav>
         </div>
-    </div>
+</header>
 
     <div class="container">
         <div id="alert-container"></div>
         <div class="card">
-            <h2>User List</h2>
+            <h2>用户列表</h2>
             <table id="users-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>手机号</th>
+                        <th>状态</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -61,19 +64,19 @@
                         <td>${user.id}</td>
                         <td>${user.username}</td>
                         <td>${user.email}</td>
-                        <td>${user.phone || 'N/A'}</td>
-                        <td>${user.status === 1 ? 'Active' : 'Inactive'}</td>
+                        <td>${user.phone || '—'}</td>
+                        <td>${user.status === 1 ? '正常' : '已停用'}</td>
                         <td>
                             <button class="btn btn-small" onclick="toggleUserStatus(${user.id}, ${user.status})">
-                                ${user.status === 1 ? 'Deactivate' : 'Activate'}
+                                ${user.status === 1 ? '停用' : '启用'}
                             </button>
-                            <button class="btn btn-danger btn-small" onclick="deleteUser(${user.id})">Delete</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteUser(${user.id})">删除</button>
                         </td>
                     `;
                     tbody.appendChild(row);
                 });
             } catch (error) {
-                showAlert('Failed to load users', 'error');
+                showAlert('加载用户列表失败', 'error');
             }
         }
 
@@ -85,24 +88,24 @@
                     method: 'PUT',
                     body: JSON.stringify({ status: newStatus })
                 });
-                showAlert('User status updated successfully', 'success');
+                showAlert('用户状态已更新', 'success');
                 loadUsers();
             } catch (error) {
-                showAlert(error.message || 'Failed to update user status', 'error');
+                showAlert(error.message || '更新用户状态失败', 'error');
             }
         }
 
         // Delete user
         async function deleteUser(userId) {
-            if (!confirm('Are you sure you want to delete this user? All their appointments will also be deleted.')) return;
+            if (!confirm('确定要删除此用户吗？其所有预约记录也将被删除。')) return;
             try {
                 await apiCall(`/users/${userId}`, {
                     method: 'DELETE'
                 });
-                showAlert('User deleted successfully', 'success');
+                showAlert('用户已删除', 'success');
                 loadUsers();
             } catch (error) {
-                showAlert(error.message || 'Failed to delete user', 'error');
+                showAlert(error.message || '删除用户失败', 'error');
             }
         }
 
@@ -112,9 +115,8 @@
 
     <footer class="footer">
         <div class="container">
-            <p>Vaccine Appointment System &copy; 2026 | Manage Users</p>
-            <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">View and manage user accounts and
-                appointments</p>
+            <p>疫苗预约系统 © 2026 | 管理员后台</p>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px;">查看和管理用户账号</p>
         </div>
     </footer>
 </body>

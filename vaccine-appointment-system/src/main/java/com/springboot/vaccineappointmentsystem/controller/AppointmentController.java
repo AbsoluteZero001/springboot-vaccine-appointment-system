@@ -3,7 +3,6 @@ package com.springboot.vaccineappointmentsystem.controller;
 import com.springboot.vaccineappointmentsystem.entity.Appointment;
 import com.springboot.vaccineappointmentsystem.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,9 +51,19 @@ public class AppointmentController {
         return appointmentService.getAppointmentsByVaccine(vaccineId);
     }
 
+    @GetMapping
+    public List<Appointment> getAllAppointments() {
+        return appointmentService.getAllAppointments();
+    }
+
     @GetMapping("/pending")
     public List<Appointment> getPendingAppointments() {
         return appointmentService.getPendingAppointments();
+    }
+
+    @GetMapping("/status/{status}")
+    public List<Appointment> getAppointmentsByStatus(@PathVariable Integer status) {
+        return appointmentService.getAppointmentsByStatus(status);
     }
 
     @GetMapping("/{id}")

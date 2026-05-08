@@ -78,17 +78,20 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="navbar">
-            <h1>疫苗预约系统 - 疫苗管理</h1>
-            <div class="nav-links">
-                <a href="admin-dashboard.html">控制台</a>
-                <a href="admin-vaccine.html">疫苗管理</a>
+<header class="site-header">
+    <div class="container">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">💉</div>
+            <span class="logo-text">疫苗预约系统</span>
+        </a>
+        <nav class="main-nav">
+            <a href="admin-dashboard.html">预约审核</a>
+            <a href="admin-vaccine.html" class="active">疫苗管理</a>
                 <a href="admin-users.html">用户管理</a>
-                <a href="#" onclick="logout()">退出</a>
-            </div>
+            <a href="#" onclick="logout()">退出登录</a>
+        </nav>
         </div>
-    </div>
+</header>
 
     <div class="container">
         <div id="alert-container"></div>

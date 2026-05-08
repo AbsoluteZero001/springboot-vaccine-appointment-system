@@ -79,7 +79,7 @@ public class VaccinationRecordServiceImpl implements VaccinationRecordService {
 
     @Override
     public List<VaccinationRecord> getRecordsByStatus(Integer status) {
-        return vaccinationRecordRepository.findByStatus(status);
+        return vaccinationRecordRepository.findByStatusWithDetails(status);
     }
 
     @Override

@@ -285,29 +285,7 @@
 
                     <div class="login-divider">— 管理员入口 —</div>
                     <div class="login-card-admin-link">
-                        <a href="#" onclick="switchTab('admin-login'); return false;">管理员登录 →</a>
-                    </div>
-
-                    <!-- Admin Login (hidden panel accessible via link above) -->
-                    <div id="tab-admin-login" class="login-tab-content">
-                        <form id="admin-login-form">
-                            <div class="form-group">
-                                <label for="admin-username">管理员用户名</label>
-                                <input type="text" id="admin-username" class="form-control"
-                                       placeholder="请输入管理员账号" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="admin-password">密码</label>
-                                <input type="password" id="admin-password" class="form-control" placeholder="请输入密码"
-                                       required>
-                            </div>
-                            <button type="submit" class="btn">管理员登录</button>
-                        </form>
-                        <div style="text-align: center; margin-top: 12px;">
-                            <a href="#" onclick="switchTab('user-login'); return false;"
-                               style="color: var(--gray-color); font-size: 0.85rem; text-decoration: none;">←
-                                返回用户登录</a>
-                        </div>
+                        <a href="admin-login.html">🔐 管理员登录 →</a>
                     </div>
                 </div>
             </div>
@@ -439,36 +417,9 @@
             }
         });
 
-        // ========== Admin Login ==========
-        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('admin-username').value;
-            const password = document.getElementById('admin-password').value;
-            try {
-                const response = await fetch(API_BASE + '/admins/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    setAuthToken(data.accessToken);
-                    setAdmin(data.admin);
-                    showAlert('管理员登录成功！', 'success');
-                    setTimeout(() => window.location.href = 'admin-dashboard.html', 1000);
-                } else {
-                    showAlert(data.error || '登录失败，请检查管理员账号和密码', 'error');
-                }
-            } catch (error) {
-                showAlert('网络连接失败，请稍后重试', 'error');
-            }
-        });
-
         // ========== Auto-redirect if already logged in ==========
         if (getUser()) {
             window.location.href = 'user-dashboard.html';
-        } else if (getAdmin()) {
-            window.location.href = 'admin-dashboard.html';
         }
 
         // ========== Init Carousel ==========

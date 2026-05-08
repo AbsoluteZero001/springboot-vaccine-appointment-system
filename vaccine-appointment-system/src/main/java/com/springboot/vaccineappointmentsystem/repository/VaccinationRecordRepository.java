@@ -12,10 +12,14 @@ import java.util.List;
 public interface VaccinationRecordRepository extends JpaRepository<VaccinationRecord, Long> {
     List<VaccinationRecord> findByUserId(Long userId);
 
-    @Query("SELECT r FROM VaccinationRecord r JOIN FETCH r.vaccine WHERE r.user.id = :userId")
+    @Query("SELECT r FROM VaccinationRecord r JOIN FETCH r.vaccine JOIN FETCH r.user WHERE r.user.id = :userId")
     List<VaccinationRecord> findByUserIdWithVaccine(@Param("userId") Long userId);
 
     List<VaccinationRecord> findByVaccineId(Long vaccineId);
+
+    @Query("SELECT r FROM VaccinationRecord r JOIN FETCH r.user JOIN FETCH r.vaccine WHERE r.status = :status ORDER BY r.createTime DESC")
+    List<VaccinationRecord> findByStatusWithDetails(@Param("status") Integer status);
+
     List<VaccinationRecord> findByStatus(Integer status);
     List<VaccinationRecord> findByAppointmentId(Long appointmentId);
 }

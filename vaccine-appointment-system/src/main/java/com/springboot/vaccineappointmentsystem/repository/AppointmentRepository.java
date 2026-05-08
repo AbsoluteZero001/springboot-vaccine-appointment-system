@@ -28,5 +28,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Query("SELECT a FROM Appointment a WHERE a.user.id = :userId AND a.status IN :statuses")
     List<Appointment> findByUserAndStatusIn(@Param("userId") Long userId, @Param("statuses") List<Integer> statuses);
 
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine ORDER BY a.createTime DESC")
+    List<Appointment> findAllWithDetails();
+
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine WHERE a.status = :status ORDER BY a.createTime DESC")
+    List<Appointment> findByStatusWithDetails(@Param("status") Integer status);
+
     Optional<Appointment> findByIdAndUserId(Long id, Long userId);
 }
