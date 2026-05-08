@@ -77,6 +77,10 @@ vendor/
 node_modules/
 frontend/node_modules/
 
+### Vite cache ###
+*.vite/
+frontend/.vite/
+
 ### Build artifacts ###
 *.jar
 *.war
