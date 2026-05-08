@@ -142,7 +142,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<Appointment> getAppointmentsByUser(Long userId) {
-        return appointmentRepository.findByUserId(userId);
+        return appointmentRepository.findByUserIdWithVaccine(userId);
     }
 
     @Override

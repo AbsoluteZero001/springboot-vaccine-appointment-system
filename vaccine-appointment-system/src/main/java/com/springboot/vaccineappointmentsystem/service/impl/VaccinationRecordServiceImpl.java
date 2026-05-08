@@ -69,7 +69,7 @@ public class VaccinationRecordServiceImpl implements VaccinationRecordService {
 
     @Override
     public List<VaccinationRecord> getRecordsByUser(Long userId) {
-        return vaccinationRecordRepository.findByUserId(userId);
+        return vaccinationRecordRepository.findByUserIdWithVaccine(userId);
     }
 
     @Override
