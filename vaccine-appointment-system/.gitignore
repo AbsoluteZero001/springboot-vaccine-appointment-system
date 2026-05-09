@@ -63,9 +63,19 @@ logs/
 *.orig
 
 
+### Environment files (may contain secrets) ###
+.env
+.env.local
+docker-compose.override.yml
+
+### Upload directory ###
+uploads/
+
 ### Local development files ###
 src/main/resources/application-*.yml
 !src/main/resources/application.yml
+!src/main/resources/application-dev.yml
+!src/main/resources/application-prod.yml
 src/main/resources/application-*.properties
 !src/main/resources/application.properties
 

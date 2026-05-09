@@ -26,7 +26,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: '../src/main/resources/static',
+      outDir: process.env.VITE_OUT_DIR || '../src/main/resources/static',
     emptyOutDir: true
   }
 })

@@ -1,22 +1,24 @@
-# Main configuration file for vaccine appointment system
-# To use local configuration, set spring.profiles.active=local
-# Local configuration file (application-local.yml) is not tracked by git
+# =============================================================================
+# 疫苗预约系统 — 基础配置（所有环境共享）
+# 敏感信息通过环境变量注入，默认值仅用于本地开发
+# =============================================================================
+
 spring:
   application:
     name: vaccine-appointment-system
+
+  # ---- 数据源 ----
   datasource:
-    url: jdbc:mysql://localhost:3306/vaccine_appointment_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${MYSQL_DATABASE:vaccine_appointment_db}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
-  sql:
-    init:
-      mode: never
+
+  # ---- JPA ----
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
-    defer-datasource-initialization: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -25,24 +27,42 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+
+  # ---- SQL 初始化（禁用，由 Hibernate ddl-auto 或 docker/mysql/init.sql 处理）----
+  sql:
+    init:
+      mode: never
+
+  # ---- Redis ----
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       database: 0
-      password: ''
+      password: ${REDIS_PASSWORD:}
       timeout: 5000ms
-  cache:
-    type: none
-  security:
-    user:
-      name: admin
-      password: admin123
-      roles: ADMIN
 
+  # ---- 文件上传 ----
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# ---- 服务端口 ----
 server:
-  port: 8080
+  port: ${APP_PORT:8080}
 
+# ---- JWT ----
+jwt:
+  secret: ${JWT_SECRET:dev-secret-key-do-not-use-in-production}
+  expiration:
+    ms: 86400000
+
+# ---- 应用 ----
+app:
+  upload-dir: ${UPLOAD_DIR:./uploads}
+
+# ---- Swagger / OpenAPI ----
 springdoc:
   api-docs:
     path: /api-docs
@@ -51,16 +71,8 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
 
+# ---- 日志 ----
 logging:
   level:
-    com.springboot.vaccineappointmentsystem: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.data.redis: DEBUG
-
-jwt:
-  secret: your-secret-key-change-in-production
-  expiration:
-    ms: 86400000
-
-app:
-  upload-dir: ./uploads
+    root: INFO
+    com.springboot.vaccineappointmentsystem: INFO
