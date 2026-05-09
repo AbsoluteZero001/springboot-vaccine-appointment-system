@@ -54,8 +54,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/vaccines/{id}").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                    // Static resources
-                    .requestMatchers("/", "/index.html", "/*.html", "/*.css", "/*.js", "/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
+                    // Static resources (Vue SPA build output)
+                    .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
                 .requestMatchers("/api/admins/**").hasRole("ADMIN")
                 .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/api/appointments/**").hasAnyRole("USER", "ADMIN")
