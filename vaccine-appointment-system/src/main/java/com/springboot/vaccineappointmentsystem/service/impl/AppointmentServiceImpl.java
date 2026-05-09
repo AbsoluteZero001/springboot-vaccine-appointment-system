@@ -1,21 +1,19 @@
 package com.springboot.vaccineappointmentsystem.service.impl;
 
-import com.springboot.vaccineappointmentsystem.entity.Appointment;
-import com.springboot.vaccineappointmentsystem.entity.User;
-import com.springboot.vaccineappointmentsystem.entity.VaccinationRecord;
-import com.springboot.vaccineappointmentsystem.entity.Vaccine;
-import com.springboot.vaccineappointmentsystem.repository.AppointmentRepository;
-import com.springboot.vaccineappointmentsystem.repository.UserRepository;
-import com.springboot.vaccineappointmentsystem.repository.VaccinationRecordRepository;
-import com.springboot.vaccineappointmentsystem.repository.VaccineRepository;
+import com.springboot.vaccineappointmentsystem.entity.*;
+import com.springboot.vaccineappointmentsystem.enums.AppointmentStatus;
+import com.springboot.vaccineappointmentsystem.enums.VaccinationRecordStatus;
+import com.springboot.vaccineappointmentsystem.repository.*;
 import com.springboot.vaccineappointmentsystem.service.AppointmentService;
 import com.springboot.vaccineappointmentsystem.service.RedisLockService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,68 +21,74 @@ import java.util.Optional;
 @Transactional
 public class AppointmentServiceImpl implements AppointmentService {
 
+    private static final Logger log = LoggerFactory.getLogger(AppointmentServiceImpl.class);
+
     @Autowired
     private AppointmentRepository appointmentRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private VaccineRepository vaccineRepository;
-
     @Autowired
     private VaccinationRecordRepository vaccinationRecordRepository;
-
+    @Autowired
+    private AppointmentLogRepository appointmentLogRepository;
     @Autowired
     private RedisLockService redisLockService;
 
+    // ── Audit helpers ────────────────────────────────────────────
+
+    private void audit(Long appointmentId, String action, Integer oldCode, Integer newCode, String changedBy, String reason) {
+        AppointmentLog entry = new AppointmentLog();
+        entry.setAppointmentId(appointmentId);
+        entry.setAction(action);
+        entry.setOldStatus(oldCode);
+        entry.setNewStatus(newCode);
+        entry.setChangedBy(changedBy);
+        entry.setChangeReason(reason);
+        appointmentLogRepository.save(entry);
+    }
+
+    private void auditSystem(Long appointmentId, String action, Integer oldCode, Integer newCode, String reason) {
+        audit(appointmentId, action, oldCode, newCode, "SYSTEM", reason);
+    }
+
+    // ── Business methods ─────────────────────────────────────────
+
     @Override
     public Appointment createAppointment(Long userId, Long vaccineId, LocalDateTime appointmentTime) {
-        // Acquire Redis lock to prevent concurrent duplicate appointments
         boolean lockAcquired = false;
         try {
             lockAcquired = redisLockService.lockForAppointment(userId, vaccineId);
-            if (!lockAcquired) {
-                throw new RuntimeException("System busy, please try again later");
-            }
+            if (!lockAcquired) throw new RuntimeException("System busy, please try again later");
 
-            // Check if user exists
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-            // Check if vaccine exists and available
+                    .orElseThrow(() -> new RuntimeException("User not found"));
             Vaccine vaccine = vaccineRepository.findById(vaccineId)
-                    .orElseThrow(() -> new RuntimeException("Vaccine not found with id: " + vaccineId));
-            if (!vaccine.getAvailable()) {
-                throw new RuntimeException("Vaccine is not available");
-            }
-            if (vaccine.getStockQuantity() <= 0) {
-                throw new RuntimeException("Vaccine out of stock");
-            }
-            // Check for duplicate pending appointment
-            if (hasPendingAppointment(userId, vaccineId)) {
+                    .orElseThrow(() -> new RuntimeException("Vaccine not found"));
+            if (!vaccine.getAvailable()) throw new RuntimeException("Vaccine is not available");
+            if (vaccine.getStockQuantity() <= 0) throw new RuntimeException("Vaccine out of stock");
+            if (hasPendingAppointment(userId, vaccineId))
                 throw new RuntimeException("You already have a pending appointment for this vaccine");
-            }
-            // Reject past appointment times
-            if (appointmentTime.isBefore(LocalDateTime.now())) {
+            if (appointmentTime.isBefore(LocalDateTime.now()))
                 throw new RuntimeException("Cannot book an appointment in the past");
-            }
-            // Create appointment
+
             Appointment appointment = new Appointment();
             appointment.setUser(user);
             appointment.setVaccine(vaccine);
             appointment.setAppointmentTime(appointmentTime);
-            appointment.setStatus(0); // pending
-            // Save appointment
+            appointment.setStatus(AppointmentStatus.APPOINTED);
+            appointment.setStatusUpdatedAt(LocalDateTime.now());
             Appointment saved = appointmentRepository.save(appointment);
-            // Decrease stock by 1
+
             vaccine.setStockQuantity(vaccine.getStockQuantity() - 1);
             vaccineRepository.save(vaccine);
+
+            audit(saved.getId(), "CREATE", null, AppointmentStatus.APPOINTED.getCode(),
+                    user.getUsername(), "用户预约疫苗 " + vaccine.getName());
             return saved;
         } finally {
-            // Always release the lock
-            if (lockAcquired) {
-                redisLockService.unlockForAppointment(userId, vaccineId);
-            }
+            if (lockAcquired) redisLockService.unlockForAppointment(userId, vaccineId);
         }
     }
 
@@ -92,64 +96,111 @@ public class AppointmentServiceImpl implements AppointmentService {
     public Appointment cancelAppointment(Long appointmentId, Long userId) {
         Appointment appointment = appointmentRepository.findByIdAndUserId(appointmentId, userId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found or not owned by user"));
-        if (appointment.getStatus() == 3) {
-            throw new RuntimeException("Appointment already cancelled");
-        }
-        appointment.setStatus(3); // cancelled
-        // Increase stock back
-        Vaccine vaccine = appointment.getVaccine();
-        vaccine.setStockQuantity(vaccine.getStockQuantity() + 1);
-        vaccineRepository.save(vaccine);
-        return appointmentRepository.save(appointment);
+        return doCancel(appointment, appointment.getUser().getUsername());
     }
 
     @Override
     public Appointment cancelAppointmentByAdmin(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        if (appointment.getStatus() == 3) {
-            throw new RuntimeException("Appointment already cancelled");
-        }
-        appointment.setStatus(3); // cancelled
-        // Increase stock back
+        return doCancel(appointment, "ADMIN");
+    }
+
+    private void validateCancellable(Appointment appointment) {
+        AppointmentStatus cur = appointment.getStatus();
+        if (cur == AppointmentStatus.CANCELLED) throw new RuntimeException("Appointment already cancelled");
+        if (!cur.canTransitionTo(AppointmentStatus.CANCELLED))
+            throw new RuntimeException("Cannot cancel: appointment is " + cur.getDisplayName());
+    }
+
+    private Appointment doCancel(Appointment appointment, String operator) {
+        validateCancellable(appointment);
+        int oldCode = appointment.getStatus().getCode();
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointment.setStatusUpdatedAt(LocalDateTime.now());
         Vaccine vaccine = appointment.getVaccine();
         vaccine.setStockQuantity(vaccine.getStockQuantity() + 1);
         vaccineRepository.save(vaccine);
-        return appointmentRepository.save(appointment);
-    }
-
-    @Override
-    public Appointment confirmAppointment(Long appointmentId) {
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        if (appointment.getStatus() != 0) {
-            throw new RuntimeException("Only pending appointments can be confirmed");
-        }
-        appointment.setStatus(1); // confirmed
-        return appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.save(appointment);
+        audit(appointment.getId(), "CANCEL", oldCode, AppointmentStatus.CANCELLED.getCode(),
+                operator, "取消预约，库存已恢复");
+        return saved;
     }
 
     @Override
     public Appointment completeAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        if (appointment.getStatus() != 1) {
-            throw new RuntimeException("Only confirmed appointments can be completed");
+
+        AppointmentStatus cur = appointment.getStatus();
+        if (!cur.canTransitionTo(AppointmentStatus.COMPLETED))
+            throw new RuntimeException("Cannot complete: appointment is " + cur.getDisplayName());
+
+        int oldCode = cur.getCode();
+
+        // Ensure vaccination record exists
+        List<VaccinationRecord> existing = vaccinationRecordRepository.findByAppointmentId(appointmentId);
+        if (existing.isEmpty()) {
+            VaccinationRecord record = new VaccinationRecord();
+            record.setAppointment(appointment);
+            record.setUser(appointment.getUser());
+            record.setVaccine(appointment.getVaccine());
+            record.setVaccinationTime(LocalDateTime.now());
+            record.setStatus(VaccinationRecordStatus.ADMINISTERED);
+            record.setNotes("管理员完成接种");
+            vaccinationRecordRepository.save(record);
         }
-        appointment.setStatus(2); // completed
+
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+        appointment.setStatusUpdatedAt(LocalDateTime.now());
         Appointment saved = appointmentRepository.save(appointment);
-
-        // Auto-create vaccination record with administered status
-        VaccinationRecord record = new VaccinationRecord();
-        record.setAppointment(saved);
-        record.setUser(saved.getUser());
-        record.setVaccine(saved.getVaccine());
-        record.setVaccinationTime(LocalDateTime.now());
-        record.setStatus(1); // administered
-        record.setNotes("管理员完成接种");
-        vaccinationRecordRepository.save(record);
-
+        audit(appointmentId, "COMPLETE", oldCode, AppointmentStatus.COMPLETED.getCode(),
+                "ADMIN", "管理员确认接种完成");
         return saved;
+    }
+
+    @Override
+    public VaccinationRecord createLateRecord(Long appointmentId, String notes) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (appointment.getStatus() != AppointmentStatus.NO_SHOW)
+            throw new RuntimeException("Only NO_SHOW appointments can receive late vaccination records, current: "
+                    + appointment.getStatus().getDisplayName());
+
+        // Check duplicate
+        List<VaccinationRecord> existing = vaccinationRecordRepository.findByAppointmentId(appointmentId);
+        if (!existing.isEmpty())
+            throw new RuntimeException("Vaccination record already exists for this appointment");
+
+        VaccinationRecord record = new VaccinationRecord();
+        record.setAppointment(appointment);
+        record.setUser(appointment.getUser());
+        record.setVaccine(appointment.getVaccine());
+        record.setVaccinationTime(LocalDateTime.now());
+        record.setStatus(VaccinationRecordStatus.ADMINISTERED);
+        record.setNotes(notes != null ? notes : "补录接种记录（逾期补录）");
+        VaccinationRecord saved = vaccinationRecordRepository.save(record);
+
+        audit(appointmentId, "LATE_RECORD", AppointmentStatus.NO_SHOW.getCode(), null,
+                "ADMIN", "补录逾期接种记录: " + (notes != null ? notes : "无备注"));
+        log.info("Late vaccination record created for NO_SHOW appointment {}", appointmentId);
+        return saved;
+    }
+
+    @Override
+    public void detectAndMarkNoShow() {
+        List<Appointment> overdue = appointmentRepository
+                .findOverdueWithoutRecord(AppointmentStatus.APPOINTED, LocalDateTime.now());
+        for (Appointment a : overdue) {
+            int oldCode = a.getStatus().getCode();
+            a.setStatus(AppointmentStatus.NO_SHOW);
+            a.setStatusUpdatedAt(LocalDateTime.now());
+            appointmentRepository.save(a);
+            auditSystem(a.getId(), "AUTO_NO_SHOW", oldCode, AppointmentStatus.NO_SHOW.getCode(),
+                    "系统自动检测：预约时间 " + a.getAppointmentTime() + " 已过，未到场接种");
+            log.info("Marked appointment {} as NO_SHOW (was scheduled for {})", a.getId(), a.getAppointmentTime());
+        }
     }
 
     @Override
@@ -169,7 +220,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public List<Appointment> getPendingAppointments() {
-        return appointmentRepository.findByStatus(0);
+        return appointmentRepository.findByStatus(AppointmentStatus.APPOINTED);
     }
 
     @Override
@@ -178,14 +229,18 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<Appointment> getAppointmentsByStatus(Integer status) {
+    public List<Appointment> getAppointmentsByStatus(AppointmentStatus status) {
         return appointmentRepository.findByStatusWithDetails(status);
     }
 
     @Override
     public boolean hasPendingAppointment(Long userId, Long vaccineId) {
-        List<Integer> pendingStatuses = Arrays.asList(0, 1); // pending and confirmed
-        List<Appointment> appointments = appointmentRepository.findByUserAndVaccineAndStatusIn(userId, vaccineId, pendingStatuses);
-        return !appointments.isEmpty();
+        return !appointmentRepository.findByUserAndVaccineAndStatusIn(
+                userId, vaccineId, Collections.singletonList(AppointmentStatus.APPOINTED)).isEmpty();
+    }
+
+    @Override
+    public List<AppointmentLog> getAppointmentLogs(Long appointmentId) {
+        return appointmentLogRepository.findByAppointmentIdOrderByCreatedAtDesc(appointmentId);
     }
 }

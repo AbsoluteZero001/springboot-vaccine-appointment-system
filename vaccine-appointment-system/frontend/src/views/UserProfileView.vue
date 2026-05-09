@@ -47,7 +47,7 @@
               </td>
               <td>
                 <button
-                  v-if="appt.status === 0 || appt.status === 1"
+                    v-if="appt.status === 0"
                   class="btn btn-danger btn-small"
                   @click="cancelAppointment(appt.id)"
                 >
@@ -81,7 +81,7 @@
               <td>{{ formatDate(rec.vaccinationTime) }}</td>
               <td>
                 <span :style="rec.status === 0 ? 'padding:3px 12px;border-radius:50px;font-size:0.8rem;font-weight:600;background:#fff7ed;color:#c2410c;' : 'padding:3px 12px;border-radius:50px;font-size:0.8rem;font-weight:600;background:#f0fdf4;color:#16a34a;'">
-                  {{ rec.status === 0 ? '已预约' : '已接种' }}
+                  {{ rec.status === 0 ? '已安排' : '已接种' }}
                 </span>
               </td>
               <td>{{ rec.notes || '—' }}</td>
@@ -135,9 +135,9 @@ function specText(vaccine?: { brand?: string; dosage?: string }) {
   return [vaccine.brand, vaccine.dosage].filter(Boolean).join(' | ') || '—'
 }
 
-const STATUS_LABELS: Record<number, string> = { 0: '待确认', 1: '已确认', 2: '已完成', 3: '已取消' }
-const STATUS_BG: Record<number, string> = { 0: '#fff7ed', 1: '#f0fdf4', 2: '#eff6ff', 3: '#f5f5f5' }
-const STATUS_COLOR: Record<number, string> = { 0: '#c2410c', 1: '#16a34a', 2: '#2563eb', 3: '#6b7280' }
+const STATUS_LABELS: Record<number, string> = {0: '已预约', 1: '已完成', 2: '未到场', 3: '已取消'}
+const STATUS_BG: Record<number, string> = {0: '#fff7ed', 1: '#f0fdf4', 2: '#fee2e2', 3: '#f5f5f5'}
+const STATUS_COLOR: Record<number, string> = {0: '#c2410c', 1: '#16a34a', 2: '#dc2626', 3: '#6b7280'}
 
 function statusLabel(status: number) {
   return STATUS_LABELS[status] || '未知'
@@ -158,8 +158,8 @@ async function loadAppointments() {
     appointments.value = data
     let pending = 0, completed = 0
     data.forEach((a: Appointment) => {
-      if (a.status === 0 || a.status === 1) pending++
-      if (a.status === 2) completed++
+      if (a.status === 0) pending++
+      if (a.status === 1) completed++
     })
     pendingCount.value = pending
     completedCount.value = completed

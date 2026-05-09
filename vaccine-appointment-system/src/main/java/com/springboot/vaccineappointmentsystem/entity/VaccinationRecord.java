@@ -2,6 +2,7 @@ package com.springboot.vaccineappointmentsystem.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.springboot.vaccineappointmentsystem.enums.VaccinationRecordStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -35,7 +36,7 @@ public class VaccinationRecord {
     private LocalDateTime vaccinationTime;
 
     @Column(nullable = false)
-    private Integer status = 0; // 0: scheduled, 1: administered
+    private VaccinationRecordStatus status = VaccinationRecordStatus.SCHEDULED;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

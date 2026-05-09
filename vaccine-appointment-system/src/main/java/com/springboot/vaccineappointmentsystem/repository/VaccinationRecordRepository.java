@@ -1,11 +1,13 @@
 package com.springboot.vaccineappointmentsystem.repository;
 
 import com.springboot.vaccineappointmentsystem.entity.VaccinationRecord;
+import com.springboot.vaccineappointmentsystem.enums.VaccinationRecordStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -18,8 +20,12 @@ public interface VaccinationRecordRepository extends JpaRepository<VaccinationRe
     List<VaccinationRecord> findByVaccineId(Long vaccineId);
 
     @Query("SELECT r FROM VaccinationRecord r JOIN FETCH r.user JOIN FETCH r.vaccine WHERE r.status = :status ORDER BY r.createTime DESC")
-    List<VaccinationRecord> findByStatusWithDetails(@Param("status") Integer status);
+    List<VaccinationRecord> findByStatusWithDetails(@Param("status") VaccinationRecordStatus status);
 
-    List<VaccinationRecord> findByStatus(Integer status);
+    List<VaccinationRecord> findByStatus(VaccinationRecordStatus status);
     List<VaccinationRecord> findByAppointmentId(Long appointmentId);
+
+    long countByStatus(VaccinationRecordStatus status);
+
+    long countByCreateTimeBetween(LocalDateTime start, LocalDateTime end);
 }

@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
                     // Static resources (Vue SPA build output)
                     .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
+                    .requestMatchers("/api/statistics/**").hasRole("ADMIN")
                 .requestMatchers("/api/admins/**").hasRole("ADMIN")
                 .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/api/appointments/**").hasAnyRole("USER", "ADMIN")

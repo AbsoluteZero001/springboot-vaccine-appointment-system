@@ -1,6 +1,9 @@
 package com.springboot.vaccineappointmentsystem.controller;
 
 import com.springboot.vaccineappointmentsystem.entity.Appointment;
+import com.springboot.vaccineappointmentsystem.entity.AppointmentLog;
+import com.springboot.vaccineappointmentsystem.entity.VaccinationRecord;
+import com.springboot.vaccineappointmentsystem.enums.AppointmentStatus;
 import com.springboot.vaccineappointmentsystem.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,8 +29,7 @@ public class AppointmentController {
         try {
             Long userId = Long.valueOf(payload.get("userId").toString());
             Long vaccineId = Long.valueOf(payload.get("vaccineId").toString());
-            String appointmentTimeStr = payload.get("appointmentTime").toString();
-            LocalDateTime appointmentTime = LocalDateTime.parse(appointmentTimeStr);
+            LocalDateTime appointmentTime = LocalDateTime.parse(payload.get("appointmentTime").toString());
             Appointment appointment = appointmentService.createAppointment(userId, vaccineId, appointmentTime);
             return ResponseEntity.status(HttpStatus.CREATED).body(appointment);
         } catch (RuntimeException e) {
@@ -63,7 +65,7 @@ public class AppointmentController {
 
     @GetMapping("/status/{status}")
     public List<Appointment> getAppointmentsByStatus(@PathVariable Integer status) {
-        return appointmentService.getAppointmentsByStatus(status);
+        return appointmentService.getAppointmentsByStatus(AppointmentStatus.fromCode(status));
     }
 
     @GetMapping("/{id}")
@@ -78,6 +80,16 @@ public class AppointmentController {
         }
     }
 
+    // ── Audit log ──────────────────────────────────────────────
+
+    @GetMapping("/{id}/logs")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<AppointmentLog> getAppointmentLogs(@PathVariable Long id) {
+        return appointmentService.getAppointmentLogs(id);
+    }
+
+    // ── Actions ────────────────────────────────────────────────
+
     @PostMapping("/{id}/cancel")
     public ResponseEntity<?> cancelAppointment(@PathVariable Long id, @RequestBody Map<String, Long> payload) {
         Long userId = payload.get("userId");
@@ -88,18 +100,6 @@ public class AppointmentController {
         }
         try {
             Appointment appointment = appointmentService.cancelAppointment(id, userId);
-            return ResponseEntity.ok(appointment);
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
-
-    @PostMapping("/{id}/confirm")
-    public ResponseEntity<?> confirmAppointment(@PathVariable Long id) {
-        try {
-            Appointment appointment = appointmentService.confirmAppointment(id);
             return ResponseEntity.ok(appointment);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
@@ -122,10 +122,25 @@ public class AppointmentController {
     }
 
     @PostMapping("/{id}/complete")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> completeAppointment(@PathVariable Long id) {
         try {
             Appointment appointment = appointmentService.completeAppointment(id);
             return ResponseEntity.ok(appointment);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PostMapping("/{id}/late-record")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createLateRecord(@PathVariable Long id, @RequestBody(required = false) Map<String, String> payload) {
+        try {
+            String notes = payload != null ? payload.get("notes") : null;
+            VaccinationRecord record = appointmentService.createLateRecord(id, notes);
+            return ResponseEntity.status(HttpStatus.CREATED).body(record);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());

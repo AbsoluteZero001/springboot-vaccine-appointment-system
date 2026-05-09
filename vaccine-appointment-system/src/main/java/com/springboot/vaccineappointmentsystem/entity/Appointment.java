@@ -1,6 +1,7 @@
 package com.springboot.vaccineappointmentsystem.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.springboot.vaccineappointmentsystem.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,7 +30,10 @@ public class Appointment {
     private LocalDateTime appointmentTime;
 
     @Column(nullable = false)
-    private Integer status = 0; // 0: pending, 1: confirmed, 2: completed, 3: cancelled
+    private AppointmentStatus status = AppointmentStatus.APPOINTED;
+
+    @Column
+    private LocalDateTime statusUpdatedAt = LocalDateTime.now();
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

@@ -1,9 +1,9 @@
 package com.springboot.vaccineappointmentsystem.controller;
 
 import com.springboot.vaccineappointmentsystem.entity.VaccinationRecord;
+import com.springboot.vaccineappointmentsystem.enums.VaccinationRecordStatus;
 import com.springboot.vaccineappointmentsystem.service.VaccinationRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +53,7 @@ public class VaccinationRecordController {
 
     @GetMapping("/status/{status}")
     public List<VaccinationRecord> getRecordsByStatus(@PathVariable Integer status) {
-        return vaccinationRecordService.getRecordsByStatus(status);
+        return vaccinationRecordService.getRecordsByStatus(VaccinationRecordStatus.fromCode(status));
     }
 
     @GetMapping("/{id}")
@@ -74,8 +74,8 @@ public class VaccinationRecordController {
             LocalDateTime vaccinationTime = payload.get("vaccinationTime") != null ?
                     LocalDateTime.parse(payload.get("vaccinationTime").toString()) : null;
             String notes = (String) payload.get("notes");
-            Integer status = payload.get("status") != null ?
-                    Integer.valueOf(payload.get("status").toString()) : null;
+            VaccinationRecordStatus status = payload.get("status") != null ?
+                    VaccinationRecordStatus.fromCode(Integer.valueOf(payload.get("status").toString())) : null;
             VaccinationRecord updated = vaccinationRecordService.updateRecord(id, vaccinationTime, notes, status);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {

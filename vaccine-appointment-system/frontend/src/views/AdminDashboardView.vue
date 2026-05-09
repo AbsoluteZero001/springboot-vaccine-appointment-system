@@ -15,14 +15,14 @@
           <div class="banner-stats">
             <div class="banner-stat">
               <h3>{{ counts[0] }}</h3>
-              <p>待审核</p>
-            </div>
-            <div class="banner-stat">
-              <h3>{{ counts[1] }}</h3>
-              <p>待接种</p>
+              <p>已预约</p>
             </div>
             <div class="banner-stat">
               <h3>{{ counts[2] }}</h3>
+              <p>未到场</p>
+            </div>
+            <div class="banner-stat">
+              <h3>{{ counts[1] }}</h3>
               <p>已完成</p>
             </div>
           </div>
@@ -58,14 +58,14 @@
                 <span :class="['status-badge', statusClass(a.status)]">{{ statusLabel(a.status) }}</span>
               </div>
             </div>
-            <div v-if="a.status === 0 || a.status === 1" class="appt-actions">
-              <button v-if="a.status === 0" class="btn-sm btn-confirm" @click="confirmAppt(a.id)">
-                ✓ 审核通过
-              </button>
-              <button v-if="a.status === 1" class="btn-sm btn-complete" @click="completeAppt(a.id)">
+            <div v-if="a.status === 0 || a.status === 2" class="appt-actions">
+              <button v-if="a.status === 0" class="btn-sm btn-complete" @click="completeAppt(a.id)">
                 💉 完成接种
               </button>
-              <button class="btn-sm btn-cancel-admin" @click="cancelAppt(a.id)">✕ 取消</button>
+              <button v-if="a.status === 2" class="btn-sm btn-complete" @click="createLateRecord(a.id)">
+                💉 补录接种
+              </button>
+              <button v-if="a.status === 0" class="btn-sm btn-cancel-admin" @click="cancelAppt(a.id)">✕ 取消</button>
             </div>
           </div>
         </div>
@@ -127,9 +127,9 @@ const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
 const today = new Date().toLocaleDateString('zh-CN')
 
 const tabs = [
-  { status: 0, label: '待审核' },
-  { status: 1, label: '已确认 · 待接种' },
-  { status: 2, label: '已完成' },
+  {status: 0, label: '已预约'},
+  {status: 2, label: '未到场'},
+  {status: 1, label: '已完成'},
   { status: 3, label: '已取消' }
 ]
 
@@ -139,9 +139,9 @@ const appointments = ref<any[]>([])
 const records = ref<any[]>([])
 
 const STATUS: Record<number, { text: string; cls: string }> = {
-  0: { text: '待审核', cls: 'status-pending' },
-  1: { text: '已确认', cls: 'status-confirmed' },
-  2: { text: '已完成', cls: 'status-completed' },
+  0: {text: '已预约', cls: 'status-pending'},
+  1: {text: '已完成', cls: 'status-completed'},
+  2: {text: '未到场', cls: 'status-cancelled'},
   3: { text: '已取消', cls: 'status-cancelled' }
 }
 
@@ -192,19 +192,6 @@ function switchTab(status: number) {
   loadAppointments(status)
 }
 
-async function confirmAppt(id: number) {
-  if (!confirm('确认通过此预约审核？')) return
-  try {
-    await api.post(`/appointments/${id}/confirm`)
-    showAlert('预约审核已通过，进入待接种状态', 'success')
-    loadStats()
-    loadAppointments(activeStatus.value)
-    loadRecords()
-  } catch (error: any) {
-    showAlert(error.response?.data?.error || '审核失败', 'error')
-  }
-}
-
 async function completeAppt(id: number) {
   if (!confirm('确认完成接种？系统将自动生成接种记录。')) return
   try {
@@ -215,6 +202,17 @@ async function completeAppt(id: number) {
     loadRecords()
   } catch (error: any) {
     showAlert(error.response?.data?.error || '完成接种失败', 'error')
+  }
+}
+
+async function createLateRecord(id: number) {
+  const notes = prompt('请输入补录说明（可选）：')
+  try {
+    await api.post(`/appointments/${id}/late-record`, {notes: notes || ''})
+    showAlert('已补录接种记录（预约状态保持为"未到场"）', 'success')
+    loadRecords()
+  } catch (error: any) {
+    showAlert(error.response?.data?.error || '补录失败', 'error')
   }
 }
 

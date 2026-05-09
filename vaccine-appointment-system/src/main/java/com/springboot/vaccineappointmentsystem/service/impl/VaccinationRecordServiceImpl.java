@@ -2,6 +2,8 @@ package com.springboot.vaccineappointmentsystem.service.impl;
 
 import com.springboot.vaccineappointmentsystem.entity.Appointment;
 import com.springboot.vaccineappointmentsystem.entity.VaccinationRecord;
+import com.springboot.vaccineappointmentsystem.enums.AppointmentStatus;
+import com.springboot.vaccineappointmentsystem.enums.VaccinationRecordStatus;
 import com.springboot.vaccineappointmentsystem.repository.AppointmentRepository;
 import com.springboot.vaccineappointmentsystem.repository.VaccinationRecordRepository;
 import com.springboot.vaccineappointmentsystem.service.VaccinationRecordService;
@@ -27,27 +29,29 @@ public class VaccinationRecordServiceImpl implements VaccinationRecordService {
     public VaccinationRecord createRecord(Long appointmentId, LocalDateTime vaccinationTime, String notes) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        // Check if appointment is confirmed or completed
-        if (appointment.getStatus() != 1 && appointment.getStatus() != 2) {
-            throw new RuntimeException("Appointment must be confirmed or completed to create record");
+
+        AppointmentStatus apptStatus = appointment.getStatus();
+        if (apptStatus == AppointmentStatus.CANCELLED) {
+            throw new RuntimeException("Cannot create record for cancelled appointment");
         }
-        // Check if record already exists
+
         List<VaccinationRecord> existing = vaccinationRecordRepository.findByAppointmentId(appointmentId);
         if (!existing.isEmpty()) {
             throw new RuntimeException("Vaccination record already exists for this appointment");
         }
+
         VaccinationRecord record = new VaccinationRecord();
         record.setAppointment(appointment);
         record.setUser(appointment.getUser());
         record.setVaccine(appointment.getVaccine());
         record.setVaccinationTime(vaccinationTime);
         record.setNotes(notes);
-        record.setStatus(0); // scheduled
+        record.setStatus(VaccinationRecordStatus.SCHEDULED);
         return vaccinationRecordRepository.save(record);
     }
 
     @Override
-    public VaccinationRecord updateRecord(Long recordId, LocalDateTime vaccinationTime, String notes, Integer status) {
+    public VaccinationRecord updateRecord(Long recordId, LocalDateTime vaccinationTime, String notes, VaccinationRecordStatus status) {
         VaccinationRecord record = vaccinationRecordRepository.findById(recordId)
                 .orElseThrow(() -> new RuntimeException("Vaccination record not found"));
         if (vaccinationTime != null) {
@@ -78,7 +82,7 @@ public class VaccinationRecordServiceImpl implements VaccinationRecordService {
     }
 
     @Override
-    public List<VaccinationRecord> getRecordsByStatus(Integer status) {
+    public List<VaccinationRecord> getRecordsByStatus(VaccinationRecordStatus status) {
         return vaccinationRecordRepository.findByStatusWithDetails(status);
     }
 
@@ -86,17 +90,19 @@ public class VaccinationRecordServiceImpl implements VaccinationRecordService {
     public VaccinationRecord markAsAdministered(Long recordId, LocalDateTime actualTime, String notes) {
         VaccinationRecord record = vaccinationRecordRepository.findById(recordId)
                 .orElseThrow(() -> new RuntimeException("Vaccination record not found"));
-        record.setStatus(1); // administered
+        record.setStatus(VaccinationRecordStatus.ADMINISTERED);
         if (actualTime != null) {
             record.setVaccinationTime(actualTime);
         }
         if (notes != null) {
             record.setNotes(notes);
         }
-        // Update appointment status to completed if not already
+
+        // Sync appointment status to COMPLETED if in a non-terminal state
         Appointment appointment = record.getAppointment();
-        if (appointment.getStatus() != 2) {
-            appointment.setStatus(2); // completed
+        if (!appointment.getStatus().isTerminal()) {
+            appointment.setStatus(AppointmentStatus.COMPLETED);
+            appointment.setStatusUpdatedAt(LocalDateTime.now());
             appointmentRepository.save(appointment);
         }
         return vaccinationRecordRepository.save(record);
