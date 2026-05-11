@@ -173,18 +173,24 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (!existing.isEmpty())
             throw new RuntimeException("Vaccination record already exists for this appointment");
 
+        Vaccine vaccine = appointment.getVaccine();
+        if (vaccine.getStockQuantity() <= 0)
+            throw new RuntimeException("Vaccine out of stock, cannot create late vaccination record");
+        vaccine.setStockQuantity(vaccine.getStockQuantity() - 1);
+        vaccineRepository.save(vaccine);
+
         VaccinationRecord record = new VaccinationRecord();
         record.setAppointment(appointment);
         record.setUser(appointment.getUser());
-        record.setVaccine(appointment.getVaccine());
+        record.setVaccine(vaccine);
         record.setVaccinationTime(LocalDateTime.now());
         record.setStatus(VaccinationRecordStatus.ADMINISTERED);
         record.setNotes(notes != null ? notes : "补录接种记录（逾期补录）");
         VaccinationRecord saved = vaccinationRecordRepository.save(record);
 
         audit(appointmentId, "LATE_RECORD", AppointmentStatus.NO_SHOW.getCode(), null,
-                "ADMIN", "补录逾期接种记录: " + (notes != null ? notes : "无备注"));
-        log.info("Late vaccination record created for NO_SHOW appointment {}", appointmentId);
+                "ADMIN", "补录逾期接种记录，库存已扣减: " + (notes != null ? notes : "无备注"));
+        log.info("Late vaccination record created for NO_SHOW appointment {}, stock deducted", appointmentId);
         return saved;
     }
 
@@ -197,9 +203,14 @@ public class AppointmentServiceImpl implements AppointmentService {
             a.setStatus(AppointmentStatus.NO_SHOW);
             a.setStatusUpdatedAt(LocalDateTime.now());
             appointmentRepository.save(a);
+
+            Vaccine vaccine = a.getVaccine();
+            vaccine.setStockQuantity(vaccine.getStockQuantity() + 1);
+            vaccineRepository.save(vaccine);
+
             auditSystem(a.getId(), "AUTO_NO_SHOW", oldCode, AppointmentStatus.NO_SHOW.getCode(),
-                    "系统自动检测：预约时间 " + a.getAppointmentTime() + " 已过，未到场接种");
-            log.info("Marked appointment {} as NO_SHOW (was scheduled for {})", a.getId(), a.getAppointmentTime());
+                    "系统自动检测：预约时间 " + a.getAppointmentTime() + " 已过，未到场接种，库存已恢复");
+            log.info("Marked appointment {} as NO_SHOW (was scheduled for {}), stock restored", a.getId(), a.getAppointmentTime());
         }
     }
 
