@@ -19,9 +19,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByVaccine(Vaccine vaccine);
     List<Appointment> findByUserId(Long userId);
 
-    @Query("SELECT a FROM Appointment a JOIN FETCH a.vaccine WHERE a.user.id = :userId")
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.vaccine JOIN FETCH a.user WHERE a.user.id = :userId")
     List<Appointment> findByUserIdWithVaccine(@Param("userId") Long userId);
-    List<Appointment> findByVaccineId(Long vaccineId);
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine WHERE a.vaccine.id = :vaccineId")
+    List<Appointment> findByVaccineId(@Param("vaccineId") Long vaccineId);
 
     List<Appointment> findByStatus(AppointmentStatus status);
 

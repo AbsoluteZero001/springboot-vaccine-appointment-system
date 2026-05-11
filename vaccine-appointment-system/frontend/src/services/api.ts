@@ -16,10 +16,16 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Response interceptor: unwrap data
+// Response interceptor: handle 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('user')
+      localStorage.removeItem('admin')
+      localStorage.removeItem('accessToken')
+      window.location.href = '/'
+    }
     return Promise.reject(error)
   }
 )
@@ -72,6 +78,12 @@ api.interceptors.response.use(
   },
   (error) => {
     setLoading(false)
+    if (error.response?.status === 401) {
+      localStorage.removeItem('user')
+      localStorage.removeItem('admin')
+      localStorage.removeItem('accessToken')
+      window.location.href = '/'
+    }
     return Promise.reject(error)
   }
 )
