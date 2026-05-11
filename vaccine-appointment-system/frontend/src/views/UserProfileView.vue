@@ -5,19 +5,29 @@
     <div class="container">
       <AlertMessage ref="alertRef" />
 
-      <div class="dashboard-banner" style="margin-bottom: 28px;">
-        <div>
-          <h2>我的预约</h2>
-          <p>管理您的疫苗接种预约和接种记录</p>
+      <div class="dashboard-banner-enhanced" style="margin-bottom: 28px;">
+        <div class="banner-bg-decoration">
+          <div class="banner-circle c1"></div>
+          <div class="banner-circle c2"></div>
         </div>
-        <div class="banner-stats">
-          <div class="banner-stat">
-            <h3>{{ pendingCount }}</h3>
-            <p>待处理</p>
+        <div class="banner-content">
+          <div class="banner-text">
+            <h2>📋 我的预约</h2>
+            <p class="banner-subtitle">管理您的疫苗接种预约和接种记录</p>
           </div>
-          <div class="banner-stat">
-            <h3>{{ completedCount }}</h3>
-            <p>已完成</p>
+          <div class="banner-stats">
+            <div class="banner-stat-card">
+              <div class="banner-stat-info">
+                <h3 class="ticker-value">{{ pendingCount }}</h3>
+                <p>待处理</p>
+              </div>
+            </div>
+            <div class="banner-stat-card">
+              <div class="banner-stat-info">
+                <h3 class="ticker-value">{{ completedCount }}</h3>
+                <p>已完成</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

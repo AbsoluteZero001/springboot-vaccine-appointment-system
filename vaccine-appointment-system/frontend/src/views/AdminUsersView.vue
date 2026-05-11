@@ -23,7 +23,11 @@
               <td>{{ user.username }}</td>
               <td>{{ user.email }}</td>
               <td>{{ user.phone || '—' }}</td>
-              <td>{{ user.status === 1 ? '正常' : '已停用' }}</td>
+              <td>
+                <span :class="['status-badge', user.status === 1 ? 'status-completed' : 'status-cancelled']">
+                  {{ user.status === 1 ? '正常' : '已停用' }}
+                </span>
+              </td>
               <td>
                 <button class="btn btn-small" @click="toggleUserStatus(user.id, user.status)">
                   {{ user.status === 1 ? '停用' : '启用' }}

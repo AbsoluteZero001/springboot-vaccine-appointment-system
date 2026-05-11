@@ -7,23 +7,36 @@
         <AlertMessage ref="alertRef" />
 
         <!-- Dashboard Banner -->
-        <div class="dashboard-banner">
-          <div>
-            <h2>欢迎，{{ auth.currentAdmin?.username || '管理员' }} 👋</h2>
-            <p>审核预约 · 完成接种 · 生成接种记录 · {{ today }}</p>
+        <div class="dashboard-banner-enhanced" style="margin-bottom: 28px;">
+          <div class="banner-bg-decoration">
+            <div class="banner-circle c1"></div>
+            <div class="banner-circle c2"></div>
+            <div class="banner-circle c3"></div>
           </div>
-          <div class="banner-stats">
-            <div class="banner-stat">
-              <h3>{{ counts[0] }}</h3>
-              <p>已预约</p>
+          <div class="banner-content">
+            <div class="banner-text">
+              <h2>👋 欢迎，{{ auth.currentAdmin?.username || '管理员' }}</h2>
+              <p class="banner-subtitle">审核预约 · 完成接种 · 生成接种记录 · {{ today }}</p>
             </div>
-            <div class="banner-stat">
-              <h3>{{ counts[2] }}</h3>
-              <p>未到场</p>
-            </div>
-            <div class="banner-stat">
-              <h3>{{ counts[1] }}</h3>
-              <p>已完成</p>
+            <div class="banner-stats">
+              <div class="banner-stat-card">
+                <div class="banner-stat-info">
+                  <h3 class="ticker-value">{{ counts[0] }}</h3>
+                  <p>已预约</p>
+                </div>
+              </div>
+              <div class="banner-stat-card">
+                <div class="banner-stat-info">
+                  <h3 class="ticker-value">{{ counts[2] }}</h3>
+                  <p>未到场</p>
+                </div>
+              </div>
+              <div class="banner-stat-card">
+                <div class="banner-stat-info">
+                  <h3 class="ticker-value">{{ counts[1] }}</h3>
+                  <p>已完成</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
