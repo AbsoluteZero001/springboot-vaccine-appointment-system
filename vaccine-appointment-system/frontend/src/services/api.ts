@@ -16,15 +16,19 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Response interceptor: handle 401
+// Response interceptor: handle 401 for authenticated requests only.
+// Login endpoints return 401 for bad credentials — those are handled by the login form.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('user')
-      localStorage.removeItem('admin')
-      localStorage.removeItem('accessToken')
-      window.location.href = '/'
+      const token = localStorage.getItem('accessToken')
+      if (token) {
+        localStorage.removeItem('user')
+        localStorage.removeItem('admin')
+        localStorage.removeItem('accessToken')
+        window.location.href = '/'
+      }
     }
     return Promise.reject(error)
   }
@@ -79,10 +83,13 @@ api.interceptors.response.use(
   (error) => {
     setLoading(false)
     if (error.response?.status === 401) {
-      localStorage.removeItem('user')
-      localStorage.removeItem('admin')
-      localStorage.removeItem('accessToken')
-      window.location.href = '/'
+      const token = localStorage.getItem('accessToken')
+      if (token) {
+        localStorage.removeItem('user')
+        localStorage.removeItem('admin')
+        localStorage.removeItem('accessToken')
+        window.location.href = '/'
+      }
     }
     return Promise.reject(error)
   }
