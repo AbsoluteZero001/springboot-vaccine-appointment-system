@@ -1,6 +1,5 @@
 package com.springboot.vaccineappointmentsystem.controller;
 
-import com.springboot.vaccineappointmentsystem.dto.ApiResponse;
 import com.springboot.vaccineappointmentsystem.entity.Vaccine;
 import com.springboot.vaccineappointmentsystem.service.FileStorageService;
 import com.springboot.vaccineappointmentsystem.service.VaccineService;
@@ -44,7 +43,7 @@ public class VaccineController {
             return ResponseEntity.ok(vaccineOpt.get());
         } else {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Vaccine not found");
+            error.put("error", "疫苗未找到");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
@@ -81,7 +80,7 @@ public class VaccineController {
         try {
             vaccineService.deleteVaccine(id);
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Vaccine deleted successfully");
+            response.put("message", "疫苗删除成功");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
@@ -96,7 +95,7 @@ public class VaccineController {
         Integer quantity = payload.get("quantity");
         if (quantity == null) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Quantity is required");
+            error.put("error", "数量不能为空");
             return ResponseEntity.badRequest().body(error);
         }
         try {
@@ -115,7 +114,7 @@ public class VaccineController {
         Boolean available = payload.get("available");
         if (available == null) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Available flag is required");
+            error.put("error", "可用标志不能为空");
             return ResponseEntity.badRequest().body(error);
         }
         try {
@@ -139,21 +138,21 @@ public class VaccineController {
         try {
             if (file.isEmpty()) {
                 Map<String, String> error = new HashMap<>();
-                error.put("error", "File is empty");
+                error.put("error", "文件为空");
                 return ResponseEntity.badRequest().body(error);
             }
             // Validate file type
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 Map<String, String> error = new HashMap<>();
-                error.put("error", "Only image files are allowed");
+                error.put("error", "只允许上传图片文件");
                 return ResponseEntity.badRequest().body(error);
             }
             // Store file and get URL
             String imageUrl = fileStorageService.storeFile(file);
             // Update vaccine with image URL
             Vaccine vaccine = vaccineService.getVaccineById(id)
-                    .orElseThrow(() -> new RuntimeException("Vaccine not found"));
+                    .orElseThrow(() -> new RuntimeException("疫苗未找到"));
             vaccine.setImageUrl(imageUrl);
             Vaccine updated = vaccineService.updateVaccine(id, vaccine);
             Map<String, Object> response = new HashMap<>();
@@ -166,7 +165,7 @@ public class VaccineController {
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to upload image");
+            error.put("error", "图片上传失败");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }

@@ -68,7 +68,7 @@ public class UserController {
             response.put("accessToken", jwt);
             response.put("tokenType", "Bearer");
             response.put("user", authentication.getPrincipal());
-            response.put("message", "Login successful");
+            response.put("message", "登录成功");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = loginAttemptService.recordFailedAttempt(username);
@@ -83,7 +83,7 @@ public class UserController {
             return ResponseEntity.ok(userOpt.get());
         } else {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "User not found");
+            error.put("error", "用户未找到");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
@@ -95,7 +95,7 @@ public class UserController {
             return ResponseEntity.ok(userOpt.get());
         } else {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "User not found");
+            error.put("error", "用户未找到");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
@@ -122,7 +122,7 @@ public class UserController {
         try {
             userService.deleteUser(id);
             Map<String, String> response = new HashMap<>();
-            response.put("message", "User deleted successfully");
+            response.put("message", "用户删除成功");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();

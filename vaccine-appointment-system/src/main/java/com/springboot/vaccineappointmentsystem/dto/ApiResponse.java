@@ -26,7 +26,7 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, "success", data, HttpStatus.OK);
+        return new ApiResponse<>(true, "操作成功", data, HttpStatus.OK);
     }
 
     public static <T> ApiResponse<T> success(String message, T data) {

@@ -36,7 +36,7 @@ public class VaccinationRecordController {
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid request format");
+            error.put("error", "请求格式无效");
             return ResponseEntity.badRequest().body(error);
         }
     }
@@ -63,7 +63,7 @@ public class VaccinationRecordController {
             return ResponseEntity.ok(recordOpt.get());
         } else {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Vaccination record not found");
+            error.put("error", "接种记录未找到");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
@@ -84,7 +84,7 @@ public class VaccinationRecordController {
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid request format");
+            error.put("error", "请求格式无效");
             return ResponseEntity.badRequest().body(error);
         }
     }
@@ -103,7 +103,7 @@ public class VaccinationRecordController {
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid request format");
+            error.put("error", "请求格式无效");
             return ResponseEntity.badRequest().body(error);
         }
     }

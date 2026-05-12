@@ -60,18 +60,18 @@ public class AppointmentServiceImpl implements AppointmentService {
         boolean lockAcquired = false;
         try {
             lockAcquired = redisLockService.lockForAppointment(userId, vaccineId);
-            if (!lockAcquired) throw new RuntimeException("System busy, please try again later");
+            if (!lockAcquired) throw new RuntimeException("系统繁忙，请稍后再试");
 
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
             Vaccine vaccine = vaccineRepository.findById(vaccineId)
                     .orElseThrow(() -> new RuntimeException("Vaccine not found"));
-            if (!vaccine.getAvailable()) throw new RuntimeException("Vaccine is not available");
-            if (vaccine.getStockQuantity() <= 0) throw new RuntimeException("Vaccine out of stock");
+            if (!vaccine.getAvailable()) throw new RuntimeException("疫苗不可用");
+            if (vaccine.getStockQuantity() <= 0) throw new RuntimeException("疫苗库存不足");
             if (hasPendingAppointment(userId, vaccineId))
-                throw new RuntimeException("You already have a pending appointment for this vaccine");
+                throw new RuntimeException("您已有一个该疫苗的待处理预约");
             if (appointmentTime.isBefore(LocalDateTime.now()))
-                throw new RuntimeException("Cannot book an appointment in the past");
+                throw new RuntimeException("无法预约过去的时间");
 
             Appointment appointment = new Appointment();
             appointment.setUser(user);
@@ -108,9 +108,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private void validateCancellable(Appointment appointment) {
         AppointmentStatus cur = appointment.getStatus();
-        if (cur == AppointmentStatus.CANCELLED) throw new RuntimeException("Appointment already cancelled");
+        if (cur == AppointmentStatus.CANCELLED) throw new RuntimeException("预约已被取消");
         if (!cur.canTransitionTo(AppointmentStatus.CANCELLED))
-            throw new RuntimeException("Cannot cancel: appointment is " + cur.getDisplayName());
+            throw new RuntimeException("无法取消：预约状态为 " + cur.getDisplayName());
     }
 
     private Appointment doCancel(Appointment appointment, String operator) {
@@ -134,7 +134,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         AppointmentStatus cur = appointment.getStatus();
         if (!cur.canTransitionTo(AppointmentStatus.COMPLETED))
-            throw new RuntimeException("Cannot complete: appointment is " + cur.getDisplayName());
+            throw new RuntimeException("无法完成：预约状态为 " + cur.getDisplayName());
 
         int oldCode = cur.getCode();
 
@@ -165,17 +165,17 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         if (appointment.getStatus() != AppointmentStatus.NO_SHOW)
-            throw new RuntimeException("Only NO_SHOW appointments can receive late vaccination records, current: "
+            throw new RuntimeException("只有爽约的预约才能补录接种记录，当前状态: "
                     + appointment.getStatus().getDisplayName());
 
         // Check duplicate
         List<VaccinationRecord> existing = vaccinationRecordRepository.findByAppointmentId(appointmentId);
         if (!existing.isEmpty())
-            throw new RuntimeException("Vaccination record already exists for this appointment");
+            throw new RuntimeException("该预约已有接种记录");
 
         Vaccine vaccine = appointment.getVaccine();
         if (vaccine.getStockQuantity() <= 0)
-            throw new RuntimeException("Vaccine out of stock, cannot create late vaccination record");
+            throw new RuntimeException("疫苗库存不足，无法创建补录接种记录");
         vaccine.setStockQuantity(vaccine.getStockQuantity() - 1);
         vaccineRepository.save(vaccine);
 

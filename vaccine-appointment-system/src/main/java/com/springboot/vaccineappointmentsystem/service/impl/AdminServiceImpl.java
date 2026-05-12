@@ -46,7 +46,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Admin createAdmin(Admin admin) {
         if (adminRepository.existsByUsername(admin.getUsername())) {
-            throw new RuntimeException("Admin username already exists");
+            throw new RuntimeException("管理员用户名已存在");
         }
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         return adminRepository.save(admin);
@@ -55,7 +55,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Admin updateAdmin(Long id, Admin adminDetails) {
         Admin admin = adminRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Admin not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("未找到管理员，ID: " + id));
         if (adminDetails.getPassword() != null) {
             admin.setPassword(passwordEncoder.encode(adminDetails.getPassword()));
         }

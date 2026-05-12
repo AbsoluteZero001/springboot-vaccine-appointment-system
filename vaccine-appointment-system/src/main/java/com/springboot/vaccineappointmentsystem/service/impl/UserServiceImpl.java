@@ -24,10 +24,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User register(User user) {
         if (existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username already exists");
+            throw new RuntimeException("用户名已存在");
         }
         if (existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new RuntimeException("邮箱已存在");
         }
         // Encode password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -65,11 +65,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(Long id, User userDetails) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("未找到用户，ID: " + id));
         // Update fields
         if (userDetails.getEmail() != null && !userDetails.getEmail().equals(user.getEmail())) {
             if (existsByEmail(userDetails.getEmail())) {
-                throw new RuntimeException("Email already exists");
+                throw new RuntimeException("邮箱已存在");
             }
             user.setEmail(userDetails.getEmail());
         }

@@ -41,7 +41,7 @@ public class VaccineServiceImpl implements VaccineService {
         if (vaccine.getStockQuantity() == null) {
             vaccine.setStockQuantity(0);
         } else if (vaccine.getStockQuantity() < 0) {
-            throw new RuntimeException("Stock quantity cannot be negative");
+            throw new RuntimeException("库存数量不能为负数");
         }
         return vaccineRepository.save(vaccine);
     }
@@ -49,7 +49,7 @@ public class VaccineServiceImpl implements VaccineService {
     @Override
     public Vaccine updateVaccine(Long id, Vaccine vaccineDetails) {
         Vaccine vaccine = vaccineRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vaccine not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("未找到疫苗，ID: " + id));
         if (vaccineDetails.getName() != null) {
             vaccine.setName(vaccineDetails.getName());
         }
@@ -112,7 +112,7 @@ public class VaccineServiceImpl implements VaccineService {
     @Override
     public void deleteVaccine(Long id) {
         Vaccine vaccine = vaccineRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vaccine not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("未找到疫苗，ID: " + id));
         // Delete associated image file if exists
         if (vaccine.getImageUrl() != null) {
             try {
@@ -131,10 +131,10 @@ public class VaccineServiceImpl implements VaccineService {
     @Override
     public Vaccine updateStock(Long id, Integer quantity) {
         if (quantity < 0) {
-            throw new RuntimeException("Stock quantity cannot be negative");
+            throw new RuntimeException("库存数量不能为负数");
         }
         Vaccine vaccine = vaccineRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vaccine not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("未找到疫苗，ID: " + id));
         vaccine.setStockQuantity(quantity);
         return vaccineRepository.save(vaccine);
     }
@@ -142,7 +142,7 @@ public class VaccineServiceImpl implements VaccineService {
     @Override
     public Vaccine toggleAvailability(Long id, Boolean available) {
         Vaccine vaccine = vaccineRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Vaccine not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("未找到疫苗，ID: " + id));
         vaccine.setAvailable(available);
         return vaccineRepository.save(vaccine);
     }

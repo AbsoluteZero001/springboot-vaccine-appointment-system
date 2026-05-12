@@ -11,5 +11,5 @@
 <script lang="ts" setup>
 import {isLoading} from '@/services/api'
 
-withDefaults(defineProps<{ message?: string }>(), { message: 'Loading...' })
+withDefaults(defineProps<{ message?: string }>(), {message: '加载中...'})
 </script>

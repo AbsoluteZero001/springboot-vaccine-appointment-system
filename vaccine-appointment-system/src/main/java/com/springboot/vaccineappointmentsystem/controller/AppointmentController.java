@@ -38,7 +38,7 @@ public class AppointmentController {
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Invalid request format");
+            error.put("error", "请求格式无效");
             return ResponseEntity.badRequest().body(error);
         }
     }
@@ -75,7 +75,7 @@ public class AppointmentController {
             return ResponseEntity.ok(appointmentOpt.get());
         } else {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Appointment not found");
+            error.put("error", "预约未找到");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
@@ -95,7 +95,7 @@ public class AppointmentController {
         Long userId = payload.get("userId");
         if (userId == null) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "userId is required");
+            error.put("error", "用户ID不能为空");
             return ResponseEntity.badRequest().body(error);
         }
         try {

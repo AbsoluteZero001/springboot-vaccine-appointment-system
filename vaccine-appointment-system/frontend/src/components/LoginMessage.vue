@@ -26,7 +26,7 @@ const msgClass = computed(() => {
 })
 
 const displayText = computed(() => {
-  if (isFrozen.value) return `正在冷却中：${freezeRemaining.value}s`
+  if (isFrozen.value) return `正在冷却中：${freezeRemaining.value}秒`
   if (isError.value) return props.data?.error || ''
   return ''
 })

@@ -56,7 +56,7 @@ public class AdminController {
             response.put("accessToken", jwt);
             response.put("tokenType", "Bearer");
             response.put("admin", authentication.getPrincipal());
-            response.put("message", "Admin login successful");
+            response.put("message", "管理员登录成功");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = loginAttemptService.recordFailedAttempt(username);
@@ -76,7 +76,7 @@ public class AdminController {
             return ResponseEntity.ok(adminOpt.get());
         } else {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Admin not found");
+            error.put("error", "管理员未找到");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
@@ -110,7 +110,7 @@ public class AdminController {
         try {
             adminService.deleteAdmin(id);
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Admin deleted successfully");
+            response.put("message", "管理员删除成功");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();

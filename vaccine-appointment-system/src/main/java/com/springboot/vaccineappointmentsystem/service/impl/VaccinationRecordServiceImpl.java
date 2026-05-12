@@ -32,12 +32,12 @@ public class VaccinationRecordServiceImpl implements VaccinationRecordService {
 
         AppointmentStatus apptStatus = appointment.getStatus();
         if (apptStatus == AppointmentStatus.CANCELLED) {
-            throw new RuntimeException("Cannot create record for cancelled appointment");
+            throw new RuntimeException("无法为已取消的预约创建记录");
         }
 
         List<VaccinationRecord> existing = vaccinationRecordRepository.findByAppointmentId(appointmentId);
         if (!existing.isEmpty()) {
-            throw new RuntimeException("Vaccination record already exists for this appointment");
+            throw new RuntimeException("该预约已有接种记录");
         }
 
         VaccinationRecord record = new VaccinationRecord();
@@ -53,7 +53,7 @@ public class VaccinationRecordServiceImpl implements VaccinationRecordService {
     @Override
     public VaccinationRecord updateRecord(Long recordId, LocalDateTime vaccinationTime, String notes, VaccinationRecordStatus status) {
         VaccinationRecord record = vaccinationRecordRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("Vaccination record not found"));
+                .orElseThrow(() -> new RuntimeException("接种记录未找到"));
         if (vaccinationTime != null) {
             record.setVaccinationTime(vaccinationTime);
         }
@@ -89,7 +89,7 @@ public class VaccinationRecordServiceImpl implements VaccinationRecordService {
     @Override
     public VaccinationRecord markAsAdministered(Long recordId, LocalDateTime actualTime, String notes) {
         VaccinationRecord record = vaccinationRecordRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("Vaccination record not found"));
+                .orElseThrow(() -> new RuntimeException("接种记录未找到"));
         record.setStatus(VaccinationRecordStatus.ADMINISTERED);
         if (actualTime != null) {
             record.setVaccinationTime(actualTime);
