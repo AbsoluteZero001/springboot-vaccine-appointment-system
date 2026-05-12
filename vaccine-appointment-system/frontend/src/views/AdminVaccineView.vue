@@ -133,13 +133,17 @@
 
 <script lang="ts" setup>
 import {onMounted, reactive, ref} from 'vue'
+import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
 import VaccineEditModal from '@/components/VaccineEditModal.vue'
 import type {Vaccine} from '@/components/VaccineCard.vue'
+import {useAuthStore} from '@/stores/auth'
 import api from '@/services/api'
 
+const router = useRouter()
+const auth = useAuthStore()
 const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
 const vaccines = ref<Vaccine[]>([])
 
@@ -246,6 +250,10 @@ async function toggleAvailability(vaccineId: number, current: boolean) {
 }
 
 onMounted(() => {
+  if (!auth.isAdmin) {
+    router.replace('/admin-login')
+    return
+  }
   loadVaccines()
 })
 </script>

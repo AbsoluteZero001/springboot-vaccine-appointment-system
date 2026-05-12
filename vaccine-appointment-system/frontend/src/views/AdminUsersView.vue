@@ -46,10 +46,15 @@
 
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import AlertMessage from '@/components/AlertMessage.vue'
+import {useAuthStore} from '@/stores/auth'
 import api from '@/services/api'
+
+const router = useRouter()
+const auth = useAuthStore()
 
 interface User {
   id: number
@@ -98,6 +103,10 @@ async function deleteUser(userId: number) {
 }
 
 onMounted(() => {
+  if (!auth.isAdmin) {
+    router.replace('/admin-login')
+    return
+  }
   loadUsers()
 })
 </script>

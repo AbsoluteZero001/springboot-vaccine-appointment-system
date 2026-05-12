@@ -48,8 +48,18 @@ const router = createRouter({
 
 // Navigation guards
 router.beforeEach((to, _from, next) => {
-  const user = localStorage.getItem('user')
-  const admin = localStorage.getItem('admin')
+    let user = null
+    let admin = null
+    try {
+        const raw = localStorage.getItem('user')
+        if (raw) user = JSON.parse(raw)
+    } catch { /* corrupted data, treat as not logged in */
+    }
+    try {
+        const raw = localStorage.getItem('admin')
+        if (raw) admin = JSON.parse(raw)
+    } catch { /* corrupted data, treat as not logged in */
+    }
 
   if (to.meta.requiresUser && !user) {
     next('/')
