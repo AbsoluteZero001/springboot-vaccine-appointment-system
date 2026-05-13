@@ -1,4 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router'
+import {watch} from 'vue'
+import {useAuthStore} from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -46,32 +48,38 @@ const router = createRouter({
   ]
 })
 
-// Navigation guards
-router.beforeEach((to, _from, next) => {
-    let user = null
-    let admin = null
-    try {
-        const raw = localStorage.getItem('user')
-        if (raw) user = JSON.parse(raw)
-    } catch { /* corrupted data, treat as not logged in */
-    }
-    try {
-        const raw = localStorage.getItem('admin')
-        if (raw) admin = JSON.parse(raw)
-    } catch { /* corrupted data, treat as not logged in */
-    }
+router.beforeEach(async (to, _from) => {
+  const auth = useAuthStore()
 
-  if (to.meta.requiresUser && !user) {
-    next('/')
-  } else if (to.meta.requiresAdmin && !admin) {
-    next('/')
-  } else if (to.name === 'home' && user) {
-    next('/dashboard')
-  } else if (to.name === 'admin-login' && admin) {
-    next('/admin')
-  } else {
-    next()
+  // Block navigation until the session has been verified with the backend.
+  // Without this, localStorage data from a previous browser session would
+  // be trusted blindly, allowing unauthenticated access to protected views.
+  if (!auth.isAuthReady) {
+    await new Promise<void>((resolve) => {
+      const stop = watch(() => auth.isAuthReady, (ready) => {
+        if (ready) {
+          stop()
+          resolve()
+        }
+      })
+    })
   }
+
+  // Convenience: redirect already-authenticated users away from login pages
+  if (to.name === 'home' && auth.isUser) {
+    return '/dashboard'
+  }
+  if (to.name === 'admin-login' && auth.isAdmin) {
+    return '/admin'
+  }
+
+  if (to.meta.requiresUser && !auth.isUser) {
+    return '/'
+  }
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    return '/admin-login'
+  }
+  return true
 })
 
 export default router

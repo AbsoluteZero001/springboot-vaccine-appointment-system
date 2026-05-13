@@ -2,6 +2,7 @@ import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
 import type {ApiResponse} from '@/services/api'
 import api from '@/services/api'
+import axios from 'axios'
 
 export interface User {
   id: number
@@ -28,8 +29,9 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const admin = ref<Admin | null>(null)
   const token = ref<string | null>(null)
+  const isAuthReady = ref(false)
 
-  // Initialize from localStorage
+  // Initialize from localStorage (data saved during successful login)
   const storedUser = localStorage.getItem('user')
   const storedAdmin = localStorage.getItem('admin')
   const storedToken = localStorage.getItem('accessToken')
@@ -133,10 +135,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Verify the stored token with the backend on app startup.
+  // Uses a raw axios call to bypass the global response interceptor,
+  // so we can handle 401 inline instead of triggering a page reload.
+  async function verifySession() {
+    const storedToken = localStorage.getItem('accessToken')
+    if (!storedToken) {
+      clearAuth()
+      isAuthReady.value = true
+      return
+    }
+
+    try {
+      await axios.get('/api/auth/verify', {
+        headers: { Authorization: `Bearer ${storedToken}` }
+      })
+      // Token is valid — stored user/admin data from login is trustworthy
+    } catch {
+      // Token expired or invalid — clear everything so no stale auth state remains
+      clearAuth()
+    }
+    isAuthReady.value = true
+  }
+
   return {
     user,
     admin,
     token,
+    isAuthReady,
     isLoggedIn,
     isUser,
     isAdmin,
@@ -150,6 +176,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     loginUser,
     loginAdmin,
-    registerUser
+    registerUser,
+    verifySession
   }
 })

@@ -7,10 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -64,6 +61,27 @@ public class AuthController {
         response.put("tokenType", "Bearer");
         response.put("username", authentication.getName());
         response.put("authorities", authentication.getAuthorities());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verify() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("authenticated", false);
+            error.put("error", "未认证");
+            return ResponseEntity.status(401).body(error);
+        }
+
+        String username = auth.getName();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("authenticated", true);
+        response.put("username", username);
+        response.put("role", isAdmin ? "ADMIN" : "USER");
         return ResponseEntity.ok(response);
     }
 }
