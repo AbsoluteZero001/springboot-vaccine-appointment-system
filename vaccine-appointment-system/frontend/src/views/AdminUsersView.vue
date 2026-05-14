@@ -9,32 +9,32 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th class="col-nowrap">ID</th>
               <th>用户名</th>
-              <th>手机号</th>
-              <th>性别</th>
-              <th>生日</th>
-              <th>年龄</th>
+              <th class="col-nowrap">手机号</th>
+              <th class="col-nowrap">性别</th>
+              <th class="col-nowrap">生日</th>
+              <th class="col-nowrap">年龄</th>
               <th>备注</th>
-              <th>状态</th>
-              <th>操作</th>
+              <th class="col-nowrap">状态</th>
+              <th class="col-nowrap">操作</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="user in users" :key="user.id">
-              <td>{{ user.id }}</td>
+              <td class="col-nowrap">{{ user.id }}</td>
               <td>{{ user.username }}</td>
-              <td>{{ user.phone || '—' }}</td>
-              <td>{{ genderLabel(user.gender) }}</td>
-              <td>{{ user.birthday || '—' }}</td>
-              <td>{{ calcAge(user.birthday) }}</td>
+              <td class="col-nowrap">{{ user.phone || '—' }}</td>
+              <td class="col-nowrap">{{ genderLabel(user.gender) }}</td>
+              <td class="col-nowrap">{{ user.birthday || '—' }}</td>
+              <td class="col-nowrap">{{ calcAge(user.birthday) }}</td>
               <td class="table-spec">{{ user.remark || '—' }}</td>
-              <td>
+              <td class="col-nowrap">
                 <span :class="['status-badge', user.status === 1 ? 'status-completed' : 'status-cancelled']">
                   {{ user.status === 1 ? '正常' : '已停用' }}
                 </span>
               </td>
-              <td>
+              <td class="col-nowrap">
                 <div class="table-btn-group">
                   <button class="btn btn-small" @click="toggleUserStatus(user.id, user.status)">
                     {{ user.status === 1 ? '停用' : '启用' }}

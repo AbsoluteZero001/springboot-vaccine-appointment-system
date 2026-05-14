@@ -909,6 +909,10 @@ th {
   letter-spacing: 0.5px;
 }
 
+.col-nowrap {
+  white-space: nowrap;
+}
+
 tr { transition: var(--transition); }
 tr:hover { background-color: #f1f5f9; transform: scale(1.002); }
 tr:last-child td { border-bottom: none; }

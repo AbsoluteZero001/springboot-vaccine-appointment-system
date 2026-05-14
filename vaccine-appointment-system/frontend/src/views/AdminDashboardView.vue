@@ -90,12 +90,12 @@
             <table>
               <thead>
                 <tr>
-                  <th>编号</th>
+                  <th class="col-nowrap">编号</th>
                   <th>用户</th>
                   <th>疫苗名称</th>
                   <th>品牌/规格</th>
-                  <th>接种时间</th>
-                  <th>状态</th>
+                  <th class="col-nowrap">接种时间</th>
+                  <th class="col-nowrap">状态</th>
                   <th>备注</th>
                 </tr>
               </thead>
@@ -106,12 +106,12 @@
                   </td>
                 </tr>
                 <tr v-for="r in records" :key="r.id">
-                  <td>{{ r.id }}</td>
+                  <td class="col-nowrap">{{ r.id }}</td>
                   <td>{{ r.user?.username || '—' }}</td>
                   <td>{{ r.vaccine?.name || '—' }}</td>
                   <td style="font-size:0.85rem;color:var(--gray-color);">{{ specText(r.vaccine) }}</td>
-                  <td>{{ formatDate(r.vaccinationTime) }}</td>
-                  <td>
+                  <td class="col-nowrap">{{ formatDate(r.vaccinationTime) }}</td>
+                  <td class="col-nowrap">
                     <span style="padding:2px 10px;border-radius:50px;font-size:0.78rem;font-weight:600;background:#f0fdf4;color:#16a34a;">已接种</span>
                   </td>
                   <td style="font-size:0.85rem;">{{ r.notes || '—' }}</td>

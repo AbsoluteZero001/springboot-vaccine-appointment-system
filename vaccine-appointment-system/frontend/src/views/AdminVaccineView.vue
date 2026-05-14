@@ -127,33 +127,33 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th class="col-nowrap">ID</th>
               <th>疫苗名称</th>
-              <th>分类</th>
+              <th class="col-nowrap">分类</th>
               <th>规格/工艺</th>
-              <th>库存</th>
-              <th>状态</th>
-              <th>操作</th>
+              <th class="col-nowrap">库存</th>
+              <th class="col-nowrap">状态</th>
+              <th class="col-nowrap">操作</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="v in vaccines" :key="v.id">
-              <td>{{ v.id }}</td>
+              <td class="col-nowrap">{{ v.id }}</td>
               <td>
                 <strong>{{ v.name }}</strong>
                 <br v-if="v.brand" /><span v-if="v.brand" class="table-spec">{{ v.brand }}</span>
               </td>
-              <td>{{ v.category || '—' }}</td>
+              <td class="col-nowrap">{{ v.category || '—' }}</td>
               <td class="table-spec">{{ [v.dosage, v.technique].filter(Boolean).join(' / ') || '—' }}</td>
-              <td>{{ v.stockQuantity }}</td>
-              <td>
+              <td class="col-nowrap">{{ v.stockQuantity }}</td>
+              <td class="col-nowrap">
                 <span :style="v.available && v.stockQuantity > 0
                   ? 'padding:2px 10px; border-radius:50px; font-size:0.8rem; font-weight:600; background:#f0fdf4; color:#16a34a;'
                   : 'padding:2px 10px; border-radius:50px; font-size:0.8rem; font-weight:600; background:#fef2f2; color:#dc2626;'">
                   {{ v.available && v.stockQuantity > 0 ? '上架' : '下架' }}
                 </span>
               </td>
-              <td>
+              <td class="col-nowrap">
                 <div class="table-btn-group">
                   <button class="btn btn-small btn-edit" @click="openEdit(v.id)">编辑</button>
                   <button :class="['btn btn-small', v.available ? 'btn-toggle-off' : 'btn-toggle-on']"
