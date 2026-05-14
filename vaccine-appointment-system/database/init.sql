@@ -40,7 +40,9 @@ CREATE TABLE `admin`
     `id`          bigint       NOT NULL AUTO_INCREMENT,
     `create_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `password`    varchar(100) NOT NULL,
+    `phone`  varchar(20)  DEFAULT NULL COMMENT '手机号',
     `role`        varchar(20)  NOT NULL,
+    `status` int NOT NULL DEFAULT 1 COMMENT '状态：0-禁用 1-正常',
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `username`    varchar(50)  NOT NULL,
     PRIMARY KEY (`id`),
@@ -48,9 +50,9 @@ CREATE TABLE `admin`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 管理员测试数据
-INSERT INTO `admin` (`username`, `password`, `role`)
-VALUES ('admin', '$2a$10$i.UeKhM0VBXin5RTHLS6N.4N4ogdUoTGmiwf9xFuFPQMEqTzbQnyq', 'ADMIN'),
-       ('superadmin', '$2a$10$i.UeKhM0VBXin5RTHLS6N.4N4ogdUoTGmiwf9xFuFPQMEqTzbQnyq', 'SUPER_ADMIN');
+INSERT INTO `admin` (`username`, `password`, `role`, `status`)
+VALUES ('admin', '$2a$10$i.UeKhM0VBXin5RTHLS6N.4N4ogdUoTGmiwf9xFuFPQMEqTzbQnyq', 'ADMIN', 1),
+       ('superadmin', '$2a$10$i.UeKhM0VBXin5RTHLS6N.4N4ogdUoTGmiwf9xFuFPQMEqTzbQnyq', 'SUPER_ADMIN', 1);
 
 -- ============================================
 -- 用户表
@@ -65,11 +67,16 @@ CREATE TABLE `user`
     `phone`       varchar(20)           DEFAULT NULL,
     `role`        varchar(20)  NOT NULL,
     `status`      int          NOT NULL,
+    `gender`   int          DEFAULT NULL COMMENT '性别：0-男 1-女 2-未知',
+    `birthday` date         DEFAULT NULL COMMENT '出生日期',
+    `remark`   varchar(500) DEFAULT NULL COMMENT '备注：过敏史、慢性病等',
     `update_time` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `username`    varchar(50)  NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `UK_ob8kqyqqgmefl0aco34akdtpe` (`email`),
-    UNIQUE KEY `UK_sb8bbouer5wak8vyiiy4pf2bx` (`username`)
+    UNIQUE KEY `UK_sb8bbouer5wak8vyiiy4pf2bx` (`username`),
+    INDEX `idx_user_status` (`status`),
+    INDEX `idx_user_role` (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 用户测试数据 (密码均为: user123)
@@ -110,6 +117,7 @@ CREATE TABLE `vaccine`
     `manufacturer`   varchar(100)          DEFAULT NULL,
     `name`           varchar(100) NOT NULL,
     `stock_quantity` int          NOT NULL,
+    `version` bigint NOT NULL DEFAULT 0,
     `update_time`    datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `image_url`      varchar(255)          DEFAULT NULL,
     `age_range`      varchar(100)          DEFAULT NULL,
@@ -120,7 +128,8 @@ CREATE TABLE `vaccine`
     `schedule_info`  varchar(255)          DEFAULT NULL,
     `target_disease` varchar(200)          DEFAULT NULL,
     `technique`      varchar(100)          DEFAULT NULL,
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    INDEX `idx_vaccine_available` (`available`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 疫苗测试数据 (管理员可通过后台修改/上架/下架)
@@ -367,16 +376,17 @@ VALUES (1, '重组乙型肝炎疫苗（CHO细胞）10μg', '华北制药金坦�
 DROP TABLE IF EXISTS `appointment`;
 CREATE TABLE `appointment`
 (
-    `id`               bigint   NOT NULL AUTO_INCREMENT,
-    `appointment_time` datetime(6) NOT NULL,
-    `create_time`      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `status`           int      NOT NULL,
-    `update_time`      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `user_id`          bigint   NOT NULL,
-    `vaccine_id`       bigint   NOT NULL,
+    `id`                bigint      NOT NULL AUTO_INCREMENT,
+    `appointment_time`  datetime(6) NOT NULL,
+    `create_time`       datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `status`            int         NOT NULL,
+    `status_updated_at` datetime    NULL     DEFAULT NULL,
+    `update_time`       datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `user_id`           bigint      NOT NULL,
+    `vaccine_id`        bigint      NOT NULL,
     PRIMARY KEY (`id`),
-    KEY                `FK6296m118plab87ictwnnpcnex` (`user_id`),
-    KEY                `FKt8mfb4ay11q2h5oy9o6mtohoq` (`vaccine_id`),
+    KEY `FK6296m118plab87ictwnnpcnex` (`user_id`),
+    KEY `FKt8mfb4ay11q2h5oy9o6mtohoq` (`vaccine_id`),
     CONSTRAINT `FK6296m118plab87ictwnnpcnex` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
     CONSTRAINT `FKt8mfb4ay11q2h5oy9o6mtohoq` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -411,12 +421,16 @@ CREATE TABLE `vaccination_record`
     `update_time`      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `vaccination_time` datetime(6) NOT NULL,
     `appointment_id`   bigint   NOT NULL,
+    `doctor_id` bigint DEFAULT NULL COMMENT '执行接种的医护人员ID',
     `user_id`          bigint   NOT NULL,
     `vaccine_id`       bigint   NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `UK_l4ugwogspjbrgru6mhcjrj7xp` (`appointment_id`),
     KEY                `FK62w04i0mrxdnx67lwbo6t40r5` (`user_id`),
     KEY                `FKru2cuo4cdbhtgrkgnc1qwar0f` (`vaccine_id`),
+    KEY `idx_vr_doctor_id` (`doctor_id`),
+    KEY `idx_vr_status` (`status`),
+    KEY `idx_vr_vaccination_time` (`vaccination_time`),
     CONSTRAINT `FK62w04i0mrxdnx67lwbo6t40r5` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
     CONSTRAINT `FKli9hb6d0df8bqr2i5q39v62pu` FOREIGN KEY (`appointment_id`) REFERENCES `appointment` (`id`),
     CONSTRAINT `FKru2cuo4cdbhtgrkgnc1qwar0f` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`)
@@ -430,6 +444,26 @@ VALUES (4, 4, 13, DATE_SUB(NOW(), INTERVAL 5 DAY), 1, '23价肺炎疫苗接种�
        (10, 10, 17, DATE_SUB(NOW(), INTERVAL 3 DAY), 1, '狂犬疫苗第三剂，按程序完成接种。'),
        (13, 11, 14, DATE_ADD(NOW(), INTERVAL 20 DAY), 0, '预约13价肺炎疫苗第一剂。'),
        (8, 2, 15, DATE_ADD(NOW(), INTERVAL 30 DAY), 0, '预约带状疱疹疫苗第一剂。');
+
+-- ============================================
+-- 预约审核日志表
+-- ============================================
+DROP TABLE IF EXISTS `appointment_log`;
+CREATE TABLE `appointment_log`
+(
+    `id`             bigint       NOT NULL AUTO_INCREMENT,
+    `appointment_id` bigint       NOT NULL,
+    `action`         varchar(30)  NOT NULL,
+    `old_status`     int          NULL,
+    `new_status`     int          NULL,
+    `changed_by`     varchar(100) NULL,
+    `change_reason`  text         NULL,
+    `created_at`     datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_appointment_log_aid` (`appointment_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
 
 -- ============================================
 -- 恢复 SQL 模式设置

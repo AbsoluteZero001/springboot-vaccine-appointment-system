@@ -26,6 +26,7 @@ public class DataInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         migrateAppointmentStatusCodes();
+        migrateToSysUser();
 
         boolean needsInit = false;
         try {
@@ -118,6 +119,74 @@ public class DataInitializer implements ApplicationRunner {
             log.info("状态码迁移完成");
         } catch (Exception e) {
             log.warn("状态码迁移跳过: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Merge legacy user + admin tables into unified sys_user table.
+     * Preserves existing user IDs; admins get auto-assigned new IDs.
+     */
+    private void migrateToSysUser() {
+        try {
+            // Check if sys_user already has data
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM sys_user", Integer.class);
+            if (count != null && count > 0) {
+                log.info("sys_user 表已存在 ({} 条记录)，跳过迁移", count);
+                return;
+            }
+        } catch (Exception e) {
+            log.info("sys_user 表不存在或为空，执行迁移...");
+        }
+
+        try {
+            // 1. Create sys_user table (defensive, ddl-auto should already have done this)
+            jdbcTemplate.execute("""
+                        CREATE TABLE IF NOT EXISTS sys_user (
+                            id BIGINT NOT NULL AUTO_INCREMENT,
+                            username VARCHAR(50) NOT NULL,
+                            password VARCHAR(100) NOT NULL,
+                            phone VARCHAR(20) NULL,
+                            email VARCHAR(100) NULL,
+                            type INT NOT NULL DEFAULT 0,
+                            status INT NOT NULL DEFAULT 1,
+                            gender INT NULL,
+                            birthday DATE NULL,
+                            remark VARCHAR(500) NULL,
+                            create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                            PRIMARY KEY (id),
+                            UNIQUE KEY uk_sys_user_username (username),
+                            UNIQUE KEY uk_sys_user_phone (phone),
+                            INDEX idx_sys_user_type (type),
+                            INDEX idx_sys_user_status (status)
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                    """);
+
+            // 2. Migrate users (type=0), preserving original IDs
+            int u = jdbcTemplate.update("""
+                        INSERT INTO sys_user (id, username, password, phone, email, type, status,
+                                              gender, birthday, remark, create_time, update_time)
+                        SELECT id, username, password, phone, email, 0, status,
+                               gender, birthday, remark, create_time, update_time
+                        FROM `user`
+                        ON DUPLICATE KEY UPDATE username = VALUES(username)
+                    """);
+            log.info("迁移 {} 条普通用户到 sys_user", u);
+
+            // 3. Migrate admins (type=1), auto-assign new IDs to avoid collision
+            int a = jdbcTemplate.update("""
+                        INSERT INTO sys_user (username, password, phone, type, status, create_time, update_time)
+                        SELECT a.username, a.password, a.phone, 1, COALESCE(a.status, 1),
+                               a.create_time, a.update_time
+                        FROM admin a
+                        WHERE NOT EXISTS (SELECT 1 FROM sys_user su WHERE su.username = a.username)
+                    """);
+            log.info("迁移 {} 条管理员到 sys_user", a);
+
+            log.info("sys_user 迁移完成 (普通用户: {}, 管理员: {})", u, a);
+        } catch (Exception e) {
+            log.warn("sys_user 迁移跳过: {}", e.getMessage());
         }
     }
 }

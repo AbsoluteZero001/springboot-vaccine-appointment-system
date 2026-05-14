@@ -6,6 +6,8 @@ import com.springboot.vaccineappointmentsystem.enums.VaccinationRecordStatus;
 import com.springboot.vaccineappointmentsystem.repository.*;
 import com.springboot.vaccineappointmentsystem.service.AppointmentService;
 import com.springboot.vaccineappointmentsystem.service.RedisLockService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Autowired
     private AppointmentRepository appointmentRepository;
     @Autowired
-    private UserRepository userRepository;
+    private SysUserRepository sysUserRepository;
     @Autowired
     private VaccineRepository vaccineRepository;
     @Autowired
@@ -35,6 +37,38 @@ public class AppointmentServiceImpl implements AppointmentService {
     private AppointmentLogRepository appointmentLogRepository;
     @Autowired
     private RedisLockService redisLockService;
+    @Autowired
+    private EntityManager entityManager;
+
+    // ── Stock helpers with optimistic-lock retry ──────────────────
+
+    private static final int STOCK_RETRY_MAX = 3;
+
+    private void decrementStock(Vaccine vaccine) {
+        for (int i = 0; i < STOCK_RETRY_MAX; i++) {
+            try {
+                vaccine.setStockQuantity(vaccine.getStockQuantity() - 1);
+                vaccineRepository.saveAndFlush(vaccine);
+                return;
+            } catch (OptimisticLockException e) {
+                if (i == STOCK_RETRY_MAX - 1) throw new RuntimeException("库存更新冲突，请重试");
+                entityManager.refresh(vaccine);
+            }
+        }
+    }
+
+    private void incrementStock(Vaccine vaccine) {
+        for (int i = 0; i < STOCK_RETRY_MAX; i++) {
+            try {
+                vaccine.setStockQuantity(vaccine.getStockQuantity() + 1);
+                vaccineRepository.saveAndFlush(vaccine);
+                return;
+            } catch (OptimisticLockException e) {
+                if (i == STOCK_RETRY_MAX - 1) throw new RuntimeException("库存更新冲突，请重试");
+                entityManager.refresh(vaccine);
+            }
+        }
+    }
 
     // ── Audit helpers ────────────────────────────────────────────
 
@@ -62,7 +96,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             lockAcquired = redisLockService.lockForAppointment(userId, vaccineId);
             if (!lockAcquired) throw new RuntimeException("系统繁忙，请稍后再试");
 
-            User user = userRepository.findById(userId)
+            SysUser user = sysUserRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
             Vaccine vaccine = vaccineRepository.findById(vaccineId)
                     .orElseThrow(() -> new RuntimeException("Vaccine not found"));
@@ -81,8 +115,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setStatusUpdatedAt(LocalDateTime.now());
             Appointment saved = appointmentRepository.save(appointment);
 
-            vaccine.setStockQuantity(vaccine.getStockQuantity() - 1);
-            vaccineRepository.save(vaccine);
+            decrementStock(vaccine);
 
             audit(saved.getId(), "CREATE", null, AppointmentStatus.APPOINTED.getCode(),
                     user.getUsername(), "用户预约疫苗 " + vaccine.getName());
@@ -119,8 +152,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setStatusUpdatedAt(LocalDateTime.now());
         Vaccine vaccine = appointment.getVaccine();
-        vaccine.setStockQuantity(vaccine.getStockQuantity() + 1);
-        vaccineRepository.save(vaccine);
+        incrementStock(vaccine);
         Appointment saved = appointmentRepository.save(appointment);
         audit(appointment.getId(), "CANCEL", oldCode, AppointmentStatus.CANCELLED.getCode(),
                 operator, "取消预约，库存已恢复");
@@ -128,6 +160,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional
     public Appointment completeAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
@@ -138,7 +171,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         int oldCode = cur.getCode();
 
-        // Ensure vaccination record exists
+        // Ensure vaccination record exists (idempotent)
         List<VaccinationRecord> existing = vaccinationRecordRepository.findByAppointmentId(appointmentId);
         if (existing.isEmpty()) {
             VaccinationRecord record = new VaccinationRecord();
@@ -148,14 +181,26 @@ public class AppointmentServiceImpl implements AppointmentService {
             record.setVaccinationTime(LocalDateTime.now());
             record.setStatus(VaccinationRecordStatus.ADMINISTERED);
             record.setNotes("管理员完成接种");
-            vaccinationRecordRepository.save(record);
+            try {
+                vaccinationRecordRepository.saveAndFlush(record);
+            } catch (Exception e) {
+                log.warn("创建接种记录失败 (可能已存在): {}", e.getMessage());
+                // If duplicate, load the existing record and update its status
+                List<VaccinationRecord> retry = vaccinationRecordRepository.findByAppointmentId(appointmentId);
+                if (retry.isEmpty()) throw new RuntimeException("无法创建接种记录: " + e.getMessage());
+                VaccinationRecord existingRecord = retry.get(0);
+                existingRecord.setStatus(VaccinationRecordStatus.ADMINISTERED);
+                existingRecord.setNotes("管理员完成接种");
+                vaccinationRecordRepository.save(existingRecord);
+            }
         }
 
         appointment.setStatus(AppointmentStatus.COMPLETED);
         appointment.setStatusUpdatedAt(LocalDateTime.now());
-        Appointment saved = appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.saveAndFlush(appointment);
         audit(appointmentId, "COMPLETE", oldCode, AppointmentStatus.COMPLETED.getCode(),
                 "ADMIN", "管理员确认接种完成");
+        log.info("预约 {} 已完成接种，状态已更新为 COMPLETED", appointmentId);
         return saved;
     }
 
@@ -176,8 +221,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Vaccine vaccine = appointment.getVaccine();
         if (vaccine.getStockQuantity() <= 0)
             throw new RuntimeException("疫苗库存不足，无法创建补录接种记录");
-        vaccine.setStockQuantity(vaccine.getStockQuantity() - 1);
-        vaccineRepository.save(vaccine);
+        decrementStock(vaccine);
 
         VaccinationRecord record = new VaccinationRecord();
         record.setAppointment(appointment);
@@ -205,8 +249,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointmentRepository.save(a);
 
             Vaccine vaccine = a.getVaccine();
-            vaccine.setStockQuantity(vaccine.getStockQuantity() + 1);
-            vaccineRepository.save(vaccine);
+            incrementStock(vaccine);
 
             auditSystem(a.getId(), "AUTO_NO_SHOW", oldCode, AppointmentStatus.NO_SHOW.getCode(),
                     "系统自动检测：预约时间 " + a.getAppointmentTime() + " 已过，未到场接种，库存已恢复");

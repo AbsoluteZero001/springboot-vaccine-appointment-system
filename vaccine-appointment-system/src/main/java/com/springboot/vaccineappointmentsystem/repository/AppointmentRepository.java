@@ -1,7 +1,7 @@
 package com.springboot.vaccineappointmentsystem.repository;
 
 import com.springboot.vaccineappointmentsystem.entity.Appointment;
-import com.springboot.vaccineappointmentsystem.entity.User;
+import com.springboot.vaccineappointmentsystem.entity.SysUser;
 import com.springboot.vaccineappointmentsystem.entity.Vaccine;
 import com.springboot.vaccineappointmentsystem.enums.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
-    List<Appointment> findByUser(User user);
+    List<Appointment> findByUser(SysUser user);
     List<Appointment> findByVaccine(Vaccine vaccine);
     List<Appointment> findByUserId(Long userId);
 

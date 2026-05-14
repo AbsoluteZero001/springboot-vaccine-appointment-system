@@ -26,7 +26,7 @@ public class VaccinationRecord {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private SysUser user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vaccine_id", nullable = false)
@@ -40,6 +40,10 @@ public class VaccinationRecord {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_id")
+    private SysUser doctor;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

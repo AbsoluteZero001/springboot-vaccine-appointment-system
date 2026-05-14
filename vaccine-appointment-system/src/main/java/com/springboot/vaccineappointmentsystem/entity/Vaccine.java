@@ -59,6 +59,10 @@ public class Vaccine {
     @Column(length = 200)
     private String targetDisease;
 
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createTime;

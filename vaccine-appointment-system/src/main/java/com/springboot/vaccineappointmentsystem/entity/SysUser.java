@@ -10,15 +10,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 
 @Entity
-@Table(name = "admin")
+@Table(name = "sys_user")
 @Data
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Admin implements UserDetails {
+public class SysUser implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,14 +31,26 @@ public class Admin implements UserDetails {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(nullable = false, length = 20)
-    private String role = "ADMIN"; // ADMIN, SUPER_ADMIN
-
-    @Column(length = 20)
+    @Column(unique = true, length = 20)
     private String phone;
+
+    @Column(length = 100)
+    private String email;
+
+    @Column(nullable = false)
+    private Integer type = 0; // 0=NORMAL, 1=ADMIN (UserType enum code)
 
     @Column(nullable = false)
     private Integer status = 1; // 0: inactive, 1: active
+
+    @Column
+    private Integer gender; // Gender enum code
+
+    @Column
+    private LocalDate birthday;
+
+    @Column(length = 500)
+    private String remark;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -49,6 +62,7 @@ public class Admin implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        String role = (type != null && type == 1) ? "ADMIN" : "USER";
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
@@ -79,6 +93,6 @@ public class Admin implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return status == null || status == 1;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +42,15 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private Integer status = 1; // 0: inactive, 1: active
+
+    @Column
+    private Integer gender;
+
+    @Column
+    private LocalDate birthday;
+
+    @Column(length = 500)
+    private String remark;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

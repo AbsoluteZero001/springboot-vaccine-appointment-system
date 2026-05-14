@@ -4,6 +4,8 @@ import com.springboot.vaccineappointmentsystem.entity.Vaccine;
 import com.springboot.vaccineappointmentsystem.repository.VaccineRepository;
 import com.springboot.vaccineappointmentsystem.service.FileStorageService;
 import com.springboot.vaccineappointmentsystem.service.VaccineService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,10 @@ public class VaccineServiceImpl implements VaccineService {
 
     @Autowired
     private FileStorageService fileStorageService;
+    @Autowired
+    private EntityManager entityManager;
+
+    private static final int STOCK_RETRY_MAX = 3;
 
     @Override
     public List<Vaccine> getAllVaccines() {
@@ -135,8 +141,16 @@ public class VaccineServiceImpl implements VaccineService {
         }
         Vaccine vaccine = vaccineRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("未找到疫苗，ID: " + id));
-        vaccine.setStockQuantity(quantity);
-        return vaccineRepository.save(vaccine);
+        for (int i = 0; i < STOCK_RETRY_MAX; i++) {
+            try {
+                vaccine.setStockQuantity(quantity);
+                return vaccineRepository.saveAndFlush(vaccine);
+            } catch (OptimisticLockException e) {
+                if (i == STOCK_RETRY_MAX - 1) throw new RuntimeException("库存更新冲突，请重试");
+                entityManager.refresh(vaccine);
+            }
+        }
+        throw new RuntimeException("库存更新失败");
     }
 
     @Override

@@ -212,9 +212,9 @@ async function completeAppt(id: number) {
   try {
     await api.post(`/appointments/${id}/complete`)
     showAlert('接种完成！已自动生成接种记录', 'success')
-    loadStats()
-    loadAppointments(activeStatus.value)
-    loadRecords()
+    await loadStats()
+    await loadAppointments(activeStatus.value)
+    await loadRecords()
   } catch (error: any) {
     showAlert(error.response?.data?.error || '完成接种失败', 'error')
   }
@@ -222,10 +222,13 @@ async function completeAppt(id: number) {
 
 async function createLateRecord(id: number) {
   const notes = prompt('请输入补录说明（可选）：')
+  if (notes === null) return
   try {
     await api.post(`/appointments/${id}/late-record`, {notes: notes || ''})
     showAlert('已补录接种记录（预约状态保持为"未到场"）', 'success')
-    loadRecords()
+    await loadStats()
+    await loadAppointments(activeStatus.value)
+    await loadRecords()
   } catch (error: any) {
     showAlert(error.response?.data?.error || '补录失败', 'error')
   }
@@ -236,8 +239,8 @@ async function cancelAppt(id: number) {
   try {
     await api.post(`/appointments/${id}/cancel/admin`)
     showAlert('预约已取消', 'success')
-    loadStats()
-    loadAppointments(activeStatus.value)
+    await loadStats()
+    await loadAppointments(activeStatus.value)
   } catch (error: any) {
     showAlert(error.response?.data?.error || '取消失败', 'error')
   }
