@@ -1,175 +1,6 @@
--- ============================================
--- Vaccine Appointment System - 数据库初始化脚本
--- Database: vaccine_appointment_db
---
--- 表结构: sys_user, vaccine, appointment, vaccination_record, appointment_log
--- 初始数据: 46种疫苗 + 1个管理员账户
--- 管理员: admin / admin123 (BCrypt加密)
--- 普通用户通过注册页面自行注册，不预置测试用户
--- ============================================
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
--- ============================================
--- 清理旧表结构（user/admin 已合并为 sys_user）
--- ============================================
-DROP TABLE IF EXISTS `appointment_log`;
-DROP TABLE IF EXISTS `vaccination_record`;
-DROP TABLE IF EXISTS `appointment`;
-DROP TABLE IF EXISTS `admin`;
-DROP TABLE IF EXISTS `user`;
-
--- ============================================
--- 1. 统一用户表 sys_user
---    type: 0=普通用户(NORMAL)  1=管理员(ADMIN)
---    status: 0=禁用  1=正常
---    gender: 0=男 1=女 2=未知
--- ============================================
-DROP TABLE IF EXISTS `sys_user`;
-CREATE TABLE `sys_user`
-(
-    `id`          BIGINT       NOT NULL AUTO_INCREMENT,
-    `username`    VARCHAR(50)  NOT NULL,
-    `password`    VARCHAR(100) NOT NULL,
-    `phone`       VARCHAR(20)  NULL,
-    `email`       VARCHAR(100) NULL,
-    `type`        INT          NOT NULL DEFAULT 0 COMMENT '0=普通用户 1=管理员',
-    `status`      INT          NOT NULL DEFAULT 1 COMMENT '0=禁用 1=正常',
-    `gender`      INT          NULL COMMENT '0=男 1=女 2=未知',
-    `birthday`    DATE         NULL COMMENT '出生日期',
-    `remark`      VARCHAR(500) NULL COMMENT '备注（过敏史、慢性病等）',
-    `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_sys_user_username` (`username`),
-    UNIQUE KEY `uk_sys_user_phone` (`phone`),
-    INDEX `idx_sys_user_type` (`type`),
-    INDEX `idx_sys_user_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- 管理员初始数据 (密码: admin123)
-INSERT INTO `sys_user` (`username`, `password`, `type`, `status`)
-VALUES ('admin', '$2b$10$o1DD40tNdnPaRQ0hW8pbT.l5/Ao3/EtvOcHU9p0rrpp/fiD/ST3Uq', 1, 1);
-
--- ============================================
--- 2. 疫苗表 vaccine
---    version 字段用于乐观锁并发控制
--- ============================================
-DROP TABLE IF EXISTS `vaccine`;
-CREATE TABLE `vaccine`
-(
-    `id`             BIGINT       NOT NULL AUTO_INCREMENT,
-    `name`           VARCHAR(100) NOT NULL,
-    `manufacturer`   VARCHAR(100) NULL,
-    `description`    TEXT         NULL,
-    `stock_quantity` INT          NOT NULL DEFAULT 0,
-    `available`      BIT(1)       NOT NULL DEFAULT 1 COMMENT '1=可预约 0=已下架',
-    `image_url`      VARCHAR(255) NULL,
-    `category`       VARCHAR(50)  NULL,
-    `brand`          VARCHAR(100) NULL,
-    `dosage`         VARCHAR(50)  NULL,
-    `technique`      VARCHAR(100) NULL,
-    `schedule_info`  TEXT         NULL,
-    `doses_required` INT          NULL,
-    `age_range`      VARCHAR(100) NULL,
-    `target_disease` VARCHAR(200) NULL,
-    `version`        BIGINT       NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
-    `create_time`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `update_time`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    INDEX `idx_vaccine_available` (`available`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- ============================================
--- 3. 预约表 appointment
---    status: 0=已预约 1=已完成 2=未到场 3=已取消
--- ============================================
-DROP TABLE IF EXISTS `appointment`;
-CREATE TABLE `appointment`
-(
-    `id`                BIGINT   NOT NULL AUTO_INCREMENT,
-    `user_id`           BIGINT   NOT NULL,
-    `vaccine_id`        BIGINT   NOT NULL,
-    `appointment_time`  DATETIME NOT NULL,
-    `status`            INT      NOT NULL DEFAULT 0 COMMENT '0=已预约 1=已完成 2=未到场 3=已取消',
-    `status_updated_at` DATETIME NULL,
-    `create_time`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `update_time`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    INDEX `idx_appointment_user_status` (`user_id`, `status`),
-    INDEX `idx_appointment_status` (`status`),
-    INDEX `idx_appointment_time` (`appointment_time`),
-    CONSTRAINT `fk_appointment_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
-    CONSTRAINT `fk_appointment_vaccine` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
-
--- ============================================
--- 4. 接种记录表 vaccination_record
---    status: 0=已安排 1=已接种
--- ============================================
-DROP TABLE IF EXISTS `vaccination_record`;
-CREATE TABLE `vaccination_record`
-(
-    `id`               BIGINT   NOT NULL AUTO_INCREMENT,
-    `appointment_id`   BIGINT   NOT NULL,
-    `user_id`          BIGINT   NOT NULL,
-    `vaccine_id`       BIGINT   NOT NULL,
-    `doctor_id`        BIGINT   NULL COMMENT '执行接种的医护人员ID',
-    `vaccination_time` DATETIME NOT NULL,
-    `status`           INT      NOT NULL DEFAULT 0 COMMENT '0=已安排 1=已接种',
-    `notes`            TEXT     NULL,
-    `create_time`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `update_time`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_vr_appointment` (`appointment_id`),
-    INDEX `idx_vr_user` (`user_id`),
-    INDEX `idx_vr_vaccine` (`vaccine_id`),
-    INDEX `idx_vr_doctor` (`doctor_id`),
-    INDEX `idx_vr_status` (`status`),
-    INDEX `idx_vr_time` (`vaccination_time`),
-    CONSTRAINT `fk_vr_appointment` FOREIGN KEY (`appointment_id`) REFERENCES `appointment` (`id`),
-    CONSTRAINT `fk_vr_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
-    CONSTRAINT `fk_vr_vaccine` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`),
-    CONSTRAINT `fk_vr_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `sys_user` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
-
--- ============================================
--- 5. 预约操作日志表 appointment_log
--- ============================================
-DROP TABLE IF EXISTS `appointment_log`;
-CREATE TABLE `appointment_log`
-(
-    `id`             BIGINT       NOT NULL AUTO_INCREMENT,
-    `appointment_id` BIGINT       NOT NULL,
-    `action`         VARCHAR(30)  NOT NULL,
-    `old_status`     INT          NULL,
-    `new_status`     INT          NULL,
-    `changed_by`     VARCHAR(100) NULL,
-    `change_reason`  TEXT         NULL,
-    `created_at`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    INDEX `idx_appointment_log_aid` (`appointment_id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
-
--- ============================================
--- 疫苗初始数据 (46种)
--- ============================================
-INSERT INTO `vaccine` (`id`, `name`, `manufacturer`, `description`, `stock_quantity`, `available`, `image_url`,
+-- 疫苗初始数据 (46种，INSERT IGNORE 保证幂等)
+INSERT
+IGNORE INTO `vaccine` (`id`, `name`, `manufacturer`, `description`, `stock_quantity`, `available`, `image_url`,
                        `category`, `brand`, `dosage`, `technique`, `schedule_info`, `doses_required`, `age_range`,
                        `target_disease`)
 VALUES
@@ -233,8 +64,7 @@ VALUES
 (34, '四价流感病毒亚单位疫苗', '江苏中慧元通生物科技',
  '亚单位工艺流感疫苗，纯度更高、不良反应更少，覆盖甲型H1N1/H3N2及乙型Victoria/Yamagata四种毒株。', 1000, TRUE,
  'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop', '流感疫苗', '中慧元通',
- '0.5ml/支', '亚单位灭活', '周一至周日 8:00-16:30（节假日不休）', 1, '6月龄以上全年龄段',
- '预防四种流感病毒株引起的季节性流感'),
+ '0.5ml/支', '亚单位灭活', '周一至周日 8:00-16:30（节假日不休）', 1, '6月龄以上全年龄段', '预防四种流感病毒株引起的季节性流感'),
 
 -- 肺炎疫苗系列 (3种)
 (13, '23价肺炎球菌多糖疫苗', '默沙东（MSD）',
@@ -328,13 +158,11 @@ VALUES
 (28, 'b型流感嗜血杆菌结合疫苗（Hib）', '兰州生物制品研究所',
  '预防b型流感嗜血杆菌所致婴幼儿重症感染（脑膜炎/肺炎/会厌炎），常与百白破等组成四联/五联苗使用。', 800, TRUE,
  'https://images.unsplash.com/photo-1584467735871-8db9ac8d091c?w=400&h=300&fit=crop', 'Hib疫苗', '兰州生物',
- '0.5ml/支', '多糖结合', '周一至周五 8:00-11:30, 14:00-16:30', 4, '2月龄至5周岁婴幼儿',
- '预防b型流感嗜血杆菌感染（脑膜炎/肺炎）'),
+ '0.5ml/支', '多糖结合', '周一至周五 8:00-11:30, 14:00-16:30', 4, '2月龄至5周岁婴幼儿', '预防b型流感嗜血杆菌感染（脑膜炎/肺炎）'),
 (29, '口服轮状病毒减毒活疫苗（单价）', '兰州生物制品研究所',
  '国产单价轮状病毒疫苗（罗特威），预防A群轮状病毒引起的婴幼儿秋季腹泻，每年服用1次至3岁。', 900, TRUE,
  'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop', '轮状病毒疫苗', '罗特威',
- '3ml/瓶', '减毒活病毒（口服）', '周一至周五 8:00-11:30, 14:00-16:30', 3, '2月龄至3周岁婴幼儿',
- '预防A群轮状病毒引起的婴幼儿严重腹泻'),
+ '3ml/瓶', '减毒活病毒（口服）', '周一至周五 8:00-11:30, 14:00-16:30', 3, '2月龄至3周岁婴幼儿', '预防A群轮状病毒引起的婴幼儿严重腹泻'),
 (30, '口服五价重配轮状病毒减毒活疫苗', '默沙东（MSD）',
  '进口五价轮状病毒疫苗（RotaTeq），覆盖G1/G2/G3/G4/P1A五种常见血清型，保护范围广。', 400, TRUE,
  'https://images.unsplash.com/photo-1584467735871-8db9ac8d091c?w=400&h=300&fit=crop', '轮状病毒疫苗', 'RotaTeq（乐幼康）',
@@ -371,8 +199,7 @@ VALUES
 (40, '四价登革热嵌合减毒活疫苗', '赛诺菲巴斯德（Sanofi Pasteur）',
  '基于黄热病毒骨架嵌合四种登革病毒基因的重组减毒活疫苗（Dengvaxia），接种前须血清学检测确认既往感染。', 150, TRUE,
  'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop', '登革热疫苗', 'Dengvaxia',
- '0.5ml/支', '减毒活病毒（嵌合病毒）', '周一至周五 8:00-11:30（仅上午，需提前预约）', 3,
- '9-45岁有登革热既往感染血清学证据者',
+ '0.5ml/支', '减毒活病毒（嵌合病毒）', '周一至周五 8:00-11:30（仅上午，需提前预约）', 3, '9-45岁有登革热既往感染血清学证据者',
  '预防四种血清型登革病毒感染及重症'),
 
 -- 甲肝系列 (补充)
@@ -383,8 +210,7 @@ VALUES
 (42, '甲型肝炎灭活疫苗（成人剂型）', '葛兰素史克（GSK）',
  '进口成人剂型甲肝灭活疫苗（Havrix），含1440 ELISA单位/1.0ml，适用于16岁以上成人及旅行者。', 400, TRUE,
  'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop', '甲肝疫苗', 'Havrix',
- '1.0ml/支（1440 EU）', '灭活病毒', '周一至周五 8:00-11:30, 14:00-16:30', 2,
- '16岁及以上成人（旅行者/餐饮从业者/慢性肝病患者）',
+ '1.0ml/支（1440 EU）', '灭活病毒', '周一至周五 8:00-11:30, 14:00-16:30', 2, '16岁及以上成人（旅行者/餐饮从业者/慢性肝病患者）',
  '预防甲型肝炎'),
 
 -- 乙肝加强 / 腮腺炎 / 风疹 / 流脑四价
@@ -396,8 +222,7 @@ VALUES
 (44, '流行性腮腺炎减毒活疫苗（单苗）', '上海生物制品研究所',
  '腮腺炎单价减毒活疫苗，用于不宜接种MMR中对麻疹/风疹成分有禁忌者，现多被麻腮风联合疫苗替代。', 300, TRUE,
  'https://images.unsplash.com/photo-1584467735871-8db9ac8d091c?w=400&h=300&fit=crop', '腮腺炎疫苗', '上海生物',
- '0.5ml/支', '减毒活病毒', '周一至周五 8:00-11:30, 14:00-16:30', 1, '8月龄以上未患腮腺炎且无MMR接种史者',
- '预防流行性腮腺炎'),
+ '0.5ml/支', '减毒活病毒', '周一至周五 8:00-11:30, 14:00-16:30', 1, '8月龄以上未患腮腺炎且无MMR接种史者', '预防流行性腮腺炎'),
 (45, '风疹减毒活疫苗（单苗）', '北京天坛生物制品研究所',
  '风疹单价减毒活疫苗，重点保护育龄妇女预防孕早期风疹感染导致的先天性风疹综合征（CRS），现多被MMR替代。', 300, TRUE,
  'https://images.unsplash.com/photo-1584467735871-8db9ac8d091c?w=400&h=300&fit=crop', '风疹疫苗', '北京天坛',
@@ -408,15 +233,3 @@ VALUES
  'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop', '流脑疫苗', '曼海欣',
  '0.5ml/支', '多糖结合（CRM197载体）', '周一至周五 8:00-11:30, 14:00-16:30', 2, '3月龄至3周岁婴幼儿',
  '预防A/C/Y/W135群流行性脑脊髓膜炎');
-
--- ============================================
--- 恢复 SQL 模式设置
--- ============================================
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
