@@ -169,29 +169,25 @@
                   <div class="form-group-enhanced">
                     <label>性别</label>
                     <div class="gender-radio-group">
-                      <label class="gender-radio" :class="{ active: regForm.gender === 0 }">
-                        <input type="radio" v-model="regForm.gender" :value="0"/>
-                        <span>未知</span>
+                      <label :class="['gender-radio', { active: regForm.gender === 0 }]">
+                        <input v-model="regForm.gender" :value="0" type="radio"/> 未知
                       </label>
-                      <label class="gender-radio" :class="{ active: regForm.gender === 1 }">
-                        <input type="radio" v-model="regForm.gender" :value="1"/>
-                        <span>男</span>
+                      <label :class="['gender-radio', { active: regForm.gender === 1 }]">
+                        <input v-model="regForm.gender" :value="1" type="radio"/> 男
                       </label>
-                      <label class="gender-radio" :class="{ active: regForm.gender === 2 }">
-                        <input type="radio" v-model="regForm.gender" :value="2"/>
-                        <span>女</span>
+                      <label :class="['gender-radio', { active: regForm.gender === 2 }]">
+                        <input v-model="regForm.gender" :value="2" type="radio"/> 女
                       </label>
                     </div>
                   </div>
                   <div class="form-group-enhanced">
-                    <label>出生日期</label>
+                    <label>生日</label>
                     <input v-model="regForm.birthday" class="form-control input-enhanced" type="date"/>
                   </div>
                   <div class="form-group-enhanced">
                     <label>备注</label>
-                    <textarea v-model="regForm.remark" class="form-control input-enhanced"
-                              placeholder="过敏史、慢性病等健康信息（选填）"
-                              rows="2" style="resize: vertical; min-height: 44px;"></textarea>
+                    <textarea v-model="regForm.remark" class="form-control input-enhanced" placeholder="备注信息（选填）"
+                              rows="2"></textarea>
                   </div>
                   <LoginMessage :data="regMsgData" />
                   <div class="btn-center-wrap">
@@ -200,14 +196,6 @@
                 </form>
               </div>
 
-              <div class="login-divider-enhanced">
-                <span>管理员入口</span>
-              </div>
-              <div class="login-card-admin-link">
-                <router-link to="/admin-login">
-                  <span>🔐</span> 管理员登录 →
-                </router-link>
-              </div>
             </div>
           </div>
         </div>
@@ -257,13 +245,21 @@ function showAlert(message: string, type: 'success' | 'error' = 'success') {
 }
 
 async function handleLogin() {
-  const result = await auth.loginUser(loginForm.username, loginForm.password)
+  const result = await auth.login(loginForm.username, loginForm.password)
   if (!result.error && !result.frozen) {
     loginMsgData.value = null
     showAlert('登录成功！')
-    setTimeout(() => router.push('/dashboard'), 1000)
+    setTimeout(() => {
+      if (auth.isAdmin) router.push('/admin')
+      else router.push('/dashboard')
+    }, 1000)
   } else {
     loginMsgData.value = result
+    if (result.frozen) {
+      showAlert(`账户已锁定，${result.freezeSeconds || 0} 秒后重试`, 'error')
+    } else if (result.error) {
+      showAlert(result.error, 'error')
+    }
   }
 }
 
@@ -296,8 +292,9 @@ async function handleRegister() {
 }
 
 onMounted(() => {
-  if (auth.isUser) {
-    router.replace('/dashboard')
+  if (auth.isLoggedIn) {
+    if (auth.isAdmin) router.replace('/admin')
+    else router.replace('/dashboard')
   }
 })
 </script>

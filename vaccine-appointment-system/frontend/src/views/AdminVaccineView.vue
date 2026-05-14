@@ -350,7 +350,7 @@ async function toggleAvailability(vaccineId: number, current: boolean) {
 
 onMounted(() => {
   if (!auth.isAdmin) {
-    router.replace('/admin-login')
+    router.replace('/')
     return
   }
   loadVaccines()

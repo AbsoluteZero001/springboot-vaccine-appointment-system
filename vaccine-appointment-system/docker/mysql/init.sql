@@ -19,8 +19,8 @@ DROP TABLE IF EXISTS `user`;
 -- sys_user 表由 Hibernate ddl-auto=update 创建
 -- INSERT IGNORE 保证幂等
 INSERT
-IGNORE INTO `sys_user` (`username`, `password`, `phone`, `type`, `status`, `create_time`, `update_time`)
-VALUES ('admin', '$2b$10$o1DD40tNdnPaRQ0hW8pbT.l5/Ao3/EtvOcHU9p0rrpp/fiD/ST3Uq', '13800000000', 1, 1, NOW(), NOW());
+IGNORE INTO `sys_user` (`username`, `password`, `phone`, `role`, `status`, `create_time`, `update_time`)
+VALUES ('admin', '$2b$10$o1DD40tNdnPaRQ0hW8pbT.l5/Ao3/EtvOcHU9p0rrpp/fiD/ST3Uq', '13800000000', 'ROLE_ADMIN', 1, NOW(), NOW());
 
 -- 疫苗初始数据 (INSERT IGNORE 保证幂等)
 INSERT

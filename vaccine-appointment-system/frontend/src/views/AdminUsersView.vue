@@ -12,6 +12,10 @@
               <th>ID</th>
               <th>用户名</th>
               <th>手机号</th>
+              <th>性别</th>
+              <th>生日</th>
+              <th>年龄</th>
+              <th>备注</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -21,16 +25,22 @@
               <td>{{ user.id }}</td>
               <td>{{ user.username }}</td>
               <td>{{ user.phone || '—' }}</td>
+              <td>{{ genderLabel(user.gender) }}</td>
+              <td>{{ user.birthday || '—' }}</td>
+              <td>{{ calcAge(user.birthday) }}</td>
+              <td class="table-spec">{{ user.remark || '—' }}</td>
               <td>
                 <span :class="['status-badge', user.status === 1 ? 'status-completed' : 'status-cancelled']">
                   {{ user.status === 1 ? '正常' : '已停用' }}
                 </span>
               </td>
               <td>
-                <button class="btn btn-small" @click="toggleUserStatus(user.id, user.status)">
-                  {{ user.status === 1 ? '停用' : '启用' }}
-                </button>
-                <button class="btn btn-danger btn-small" @click="deleteUser(user.id)">删除</button>
+                <div class="table-btn-group">
+                  <button class="btn btn-small" @click="toggleUserStatus(user.id, user.status)">
+                    {{ user.status === 1 ? '停用' : '启用' }}
+                  </button>
+                  <button class="btn btn-danger btn-small" @click="deleteUser(user.id)">删除</button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -59,6 +69,9 @@ interface User {
   username: string
   phone: string
   status: number
+  gender?: number
+  birthday?: string
+  remark?: string
 }
 
 const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
@@ -66,6 +79,24 @@ const users = ref<User[]>([])
 
 function showAlert(msg: string, type: 'success' | 'error' = 'success') {
   alertRef.value?.showAlert(msg, type)
+}
+
+function genderLabel(g?: number): string {
+  if (g === 1) return '男'
+  if (g === 2) return '女'
+  return '未知'
+}
+
+function calcAge(birthday?: string): string {
+  if (!birthday) return '—'
+  const birth = new Date(birthday)
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--
+  }
+  return age > 0 ? `${age}岁` : '—'
 }
 
 async function loadUsers() {
@@ -101,7 +132,7 @@ async function deleteUser(userId: number) {
 
 onMounted(() => {
   if (!auth.isAdmin) {
-    router.replace('/admin-login')
+    router.replace('/')
     return
   }
   loadUsers()

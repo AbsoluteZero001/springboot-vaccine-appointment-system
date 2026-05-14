@@ -1,7 +1,11 @@
 package com.springboot.vaccineappointmentsystem.controller;
 
 import com.springboot.vaccineappointmentsystem.config.JwtTokenProvider;
+import com.springboot.vaccineappointmentsystem.entity.SysUser;
+import com.springboot.vaccineappointmentsystem.repository.SysUserRepository;
+import com.springboot.vaccineappointmentsystem.service.LoginAttemptService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,11 +26,16 @@ public class AuthController {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    private SysUserRepository sysUserRepository;
+
+    @Autowired
+    private LoginAttemptService loginAttemptService;
+
     public static class LoginRequest {
         private String username;
         private String password;
 
-        // Getters and setters
         public String getUsername() {
             return username;
         }
@@ -46,22 +55,54 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+        String username = loginRequest.getUsername();
+        String password = loginRequest.getPassword();
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtTokenProvider.generateToken(authentication);
+        // Check if username is currently frozen
+        Map<String, Object> blockResult = loginAttemptService.checkBlocked(username);
+        if (blockResult != null) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(blockResult);
+        }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("accessToken", jwt);
-        response.put("tokenType", "Bearer");
-        response.put("username", authentication.getName());
-        response.put("authorities", authentication.getAuthorities());
-        return ResponseEntity.ok(response);
+        // Pre-check: user exists and is active
+        var sysUserOpt = sysUserRepository.findByUsername(username);
+        if (sysUserOpt.isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "用户名不存在，请先注册");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+        SysUser sysUser = sysUserOpt.get();
+        if (sysUser.getStatus() != 1) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "账户已被禁用，请联系管理员");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            loginAttemptService.recordSuccess(username);
+            String jwt = jwtTokenProvider.generateToken(authentication);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 200);
+            response.put("message", "success");
+            Map<String, Object> data = new HashMap<>();
+            data.put("id", sysUser.getId());
+            data.put("username", sysUser.getUsername());
+            data.put("role", sysUser.getRole());
+            data.put("token", jwt);
+            response.put("data", data);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = loginAttemptService.recordFailedAttempt(username);
+            if (error.containsKey("attempts") && error.get("attempts") instanceof Integer attempts && attempts <= 1) {
+                error.put("error", "密码错误，请检查后重试");
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
     }
 
     @GetMapping("/verify")
@@ -74,14 +115,11 @@ public class AuthController {
             return ResponseEntity.status(401).body(error);
         }
 
-        String username = auth.getName();
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
         Map<String, Object> response = new HashMap<>();
         response.put("authenticated", true);
-        response.put("username", username);
-        response.put("role", isAdmin ? "ADMIN" : "USER");
+        response.put("username", auth.getName());
+        response.put("role", auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")) ? "ROLE_ADMIN" : "ROLE_USER");
         return ResponseEntity.ok(response);
     }
 }

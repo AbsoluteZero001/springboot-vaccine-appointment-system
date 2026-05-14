@@ -15,7 +15,7 @@
           </div>
           <div class="banner-content">
             <div class="banner-text">
-              <h2>👋 欢迎，{{ auth.currentAdmin?.username || '管理员' }}</h2>
+              <h2>👋 欢迎，{{ auth.currentUser?.username || '管理员' }}</h2>
               <p class="banner-subtitle">审核预约 · 完成接种 · 生成接种记录 · {{ today }}</p>
             </div>
             <div class="banner-stats">
@@ -248,7 +248,7 @@ async function cancelAppt(id: number) {
 
 onMounted(() => {
   if (!auth.isAdmin) {
-    router.replace('/admin-login')
+    router.replace('/')
     return
   }
   loadStats()

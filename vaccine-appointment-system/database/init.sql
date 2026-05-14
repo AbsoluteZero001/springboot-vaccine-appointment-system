@@ -30,9 +30,8 @@ DROP TABLE IF EXISTS `user`;
 
 -- ============================================
 -- 1. 统一用户表 sys_user
---    type: 0=普通用户(NORMAL)  1=管理员(ADMIN)
+--    role: ROLE_USER=普通用户  ROLE_ADMIN=管理员
 --    status: 0=禁用  1=正常
---    gender: 0=未知 1=男 2=女
 -- ============================================
 DROP TABLE IF EXISTS `sys_user`;
 CREATE TABLE `sys_user`
@@ -40,12 +39,9 @@ CREATE TABLE `sys_user`
     `id`          BIGINT       NOT NULL AUTO_INCREMENT,
     `username`    VARCHAR(50)  NOT NULL,
     `password`    VARCHAR(100) NOT NULL,
-    `phone`  VARCHAR(20) NOT NULL,
-    `type`        INT          NOT NULL DEFAULT 0 COMMENT '0=普通用户 1=管理员',
+    `phone` VARCHAR(20) NOT NULL,
+    `role`  VARCHAR(20) NOT NULL,
     `status`      INT          NOT NULL DEFAULT 1 COMMENT '0=禁用 1=正常',
-    `gender` INT         NULL COMMENT '0=未知 1=男 2=女',
-    `birthday`    DATE         NULL COMMENT '出生日期',
-    `remark`      VARCHAR(500) NULL COMMENT '备注（过敏史、慢性病等）',
     `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -56,8 +52,9 @@ CREATE TABLE `sys_user`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 管理员初始数据 (密码: admin123)
-INSERT INTO `sys_user` (`username`, `password`, `phone`, `type`, `status`, `create_time`, `update_time`)
-VALUES ('admin', '$2b$10$o1DD40tNdnPaRQ0hW8pbT.l5/Ao3/EtvOcHU9p0rrpp/fiD/ST3Uq', '13800000000', 1, 1, NOW(), NOW());
+INSERT INTO `sys_user` (`username`, `password`, `phone`, `role`, `status`, `create_time`, `update_time`)
+VALUES ('admin', '$2b$10$o1DD40tNdnPaRQ0hW8pbT.l5/Ao3/EtvOcHU9p0rrpp/fiD/ST3Uq', '13800000000', 'ROLE_ADMIN', 1, NOW(),
+        NOW());
 
 -- ============================================
 -- 2. 疫苗表 vaccine

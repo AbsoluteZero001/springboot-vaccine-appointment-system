@@ -1,25 +1,17 @@
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
-import type {ApiResponse} from '@/services/api'
 import api from '@/services/api'
 import axios from 'axios'
 
-export interface User {
+export interface SysUser {
   id: number
   username: string
     phone: string
-    type: number        // 0=NORMAL, 1=ADMIN
+    role: string        // ROLE_USER or ROLE_ADMIN
   status?: number
     gender?: number     // 0=未知 1=男 2=女
-    birthday?: string   // ISO date string
+    birthday?: string
     remark?: string
-}
-
-export interface Admin {
-  id: number
-  username: string
-    type?: number
-    phone?: string
 }
 
 export interface LoginData {
@@ -29,48 +21,36 @@ export interface LoginData {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
-  const admin = ref<Admin | null>(null)
+    const currentUser = ref<SysUser | null>(null)
   const token = ref<string | null>(null)
   const isAuthReady = ref(false)
 
-  // Initialize from localStorage (data saved during successful login)
+    // Initialize from localStorage
   const storedUser = localStorage.getItem('user')
-  const storedAdmin = localStorage.getItem('admin')
   const storedToken = localStorage.getItem('accessToken')
-
-  if (storedUser) user.value = JSON.parse(storedUser)
-  if (storedAdmin) admin.value = JSON.parse(storedAdmin)
+    if (storedUser) currentUser.value = JSON.parse(storedUser)
   if (storedToken) token.value = storedToken
 
-  const isLoggedIn = computed(() => user.value !== null || admin.value !== null)
-  const isUser = computed(() => user.value !== null)
-  const isAdmin = computed(() => admin.value !== null)
-  const currentUser = computed(() => user.value)
-  const currentAdmin = computed(() => admin.value)
+    const isLoggedIn = computed(() => currentUser.value !== null)
+    const isUser = computed(() => currentUser.value?.role === 'ROLE_USER')
+    const isAdmin = computed(() => currentUser.value?.role === 'ROLE_ADMIN')
   const authToken = computed(() => token.value)
+    const userRole = computed(() => currentUser.value?.role ?? null)
 
   function setAuthToken(t: string) {
     token.value = t
     localStorage.setItem('accessToken', t)
   }
 
-  function setUser(u: User) {
-    user.value = u
+    function setCurrentUser(u: SysUser) {
+        currentUser.value = u
     localStorage.setItem('user', JSON.stringify(u))
   }
 
-  function setAdmin(a: Admin) {
-    admin.value = a
-    localStorage.setItem('admin', JSON.stringify(a))
-  }
-
   function clearAuth() {
-    user.value = null
-    admin.value = null
+      currentUser.value = null
     token.value = null
     localStorage.removeItem('user')
-    localStorage.removeItem('admin')
     localStorage.removeItem('accessToken')
   }
 
@@ -79,40 +59,25 @@ export const useAuthStore = defineStore('auth', () => {
     window.location.href = '/'
   }
 
-  async function loginUser(username: string, password: string): Promise<LoginData> {
+    async function login(username: string, password: string): Promise<LoginData> {
     try {
-      const response = await api.post<ApiResponse<{ accessToken: string; user: User }>>('/users/login', {
-        username,
-        password
-      })
-      const data = response.data
-      if (data.success !== false && data.accessToken) {
-        setAuthToken(data.accessToken)
-        setUser(data.user)
+        const response = await api.post<{
+            code: number
+            message: string
+            data: { id: number; username: string; role: string; token: string }
+        }>('/auth/login', {username, password})
+        const body = response.data
+        if (body.data && body.data.token) {
+            setAuthToken(body.data.token)
+            setCurrentUser({
+                id: body.data.id,
+                username: body.data.username,
+                phone: '',
+                role: body.data.role
+            })
         return {}
       }
-      return data as unknown as LoginData
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data as LoginData
-      }
-      return { error: '网络连接失败，请稍后重试' }
-    }
-  }
-
-  async function loginAdmin(username: string, password: string): Promise<LoginData> {
-    try {
-      const response = await api.post<ApiResponse<{ accessToken: string; admin: Admin }>>('/admins/login', {
-        username,
-        password
-      })
-      const data = response.data
-      if (data.success !== false && data.accessToken) {
-        setAuthToken(data.accessToken)
-        setAdmin(data.admin)
-        return {}
-      }
-      return data as unknown as LoginData
+        return body as unknown as LoginData
     } catch (error: any) {
       if (error.response?.data) {
         return error.response.data as LoginData
@@ -141,8 +106,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Verify the stored token with the backend on app startup.
-  // Uses a raw axios call to bypass the global response interceptor,
-  // so we can handle 401 inline instead of triggering a page reload.
   async function verifySession() {
     const storedToken = localStorage.getItem('accessToken')
     if (!storedToken) {
@@ -152,35 +115,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     try {
-      await axios.get('/api/auth/verify', {
+        const response = await axios.get('/api/auth/verify', {
         headers: { Authorization: `Bearer ${storedToken}` }
       })
-      // Token is valid — stored user/admin data from login is trustworthy
+        // Update role from backend response
+        if (currentUser.value && response.data.role) {
+            currentUser.value.role = response.data.role
+            localStorage.setItem('user', JSON.stringify(currentUser.value))
+        }
     } catch {
-      // Token expired or invalid — clear everything so no stale auth state remains
       clearAuth()
     }
     isAuthReady.value = true
   }
 
   return {
-    user,
-    admin,
+      currentUser,
     token,
     isAuthReady,
     isLoggedIn,
     isUser,
     isAdmin,
-    currentUser,
-    currentAdmin,
+      userRole,
     authToken,
     setAuthToken,
-    setUser,
-    setAdmin,
+      setCurrentUser,
     clearAuth,
     logout,
-    loginUser,
-    loginAdmin,
+      login,
     registerUser,
     verifySession
   }

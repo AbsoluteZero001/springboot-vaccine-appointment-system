@@ -11,21 +11,16 @@ const router = createRouter({
       component: () => import('@/views/HomeView.vue')
     },
     {
-      path: '/admin-login',
-      name: 'admin-login',
-      component: () => import('@/views/AdminLoginView.vue')
-    },
-    {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/UserDashboardView.vue'),
-      meta: { requiresUser: true }
+        meta: {requiresAuth: true}
     },
     {
       path: '/profile',
       name: 'profile',
       component: () => import('@/views/UserProfileView.vue'),
-      meta: { requiresUser: true }
+        meta: {requiresAuth: true}
     },
     {
       path: '/admin',
@@ -51,9 +46,7 @@ const router = createRouter({
 router.beforeEach(async (to, _from) => {
   const auth = useAuthStore()
 
-  // Block navigation until the session has been verified with the backend.
-  // Without this, localStorage data from a previous browser session would
-  // be trusted blindly, allowing unauthenticated access to protected views.
+    // Block navigation until session verified
   if (!auth.isAuthReady) {
     await new Promise<void>((resolve) => {
       const stop = watch(() => auth.isAuthReady, (ready) => {
@@ -65,19 +58,18 @@ router.beforeEach(async (to, _from) => {
     })
   }
 
-  // Convenience: redirect already-authenticated users away from login pages
-  if (to.name === 'home' && auth.isUser) {
+    // Redirect authenticated users from home to appropriate dashboard
+    if (to.name === 'home' && auth.isLoggedIn) {
+        if (auth.isAdmin) return '/admin'
     return '/dashboard'
   }
-  if (to.name === 'admin-login' && auth.isAdmin) {
-    return '/admin'
-  }
 
-  if (to.meta.requiresUser && !auth.isUser) {
+    // Protect authenticated routes
+    if (to.meta.requiresAuth && !auth.isLoggedIn) {
     return '/'
   }
   if (to.meta.requiresAdmin && !auth.isAdmin) {
-    return '/admin-login'
+      return '/'
   }
   return true
 })

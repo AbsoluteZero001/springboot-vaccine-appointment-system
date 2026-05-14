@@ -34,14 +34,14 @@ public class SysUser implements UserDetails {
     @Column(unique = true, nullable = false, length = 20)
     private String phone;
 
-    @Column(nullable = false)
-    private Integer type = 0; // 0=NORMAL, 1=ADMIN (UserType enum code)
+    @Column(nullable = false, length = 20)
+    private String role = "ROLE_USER"; // ROLE_USER or ROLE_ADMIN
 
     @Column(nullable = false)
-    private Integer status = 1; // 0: inactive, 1: active
+    private Integer status = 1; // 0: disabled, 1: active
 
     @Column
-    private Integer gender; // Gender enum code
+    private Integer gender; // 0=未知 1=男 2=女
 
     @Column
     private LocalDate birthday;
@@ -59,8 +59,8 @@ public class SysUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String role = (type != null && type == 1) ? "ADMIN" : "USER";
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+        String r = (role != null && !role.isEmpty()) ? role : "ROLE_USER";
+        return Collections.singletonList(new SimpleGrantedAuthority(r));
     }
 
     @Override
