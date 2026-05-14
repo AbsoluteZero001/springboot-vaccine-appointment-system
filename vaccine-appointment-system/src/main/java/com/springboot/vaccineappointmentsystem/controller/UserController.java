@@ -1,7 +1,9 @@
 package com.springboot.vaccineappointmentsystem.controller;
 
 import com.springboot.vaccineappointmentsystem.config.JwtTokenProvider;
+import com.springboot.vaccineappointmentsystem.entity.SysUser;
 import com.springboot.vaccineappointmentsystem.entity.User;
+import com.springboot.vaccineappointmentsystem.repository.SysUserRepository;
 import com.springboot.vaccineappointmentsystem.service.LoginAttemptService;
 import com.springboot.vaccineappointmentsystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -26,6 +29,9 @@ public class UserController {
     private UserService userService;
 
     @Autowired
+    private SysUserRepository sysUserRepository;
+
+    @Autowired
     private AuthenticationManager authenticationManager;
 
     @Autowired
@@ -34,15 +40,60 @@ public class UserController {
     @Autowired
     private LoginAttemptService loginAttemptService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody Map<String, Object> body) {
         try {
-            User registered = userService.register(user);
-            return ResponseEntity.ok(registered);
+            String username = (String) body.get("username");
+            String password = (String) body.get("password");
+
+            if (username == null || username.isBlank()) {
+                return badRequest("用户名不能为空");
+            }
+            if (password == null || password.isBlank()) {
+                return badRequest("密码不能为空");
+            }
+            if (body.get("phone") == null || ((String) body.get("phone")).isBlank()) {
+                return badRequest("手机号不能为空");
+            }
+
+            if (sysUserRepository.existsByUsername(username)) {
+                return badRequest("用户名已存在");
+            }
+            if (sysUserRepository.existsByPhone((String) body.get("phone"))) {
+                return badRequest("手机号已注册");
+            }
+
+            SysUser user = new SysUser();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setPhone((String) body.get("phone"));
+            user.setType(0); // NORMAL user
+
+            // Optional fields
+            if (body.get("gender") != null) {
+                user.setGender(((Number) body.get("gender")).intValue());
+            }
+            if (body.get("birthday") != null) {
+                String bd = (String) body.get("birthday");
+                user.setBirthday(java.time.LocalDate.parse(bd));
+            }
+            if (body.get("remark") != null) {
+                user.setRemark((String) body.get("remark"));
+            }
+
+            SysUser saved = sysUserRepository.save(user);
+
+            // Return without password
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", saved.getId());
+            response.put("username", saved.getUsername());
+            response.put("message", "注册成功");
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return badRequest(e.getMessage());
         }
     }
 
@@ -55,6 +106,14 @@ public class UserController {
         Map<String, Object> blockResult = loginAttemptService.checkBlocked(username);
         if (blockResult != null) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(blockResult);
+        }
+
+        // Pre-check: user exists
+        Optional<SysUser> sysUserOpt = sysUserRepository.findByUsername(username);
+        if (sysUserOpt.isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "用户名不存在，请先注册");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
 
         try {
@@ -72,6 +131,10 @@ public class UserController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = loginAttemptService.recordFailedAttempt(username);
+            // Override first-attempt generic message with password-specific hint
+            if (error.containsKey("attempts") && error.get("attempts") instanceof Integer attempts && attempts <= 1) {
+                error.put("error", "密码错误，请检查后重试");
+            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
     }
@@ -111,9 +174,7 @@ public class UserController {
             User updated = userService.updateUser(id, userDetails);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return badRequest(e.getMessage());
         }
     }
 
@@ -125,9 +186,13 @@ public class UserController {
             response.put("message", "用户删除成功");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return badRequest(e.getMessage());
         }
+    }
+
+    private ResponseEntity<?> badRequest(String message) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", message);
+        return ResponseEntity.badRequest().body(error);
     }
 }

@@ -43,8 +43,8 @@ public class DataInitializer implements ApplicationRunner {
 
         try {
             jdbcTemplate.update(
-                    "INSERT IGNORE INTO sys_user (username, password, type, status) " +
-                            "VALUES ('admin', '$2b$10$o1DD40tNdnPaRQ0hW8pbT.l5/Ao3/EtvOcHU9p0rrpp/fiD/ST3Uq', 1, 1)");
+                    "INSERT IGNORE INTO sys_user (username, password, phone, type, status, create_time, update_time) " +
+                            "VALUES ('admin', '$2b$10$o1DD40tNdnPaRQ0hW8pbT.l5/Ao3/EtvOcHU9p0rrpp/fiD/ST3Uq', '13800000000', 1, 1, NOW(), NOW())");
             log.info("默认管理员账户已创建: admin / admin123");
         } catch (Exception e) {
             log.warn("管理员账户创建失败: {}", e.getMessage());
@@ -59,7 +59,7 @@ public class DataInitializer implements ApplicationRunner {
                 log.info("疫苗数据完整 ({} 种)，跳过初始化", count);
                 return;
             }
-            log.info("检测到疫苗数据不完整 (当前 {} 种)，执行同步...", count);
+            log.info("疫苗数据不完整 (当前 {} 种)，执行同步...", count);
         } catch (Exception e) {
             log.info("vaccine 表不存在或为空，开始初始化疫苗数据...");
         }
@@ -67,12 +67,16 @@ public class DataInitializer implements ApplicationRunner {
         try {
             ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
             populator.addScript(new ClassPathResource("data-vaccines.sql"));
-            populator.setContinueOnError(true);
+            populator.setContinueOnError(false);
             populator.execute(dataSource);
             Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM vaccine", Integer.class);
-            log.info("疫苗数据同步完成，当前共 {} 种疫苗", count);
+            if (count != null && count > 0) {
+                log.info("疫苗数据同步完成，当前共 {} 种疫苗", count);
+            } else {
+                log.error("疫苗数据同步失败：数据文件执行后疫苗表仍为空，请检查 data-vaccines.sql");
+            }
         } catch (Exception e) {
-            log.warn("疫苗数据初始化失败: {}", e.getMessage());
+            log.error("疫苗数据初始化失败: {}", e.getMessage(), e);
         }
     }
 }

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Gender {
-    MALE(0, "男"),
-    FEMALE(1, "女"),
-    UNKNOWN(2, "未知");
+    UNKNOWN(0, "未知"),
+    MALE(1, "男"),
+    FEMALE(2, "女");
 
     private final int code;
     private final String displayName;

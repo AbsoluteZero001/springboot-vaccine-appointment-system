@@ -7,16 +7,19 @@ import axios from 'axios'
 export interface User {
   id: number
   username: string
-  email?: string
-  phone?: string
-  role?: string
+    phone: string
+    type: number        // 0=NORMAL, 1=ADMIN
   status?: number
+    gender?: number     // 0=未知 1=男 2=女
+    birthday?: string   // ISO date string
+    remark?: string
 }
 
 export interface Admin {
   id: number
   username: string
-  role?: string
+    type?: number
+    phone?: string
 }
 
 export interface LoginData {
@@ -121,8 +124,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function registerUser(userData: {
     username: string
     password: string
-    email: string
-    phone?: string
+      phone: string
+      gender?: number
+      birthday?: string
+      remark?: string
   }): Promise<{ error?: string }> {
     try {
       await api.post('/users/register', userData)

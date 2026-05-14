@@ -151,24 +151,47 @@
               <div :class="['login-tab-content', { active: activeTab === 'user-register' }]">
                 <form @submit.prevent="handleRegister">
                   <div class="form-group-enhanced">
-                    <label>用户名</label>
+                    <label>用户名 <span class="label-required">*</span></label>
                     <input v-model="regForm.username" class="form-control input-enhanced" placeholder="请设置用户名"
                            required type="text"/>
                   </div>
                   <div class="form-group-enhanced">
-                    <label>密码</label>
-                    <input v-model="regForm.password" class="form-control input-enhanced" placeholder="请设置密码"
-                           required type="password"/>
+                    <label>密码 <span class="label-required">*</span></label>
+                    <input v-model="regForm.password" class="form-control input-enhanced"
+                           placeholder="请设置密码（至少6位）"
+                           required type="password" minlength="6"/>
                   </div>
                   <div class="form-group-enhanced">
-                    <label>邮箱</label>
-                    <input v-model="regForm.email" class="form-control input-enhanced" placeholder="请输入邮箱地址"
-                           required type="email"/>
-                  </div>
-                  <div class="form-group-enhanced">
-                    <label>手机号（选填）</label>
+                    <label>手机号 <span class="label-required">*</span></label>
                     <input v-model="regForm.phone" class="form-control input-enhanced" placeholder="请输入手机号码"
-                           type="text"/>
+                           required type="text"/>
+                  </div>
+                  <div class="form-group-enhanced">
+                    <label>性别</label>
+                    <div class="gender-radio-group">
+                      <label class="gender-radio" :class="{ active: regForm.gender === 0 }">
+                        <input type="radio" v-model="regForm.gender" :value="0"/>
+                        <span>未知</span>
+                      </label>
+                      <label class="gender-radio" :class="{ active: regForm.gender === 1 }">
+                        <input type="radio" v-model="regForm.gender" :value="1"/>
+                        <span>男</span>
+                      </label>
+                      <label class="gender-radio" :class="{ active: regForm.gender === 2 }">
+                        <input type="radio" v-model="regForm.gender" :value="2"/>
+                        <span>女</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="form-group-enhanced">
+                    <label>出生日期</label>
+                    <input v-model="regForm.birthday" class="form-control input-enhanced" type="date"/>
+                  </div>
+                  <div class="form-group-enhanced">
+                    <label>备注</label>
+                    <textarea v-model="regForm.remark" class="form-control input-enhanced"
+                              placeholder="过敏史、慢性病等健康信息（选填）"
+                              rows="2" style="resize: vertical; min-height: 44px;"></textarea>
                   </div>
                   <LoginMessage :data="regMsgData" />
                   <div class="btn-center-wrap">
@@ -217,7 +240,14 @@ const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
 const activeTab = ref('user-login')
 
 const loginForm = reactive({ username: '', password: '' })
-const regForm = reactive({ username: '', password: '', email: '', phone: '' })
+const regForm = reactive({
+  username: '',
+  password: '',
+  phone: '',
+  gender: 0 as number,
+  birthday: '',
+  remark: ''
+})
 
 const loginMsgData = ref<LoginData | null>(null)
 const regMsgData = ref<LoginData | null>(null)
@@ -238,11 +268,17 @@ async function handleLogin() {
 }
 
 async function handleRegister() {
+  if (!regForm.phone.trim()) {
+    regMsgData.value = {error: '手机号不能为空'}
+    return
+  }
   const result = await auth.registerUser({
     username: regForm.username,
     password: regForm.password,
-    email: regForm.email,
-    phone: regForm.phone || undefined
+    phone: regForm.phone,
+    gender: regForm.gender,
+    birthday: regForm.birthday || undefined,
+    remark: regForm.remark || undefined
   })
   if (!result.error) {
     regMsgData.value = null
@@ -250,8 +286,10 @@ async function handleRegister() {
     activeTab.value = 'user-login'
     regForm.username = ''
     regForm.password = ''
-    regForm.email = ''
     regForm.phone = ''
+    regForm.gender = 0
+    regForm.birthday = ''
+    regForm.remark = ''
   } else {
     regMsgData.value = result
   }
@@ -580,6 +618,52 @@ onMounted(() => {
   background: white;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(67, 97, 238, 0.1);
+}
+
+.label-required {
+  color: #e53e3e;
+  margin-left: 2px;
+}
+
+.gender-radio-group {
+  display: flex;
+  gap: 12px;
+}
+
+.gender-radio {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-size: 0.85rem;
+  color: var(--gray-color);
+}
+
+.gender-radio input[type="radio"] {
+  display: none;
+}
+
+.gender-radio:hover {
+  border-color: var(--primary-color);
+  background: rgba(67, 97, 238, 0.04);
+}
+
+.gender-radio.active {
+  border-color: var(--primary-color);
+  background: rgba(67, 97, 238, 0.08);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+textarea.form-control {
+  font-family: inherit;
+  padding-top: 10px;
 }
 
 @media (max-width: 768px) {

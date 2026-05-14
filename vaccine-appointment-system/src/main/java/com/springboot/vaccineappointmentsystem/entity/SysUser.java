@@ -31,11 +31,8 @@ public class SysUser implements UserDetails {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(unique = true, length = 20)
+    @Column(unique = true, nullable = false, length = 20)
     private String phone;
-
-    @Column(length = 100)
-    private String email;
 
     @Column(nullable = false)
     private Integer type = 0; // 0=NORMAL, 1=ADMIN (UserType enum code)

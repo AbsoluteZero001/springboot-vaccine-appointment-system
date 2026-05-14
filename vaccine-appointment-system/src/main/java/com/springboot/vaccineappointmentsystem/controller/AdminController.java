@@ -2,6 +2,7 @@ package com.springboot.vaccineappointmentsystem.controller;
 
 import com.springboot.vaccineappointmentsystem.config.JwtTokenProvider;
 import com.springboot.vaccineappointmentsystem.entity.Admin;
+import com.springboot.vaccineappointmentsystem.repository.SysUserRepository;
 import com.springboot.vaccineappointmentsystem.service.AdminService;
 import com.springboot.vaccineappointmentsystem.service.LoginAttemptService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ public class AdminController {
     private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
+    private SysUserRepository sysUserRepository;
+
+    @Autowired
     private LoginAttemptService loginAttemptService;
 
     @PostMapping("/login")
@@ -43,6 +47,14 @@ public class AdminController {
         Map<String, Object> blockResult = loginAttemptService.checkBlocked(username);
         if (blockResult != null) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(blockResult);
+        }
+
+        // Pre-check: admin exists in sys_user
+        var sysUserOpt = sysUserRepository.findByUsername(username);
+        if (sysUserOpt.isEmpty() || sysUserOpt.get().getType() != 1) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "管理员不存在");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
 
         try {
@@ -60,6 +72,9 @@ public class AdminController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = loginAttemptService.recordFailedAttempt(username);
+            if (error.containsKey("attempts") && error.get("attempts") instanceof Integer attempts && attempts <= 1) {
+                error.put("error", "密码错误，请检查后重试");
+            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
     }

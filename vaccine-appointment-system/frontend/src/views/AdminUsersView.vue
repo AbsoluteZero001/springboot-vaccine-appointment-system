@@ -11,7 +11,6 @@
             <tr>
               <th>ID</th>
               <th>用户名</th>
-              <th>邮箱</th>
               <th>手机号</th>
               <th>状态</th>
               <th>操作</th>
@@ -21,7 +20,6 @@
             <tr v-for="user in users" :key="user.id">
               <td>{{ user.id }}</td>
               <td>{{ user.username }}</td>
-              <td>{{ user.email }}</td>
               <td>{{ user.phone || '—' }}</td>
               <td>
                 <span :class="['status-badge', user.status === 1 ? 'status-completed' : 'status-cancelled']">
@@ -59,8 +57,7 @@ const auth = useAuthStore()
 interface User {
   id: number
   username: string
-  email: string
-  phone?: string
+  phone: string
   status: number
 }
 
