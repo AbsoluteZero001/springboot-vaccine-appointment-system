@@ -81,6 +81,7 @@ export interface Vaccine {
   manufacturer?: string
   scheduleInfo?: string
   description?: string
+  imageUrl?: string
   stockQuantity: number
   available: boolean
 }

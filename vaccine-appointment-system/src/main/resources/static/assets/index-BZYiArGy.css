@@ -2342,6 +2342,22 @@ tr:last-child td {
     background: #fff
 }
 
+.btn-center-wrap {
+    text-align: center;
+    margin-top: 4px
+}
+
+.btn-login-submit {
+    min-width: 200px;
+    width: auto;
+    letter-spacing: 2px
+}
+
+.admin-login-card-body .btn-login-submit, .login-card .btn-login-submit {
+    width: auto;
+    padding: 14px 48px
+}
+
 .form-row {
     display: grid;
     grid-template-columns:1fr 1fr;
@@ -2352,6 +2368,29 @@ tr:last-child td {
     display: grid;
     grid-template-columns:1fr 1fr 1fr;
     gap: 16px
+}
+
+.form-section-label {
+    font-size: .82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--primary-color);
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8ecf4;
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.form-section-label:before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 16px;
+    background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+    border-radius: 2px
 }
 
 .edit-modal {
@@ -2405,6 +2444,110 @@ tr:last-child td {
 .table-spec {
     font-size: .82rem;
     color: var(--gray-color)
+}
+
+.table-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #4361ee, #4895ef);
+    box-shadow: 0 3px 10px #4361ee40
+}
+
+.btn-edit:hover {
+    box-shadow: 0 6px 18px #4361ee66
+}
+
+.btn-toggle-on {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    box-shadow: 0 3px 10px #22c55e40
+}
+
+.btn-toggle-on:hover {
+    box-shadow: 0 6px 18px #22c55e66
+}
+
+.btn-toggle-off {
+    background: linear-gradient(135deg, #f59e0b, #f8961e);
+    box-shadow: 0 3px 10px #f59e0b40
+}
+
+.btn-toggle-off:hover {
+    box-shadow: 0 6px 18px #f59e0b66
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #dc2626, #f72585);
+    box-shadow: 0 3px 10px #dc262633
+}
+
+.btn-delete:hover {
+    box-shadow: 0 6px 18px #dc262659
+}
+
+.image-upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .3s ease;
+    background: #fafbfc;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden
+}
+
+.image-upload-area:hover {
+    border-color: var(--primary-color);
+    background: #f5f7ff;
+    box-shadow: 0 4px 12px #4361ee14
+}
+
+.image-upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: .88rem
+}
+
+.upload-placeholder-icon {
+    font-size: 32px;
+    opacity: .6
+}
+
+.image-preview-thumb {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+    object-fit: contain
+}
+
+.btn-remove-image {
+    margin-top: 8px;
+    padding: 6px 16px;
+    border: 1px solid #fecaca;
+    border-radius: 50px;
+    background: #fef2f2;
+    color: #dc2626;
+    cursor: pointer;
+    font-size: .82rem;
+    font-weight: 500;
+    transition: all .25s ease;
+    font-family: inherit
+}
+
+.btn-remove-image:hover {
+    background: #fecaca;
+    border-color: #f87171
 }
 
 @media (max-width: 1024px) {
@@ -2558,6 +2701,14 @@ tr:last-child td {
 
     .form-row, .form-row-3 {
         grid-template-columns:1fr
+    }
+
+    .table-btn-group {
+        flex-direction: column
+    }
+
+    .table-btn-group .btn {
+        width: 100%
     }
 }
 

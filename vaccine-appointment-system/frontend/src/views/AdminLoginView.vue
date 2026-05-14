@@ -21,7 +21,9 @@
                 <input v-model="password" class="form-control" placeholder="请输入密码" required type="password" />
               </div>
               <LoginMessage :data="loginMsgData" />
-              <button class="btn" type="submit">管理员登录</button>
+              <div class="btn-center-wrap">
+                <button class="btn btn-login-submit" type="submit">管理员登录</button>
+              </div>
             </form>
             <div class="admin-login-footer-links">
               <router-link to="/">← 返回用户首页</router-link>

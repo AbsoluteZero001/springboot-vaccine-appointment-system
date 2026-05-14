@@ -141,7 +141,9 @@
                     </div>
                   </div>
                   <LoginMessage :data="loginMsgData" />
-                  <button class="btn btn-shimmer" type="submit">登 录</button>
+                  <div class="btn-center-wrap">
+                    <button class="btn btn-shimmer btn-login-submit" type="submit">登 录</button>
+                  </div>
                 </form>
               </div>
 
@@ -169,7 +171,9 @@
                            type="text"/>
                   </div>
                   <LoginMessage :data="regMsgData" />
-                  <button class="btn btn-shimmer" type="submit">注 册</button>
+                  <div class="btn-center-wrap">
+                    <button class="btn btn-shimmer btn-login-submit" type="submit">注 册</button>
+                  </div>
                 </form>
               </div>
 

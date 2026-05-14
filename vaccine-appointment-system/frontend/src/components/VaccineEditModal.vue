@@ -7,6 +7,7 @@
       </div>
       <div class="edit-modal-body">
         <form @submit.prevent="handleSubmit">
+          <div class="form-section-label">基本信息</div>
           <div class="form-group">
             <label>疫苗名称</label>
             <input v-model="form.name" class="form-control" required type="text" />
@@ -49,6 +50,7 @@
             <label>生产厂家</label>
             <input v-model="form.manufacturer" class="form-control" type="text" />
           </div>
+          <div class="form-section-label">详细信息</div>
           <div class="form-group">
             <label>接种时间安排</label>
             <textarea v-model="form.scheduleInfo" class="form-control" rows="2"></textarea>
@@ -57,6 +59,7 @@
             <label>简介</label>
             <textarea v-model="form.description" class="form-control" rows="2"></textarea>
           </div>
+          <div class="form-section-label">库存与图片</div>
           <div class="form-row">
             <div class="form-group">
               <label>库存</label>
@@ -67,7 +70,25 @@
               <label style="margin:0; cursor:pointer;">上架可用</label>
             </div>
           </div>
-          <button class="btn" type="submit">保存修改</button>
+          <div class="form-row">
+            <div class="form-group">
+              <label>疫苗图片</label>
+              <div class="image-upload-area" @click="triggerFileInput">
+                <input ref="fileInputRef" accept="image/*" style="display:none" type="file" @change="onImageSelected"/>
+                <img v-if="imagePreview" :src="imagePreview" alt="预览" class="image-preview-thumb"/>
+                <div v-else class="image-upload-placeholder">
+                  <span class="upload-placeholder-icon">🖼️</span>
+                  <span>点击更换疫苗图片</span>
+                </div>
+              </div>
+              <button v-if="imagePreview" class="btn-remove-image" type="button" @click.stop="removeImage">移除图片
+              </button>
+            </div>
+            <div class="form-group"></div>
+          </div>
+          <div class="btn-center-wrap">
+            <button class="btn" type="submit">保存修改</button>
+          </div>
         </form>
       </div>
     </div>
@@ -75,7 +96,7 @@
 </template>
 
 <script lang="ts" setup>
-import {reactive, watch} from 'vue'
+import {reactive, ref, watch} from 'vue'
 import type {Vaccine} from './VaccineCard.vue'
 
 const props = defineProps<{
@@ -85,8 +106,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  saved: [data: Record<string, any>]
+  saved: [data: Record<string, any>, imageFile?: File | null]
 }>()
+
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const selectedImageFile = ref<File | null>(null)
+const imagePreview = ref<string | null>(null)
 
 const form = reactive({
   name: '',
@@ -107,6 +132,12 @@ const form = reactive({
 watch(
   () => props.vaccine,
   (v) => {
+    // Reset image selection when vaccine changes
+    selectedImageFile.value = null
+    imagePreview.value = null
+    if (fileInputRef.value) {
+      fileInputRef.value.value = ''
+    }
     if (v) {
       form.name = v.name || ''
       form.category = v.category || ''
@@ -121,11 +152,44 @@ watch(
       form.description = v.description || ''
       form.stockQuantity = v.stockQuantity || 0
       form.available = v.available
+      // Show existing image if available
+      if (v.imageUrl) {
+        imagePreview.value = v.imageUrl
+      }
     }
   }
 )
 
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function onImageSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    const file = input.files[0]
+    if (!file.type.startsWith('image/')) {
+      return
+    }
+    selectedImageFile.value = file
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      imagePreview.value = ev.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+function removeImage() {
+  selectedImageFile.value = null
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
+  }
+  // Restore existing image if available
+  imagePreview.value = props.vaccine?.imageUrl || null
+}
+
 function handleSubmit() {
-  emit('saved', { ...form })
+  emit('saved', {...form}, selectedImageFile.value)
 }
 </script>

@@ -5,10 +5,35 @@
     <div class="container">
       <AlertMessage ref="alertRef" />
 
+      <!-- Page Banner -->
+      <div class="dashboard-banner-enhanced">
+        <div class="banner-bg-decoration">
+          <div class="banner-circle c1"></div>
+          <div class="banner-circle c2"></div>
+          <div class="banner-circle c3"></div>
+        </div>
+        <div class="banner-content">
+          <div class="banner-text">
+            <h2>疫苗管理</h2>
+            <p class="banner-subtitle">管理系统中的疫苗信息，支持添加、编辑、上下架及删除操作</p>
+          </div>
+          <div class="banner-stats">
+            <div class="banner-stat-card">
+              <span style="font-size:24px;">💉</span>
+              <div class="banner-stat-info">
+                <h3>{{ vaccines.length }}</h3>
+                <p>疫苗总数</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Add Vaccine Form -->
       <div class="card">
         <h2>添加新疫苗</h2>
         <form @submit.prevent="addVaccine">
+          <div class="form-section-label">基本信息</div>
           <div class="form-group">
             <label>疫苗名称 *</label>
             <input v-model="addForm.name" class="form-control" placeholder="如：重组乙型肝炎疫苗（CHO细胞）10μg" required type="text" />
@@ -51,6 +76,7 @@
             <label>生产厂家</label>
             <input v-model="addForm.manufacturer" class="form-control" placeholder="如：华北制药金坦生物" type="text" />
           </div>
+          <div class="form-section-label">详细信息</div>
           <div class="form-group">
             <label>接种时间安排</label>
             <textarea v-model="addForm.scheduleInfo" class="form-control" placeholder="如：周一至周五 8:00-11:30, 14:00-16:30；周末休息" rows="2"></textarea>
@@ -59,6 +85,7 @@
             <label>疫苗简介</label>
             <textarea v-model="addForm.description" class="form-control" placeholder="简要描述疫苗的特点和适用信息" rows="3"></textarea>
           </div>
+          <div class="form-section-label">库存与图片</div>
           <div class="form-row">
             <div class="form-group">
               <label>库存数量 *</label>
@@ -69,7 +96,27 @@
               <label style="margin:0; cursor:pointer;">上架可用</label>
             </div>
           </div>
-          <button class="btn" type="submit">添加疫苗</button>
+          <div class="form-row">
+            <div class="form-group">
+              <label>疫苗图片</label>
+              <div class="image-upload-area" @click="triggerFileInput">
+                <input ref="fileInputRef" accept="image/*" style="display:none" type="file"
+                       @change="onAddImageSelected"/>
+                <img v-if="addImagePreview" :src="addImagePreview" alt="预览" class="image-preview-thumb"/>
+                <div v-else class="image-upload-placeholder">
+                  <span class="upload-placeholder-icon">🖼️</span>
+                  <span>点击选择疫苗图片</span>
+                </div>
+              </div>
+              <button v-if="addImagePreview" class="btn-remove-image" type="button" @click.stop="removeAddImage">
+                移除图片
+              </button>
+            </div>
+            <div class="form-group"></div>
+          </div>
+          <div class="btn-center-wrap">
+            <button class="btn" type="submit">添加疫苗</button>
+          </div>
         </form>
       </div>
 
@@ -106,12 +153,14 @@
                 </span>
               </td>
               <td>
-                <button class="btn btn-small" @click="openEdit(v.id)">编辑</button>
-                <button :style="{ background: v.available ? 'var(--danger-color)' : 'var(--success-color)' }" class="btn btn-small"
-                  @click="toggleAvailability(v.id, v.available)">
-                  {{ v.available ? '下架' : '上架' }}
-                </button>
-                <button class="btn btn-danger btn-small" @click="deleteVaccine(v.id)">删除</button>
+                <div class="table-btn-group">
+                  <button class="btn btn-small btn-edit" @click="openEdit(v.id)">编辑</button>
+                  <button :class="['btn btn-small', v.available ? 'btn-toggle-off' : 'btn-toggle-on']"
+                          @click="toggleAvailability(v.id, v.available)">
+                    {{ v.available ? '下架' : '上架' }}
+                  </button>
+                  <button class="btn btn-small btn-delete" @click="deleteVaccine(v.id)">删除</button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -146,6 +195,9 @@ const router = useRouter()
 const auth = useAuthStore()
 const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
 const vaccines = ref<Vaccine[]>([])
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const addImageFile = ref<File | null>(null)
+const addImagePreview = ref<string | null>(null)
 
 const addForm = reactive({
   name: '',
@@ -182,7 +234,16 @@ async function loadVaccines() {
 
 async function addVaccine() {
   try {
-    await api.post('/vaccines', addForm)
+    const response = await api.post('/vaccines', addForm)
+    const newVaccine = response.data
+    // Upload image if selected
+    if (addImageFile.value && newVaccine.id) {
+      const formData = new FormData()
+      formData.append('file', addImageFile.value)
+      await api.post(`/vaccines/${newVaccine.id}/upload-image`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'}
+      })
+    }
     showAlert('疫苗添加成功', 'success')
     await loadVaccines()
     // Reset form
@@ -199,8 +260,38 @@ async function addVaccine() {
     addForm.description = ''
     addForm.stockQuantity = 100
     addForm.available = true
+    removeAddImage()
   } catch (error: any) {
     showAlert(error.response?.data?.error || '添加失败', 'error')
+  }
+}
+
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function onAddImageSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    const file = input.files[0]
+    if (!file.type.startsWith('image/')) {
+      showAlert('请选择图片文件', 'error')
+      return
+    }
+    addImageFile.value = file
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      addImagePreview.value = ev.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+function removeAddImage() {
+  addImageFile.value = null
+  addImagePreview.value = null
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
   }
 }
 
@@ -215,10 +306,18 @@ async function openEdit(vaccineId: number) {
   }
 }
 
-async function handleEditSave(data: Record<string, any>) {
+async function handleEditSave(data: Record<string, any>, imageFile?: File | null) {
   if (!editVaccineId) return
   try {
     await api.put(`/vaccines/${editVaccineId}`, data)
+    // Upload new image if selected
+    if (imageFile) {
+      const formData = new FormData()
+      formData.append('file', imageFile)
+      await api.post(`/vaccines/${editVaccineId}/upload-image`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'}
+      })
+    }
     showAlert('疫苗更新成功', 'success')
     editModalVisible.value = false
     await loadVaccines()
