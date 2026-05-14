@@ -1,34 +1,36 @@
 # =============================================================
-# 疫苗预约系统 - 后端 Dockerfile
-# 多阶段构建: Maven 编译 → JRE 镜像运行
+# 疫苗预约系统 - 后端 Dockerfile（稳定优化版）
 # =============================================================
 
 # ---- Stage 1: Maven 构建 ----
 FROM maven:3.9-eclipse-temurin-17-alpine AS build
 WORKDIR /build
 
-# 先复制 pom.xml 并下载依赖（利用 Docker 缓存层）
-COPY pom.xml .
-RUN mvn dependency:go-offline -B -q
+# 复制 pom.xml（利用依赖缓存）
+COPY pom.xml ./
 
-# 复制源码并打包
-COPY src/ ./src/
-RUN mvn package -DskipTests -B -q
+# 先解析依赖（可缓存层）
+RUN mvn dependency:resolve -B
 
-# ---- Stage 2: JRE 运行 ----
+# 再复制源码
+COPY src ./src
+
+# 打包
+RUN mvn clean package -DskipTests -B
+
+# ---- Stage 2: Runtime ----
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# 安全: 非 root 用户运行
+# 非 root 用户
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=build /build/target/*.jar app.jar
+
 RUN mkdir -p uploads && chown -R appuser:appgroup /app
 
 USER appuser
-EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-    CMD wget -qO- http://localhost:8080/ || exit 1
+EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
