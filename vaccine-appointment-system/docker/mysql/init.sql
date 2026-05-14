@@ -7,7 +7,7 @@
 --
 -- 包含内容:
 --   1. 字符集设置 (utf8mb4)
---   2. 清理旧表 (幂等安全)
+--   2. 创建数据库
 --   3. 五张核心业务表:
 --      - sys_user          用户表 (管理员 + 用户共用)
 --      - vaccine           疫苗表 (46 条初始数据)
@@ -35,27 +35,23 @@
 /*!40101 SET @OLD_SQL_MODE = @@SQL_MODE, SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES = @@SQL_NOTES, SQL_NOTES = 0 */;
 
--- 确保数据库字符集
-ALTER DATABASE vaccine_appointment_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- ============================================
+-- 创建数据库
+-- ============================================
+CREATE DATABASE IF NOT EXISTS `vaccine_appointment_db`
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE `vaccine_appointment_db`;
 
 
 -- ============================================================================
--- 1. 清理旧表 (幂等安全，避免重复执行时报错)
--- ============================================================================
-DROP TABLE IF EXISTS `appointment_log`;
-DROP TABLE IF EXISTS `vaccination_record`;
-DROP TABLE IF EXISTS `appointment`;
-DROP TABLE IF EXISTS `vaccine`;
-DROP TABLE IF EXISTS `sys_user`;
-
-
--- ============================================================================
--- 2. 统一用户表 sys_user
+-- 1. 统一用户表 sys_user
 --    role:   ROLE_USER = 普通用户    ROLE_ADMIN = 管理员
 --    status: 0 = 禁用    1 = 正常
 --    gender: NULL/0 = 未知  1 = 男  2 = 女
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS `sys_user`
+CREATE TABLE `sys_user`
 (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT,
     `username`    VARCHAR(50)  NOT NULL,
@@ -85,11 +81,11 @@ VALUES ('admin', '$2b$10$o1DD40tNdnPaRQ0hW8pbT.l5/Ao3/EtvOcHU9p0rrpp/fiD/ST3Uq',
 
 
 -- ============================================================================
--- 3. 疫苗表 vaccine
+-- 2. 疫苗表 vaccine
 --    version 字段用于乐观锁并发控制
 --    image_url 初始使用 Unsplash 占位图，上线后请在管理后台逐条上传真实图片
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS `vaccine`
+CREATE TABLE `vaccine`
 (
     `id`             BIGINT       NOT NULL AUTO_INCREMENT,
     `name`           VARCHAR(100) NOT NULL,
@@ -117,10 +113,10 @@ CREATE TABLE IF NOT EXISTS `vaccine`
 
 
 -- ============================================================================
--- 4. 预约表 appointment
+-- 3. 预约表 appointment
 --    status: 0=已预约  1=已完成  2=未到场  3=已取消
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS `appointment`
+CREATE TABLE `appointment`
 (
     `id`                BIGINT   NOT NULL AUTO_INCREMENT,
     `user_id`           BIGINT   NOT NULL,
@@ -142,10 +138,10 @@ CREATE TABLE IF NOT EXISTS `appointment`
 
 
 -- ============================================================================
--- 5. 接种记录表 vaccination_record
+-- 4. 接种记录表 vaccination_record
 --    status: 0=已安排  1=已接种
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS `vaccination_record`
+CREATE TABLE `vaccination_record`
 (
     `id`               BIGINT   NOT NULL AUTO_INCREMENT,
     `appointment_id`   BIGINT   NOT NULL,
@@ -174,9 +170,9 @@ CREATE TABLE IF NOT EXISTS `vaccination_record`
 
 
 -- ============================================================================
--- 6. 预约操作日志表 appointment_log
+-- 5. 预约操作日志表 appointment_log
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS `appointment_log`
+CREATE TABLE `appointment_log`
 (
     `id`             BIGINT       NOT NULL AUTO_INCREMENT,
     `appointment_id` BIGINT       NOT NULL,
@@ -194,7 +190,7 @@ CREATE TABLE IF NOT EXISTS `appointment_log`
 
 
 -- ============================================================================
--- 7. 疫苗初始数据 (46 种，INSERT IGNORE 保证幂等)
+-- 6. 疫苗初始数据 (46 种)
 -- ============================================================================
 -- ⚠️ 图片说明:
 --    初始化使用 Unsplash 占位图片 URL，仅作展示引导
@@ -202,7 +198,7 @@ CREATE TABLE IF NOT EXISTS `appointment_log`
 --    上传后的图片存储在 /app/uploads/ 目录，通过 /uploads/ 路径访问
 -- ============================================================================
 
-INSERT IGNORE INTO `vaccine`
+INSERT INTO `vaccine`
 (`id`, `name`, `manufacturer`, `description`, `stock_quantity`, `available`, `image_url`,
  `category`, `brand`, `dosage`, `technique`, `schedule_info`, `doses_required`, `age_range`,
  `target_disease`, `version`, `create_time`, `update_time`)
