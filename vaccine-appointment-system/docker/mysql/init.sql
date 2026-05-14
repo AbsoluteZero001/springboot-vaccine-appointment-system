@@ -12,8 +12,6 @@ DATABASE vaccine_appointment_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 DROP TABLE IF EXISTS `appointment_log`;
 DROP TABLE IF EXISTS `vaccination_record`;
 DROP TABLE IF EXISTS `appointment`;
-DROP TABLE IF EXISTS `admin`;
-DROP TABLE IF EXISTS `user`;
 
 -- 管理员初始账户 (密码: admin123, BCrypt)
 -- sys_user 表由 Hibernate ddl-auto=update 创建

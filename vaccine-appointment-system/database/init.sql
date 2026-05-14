@@ -20,13 +20,11 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 -- ============================================
--- 清理旧表结构（user/admin 已合并为 sys_user）
+-- 清理旧表
 -- ============================================
 DROP TABLE IF EXISTS `appointment_log`;
 DROP TABLE IF EXISTS `vaccination_record`;
 DROP TABLE IF EXISTS `appointment`;
-DROP TABLE IF EXISTS `admin`;
-DROP TABLE IF EXISTS `user`;
 
 -- ============================================
 -- 1. 统一用户表 sys_user
@@ -42,12 +40,15 @@ CREATE TABLE `sys_user`
     `phone` VARCHAR(20) NOT NULL,
     `role`  VARCHAR(20) NOT NULL,
     `status`      INT          NOT NULL DEFAULT 1 COMMENT '0=禁用 1=正常',
+    `gender`   INT          DEFAULT NULL COMMENT '0=未知 1=男 2=女',
+    `birthday` DATE         DEFAULT NULL,
+    `remark`   VARCHAR(500) DEFAULT NULL,
     `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_sys_user_username` (`username`),
     UNIQUE KEY `uk_sys_user_phone` (`phone`),
-    INDEX `idx_sys_user_type` (`type`),
+    INDEX `idx_sys_user_role` (`role`),
     INDEX `idx_sys_user_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

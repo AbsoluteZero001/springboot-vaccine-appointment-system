@@ -26,7 +26,6 @@ public class DataInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         dropTypeColumnIfExists();
-        dropLegacyTables();
         migrateRoleColumn();
         seedAdminIfEmpty();
         seedVaccinesIfEmpty();
@@ -42,24 +41,6 @@ public class DataInitializer implements ApplicationRunner {
             log.info("已删除 sys_user 表中废弃的 type 列");
         } catch (Exception ignored) {
             // Column doesn't exist — nothing to do
-        }
-    }
-
-    /**
-     * Drop legacy user and admin tables that have been superseded by sys_user.
-     */
-    private void dropLegacyTables() {
-        try {
-            jdbcTemplate.execute("DROP TABLE IF EXISTS `user`");
-            log.info("已删除旧 user 表");
-        } catch (Exception e) {
-            log.warn("删除旧 user 表失败: {}", e.getMessage());
-        }
-        try {
-            jdbcTemplate.execute("DROP TABLE IF EXISTS admin");
-            log.info("已删除旧 admin 表");
-        } catch (Exception e) {
-            log.warn("删除旧 admin 表失败: {}", e.getMessage());
         }
     }
 
