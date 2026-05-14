@@ -12,7 +12,8 @@
     </div>
     <div class="vaccine-card-body">
       <div class="vaccine-illustration-area">
-        <MedicalIllustration :type="illustrationType" size="sm"/>
+        <img v-if="vaccine.imageUrl" :src="vaccine.imageUrl" :alt="vaccine.name" class="vaccine-image"/>
+        <MedicalIllustration v-else :type="illustrationType" size="sm"/>
       </div>
       <h3>{{ vaccine.name || '未知疫苗' }}</h3>
       <div class="brand">
@@ -225,6 +226,14 @@ function truncate(text: string, len: number): string {
   padding: 8px 0;
   opacity: 0.5;
   transition: opacity 0.3s ease;
+}
+
+.vaccine-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  opacity: 1;
 }
 
 .vaccine-card-modern:hover .vaccine-illustration-area {

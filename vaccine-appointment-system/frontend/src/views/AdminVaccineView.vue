@@ -123,6 +123,7 @@
       <!-- Vaccine List -->
       <div class="card">
         <h2>疫苗列表</h2>
+        <div class="records-table-wrapper">
         <table>
           <thead>
             <tr>
@@ -165,6 +166,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 

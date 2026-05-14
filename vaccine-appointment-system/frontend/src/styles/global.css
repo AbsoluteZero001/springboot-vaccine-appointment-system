@@ -1929,8 +1929,8 @@ tr:last-child td { border-bottom: none; }
 .edit-modal-content {
   background: white;
   border-radius: 16px;
-  width: 640px;
-  max-width: 92vw;
+  width: 760px;
+  max-width: 94vw;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
@@ -2069,6 +2069,12 @@ tr:last-child td { border-bottom: none; }
   .homepage-right { flex: none; width: 100%; position: static; }
   .hero-text h1 { font-size: 2.2rem; }
   .hero-poster { flex: 0 0 260px; height: 220px; }
+}
+
+@media (max-width: 900px) {
+  .form-row-3 {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 768px) {

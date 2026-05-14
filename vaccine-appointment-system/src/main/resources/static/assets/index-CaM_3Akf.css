@@ -996,7 +996,8 @@ body:before {
 
 .btn-small {
     padding: 8px 16px;
-    font-size: 14px
+    font-size: 14px;
+    white-space: nowrap
 }
 
 .form-group {
@@ -2162,186 +2163,6 @@ tr:last-child td {
     margin-bottom: 6px
 }
 
-.admin-login-page {
-    min-height: calc(100vh - 160px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2)
-}
-
-.admin-login-wrapper {
-    width: 440px;
-    max-width: 100%
-}
-
-.admin-login-card {
-    background: #fff;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, .2)
-}
-
-.admin-login-card-header {
-    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460, #4361ee);
-    padding: 32px 28px;
-    text-align: center;
-    position: relative;
-    overflow: hidden
-}
-
-.admin-login-card-header:before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 30% 50%, rgba(67, 97, 238, .2) 0%, transparent 60%), radial-gradient(circle at 70% 30%, rgba(114, 9, 183, .15) 0%, transparent 60%);
-    pointer-events: none
-}
-
-.admin-login-card-header .admin-icon {
-    width: 56px;
-    height: 56px;
-    background: #ffffff26;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    margin: 0 auto 14px;
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-    position: relative;
-    z-index: 1
-}
-
-.admin-login-card-header h2 {
-    color: #fff;
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0;
-    position: relative;
-    z-index: 1
-}
-
-.admin-login-card-header p {
-    color: #ffffffa6;
-    font-size: .85rem;
-    margin-top: 6px;
-    position: relative;
-    z-index: 1
-}
-
-.admin-login-card-body {
-    padding: 28px
-}
-
-.admin-login-card-body .form-group {
-    margin-bottom: 20px
-}
-
-.admin-login-card-body .form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: var(--dark-color);
-    font-size: .88rem
-}
-
-.admin-login-card-body .form-control {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 15px;
-    transition: var(--transition);
-    background: #f8fafc;
-    color: var(--dark-color);
-    font-family: inherit
-}
-
-.admin-login-card-body .form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px #4361ee1a;
-    background: #fff
-}
-
-.admin-login-card-body .btn {
-    width: 100%;
-    padding: 13px;
-    font-size: 15px;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 600;
-    font-family: inherit;
-    transition: var(--transition);
-    background: linear-gradient(135deg, #1a1a2e, #4361ee);
-    color: #fff;
-    box-shadow: 0 4px 15px #4361ee4d;
-    letter-spacing: 1px
-}
-
-.admin-login-card-body .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px #4361ee66
-}
-
-.admin-login-card-body .btn:active {
-    transform: translateY(0)
-}
-
-.admin-login-footer-links {
-    text-align: center;
-    margin-top: 18px;
-    display: flex;
-    justify-content: center;
-    gap: 20px
-}
-
-.admin-login-footer-links a {
-    color: var(--gray-color);
-    text-decoration: none;
-    font-size: .85rem;
-    transition: var(--transition)
-}
-
-.admin-login-footer-links a:hover {
-    color: var(--primary-color)
-}
-
-.admin-login-back {
-    text-align: center;
-    margin-top: 16px
-}
-
-.admin-login-back a {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: #94a3b8;
-    text-decoration: none;
-    font-size: .85rem;
-    transition: var(--transition);
-    padding: 8px 16px;
-    border-radius: 50px;
-    background: #fff9;
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-    border: 1px solid #e2e8f0
-}
-
-.admin-login-back a:hover {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    background: #fff
-}
-
 .btn-center-wrap {
     text-align: center;
     margin-top: 4px
@@ -2415,8 +2236,8 @@ tr:last-child td {
 .edit-modal-content {
     background: #fff;
     border-radius: 16px;
-    width: 640px;
-    max-width: 92vw;
+    width: 760px;
+    max-width: 94vw;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 25px 60px #0000004d
@@ -2449,8 +2270,12 @@ tr:last-child td {
 .table-btn-group {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center
+}
+
+.table-btn-group .btn {
+    white-space: nowrap
 }
 
 .btn-edit {
@@ -2573,6 +2398,12 @@ tr:last-child td {
     .hero-poster {
         flex: 0 0 260px;
         height: 220px
+    }
+}
+
+@media (max-width: 900px) {
+    .form-row-3 {
+        grid-template-columns:1fr 1fr
     }
 }
 
@@ -2704,11 +2535,11 @@ tr:last-child td {
     }
 
     .table-btn-group {
-        flex-direction: column
+        gap: 6px
     }
 
     .table-btn-group .btn {
-        width: 100%
+        padding: 6px 12px
     }
 }
 
