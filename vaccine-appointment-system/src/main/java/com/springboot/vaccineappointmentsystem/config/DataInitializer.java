@@ -104,7 +104,7 @@ public class DataInitializer implements ApplicationRunner {
 
         try {
             ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-            populator.addScript(new ClassPathResource("data-vaccines.sql"));
+            populator.addScript(new ClassPathResource("database/data-vaccines.sql"));
             populator.setContinueOnError(false);
             populator.execute(dataSource);
             Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM vaccine", Integer.class);
