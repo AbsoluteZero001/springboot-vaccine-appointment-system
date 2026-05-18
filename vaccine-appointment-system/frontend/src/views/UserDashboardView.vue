@@ -17,7 +17,9 @@
             <div class="banner-text">
               <h2>
                 <span class="banner-greeting">👋 欢迎回来，</span>
-                <span class="banner-username">{{ auth.currentUser?.username || '用户' }}</span>
+                <span class="banner-username">{{
+                    auth.currentUser?.nickname || auth.currentUser?.username || '用户'
+                  }}</span>
               </h2>
               <p class="banner-subtitle">
                 <span class="banner-date">📅 {{ today }}</span>
@@ -120,6 +122,42 @@
       </div>
     </main>
 
+    <!-- Real-Name Verification Modal -->
+    <div :class="['modal-overlay', { active: showVerifyModal }]" @click.self="showVerifyModal = false">
+      <div class="modal-enhanced verify-modal">
+        <div class="modal-header">
+          <div class="modal-header-left">
+            <span class="modal-header-icon">🛡️</span>
+            <h3>实名认证</h3>
+          </div>
+          <button class="modal-close" @click="showVerifyModal = false" title="关闭">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="verify-notice">
+            <span class="notice-icon">🔒</span>
+            <div>
+              <strong>预约疫苗需要先完成实名认证</strong>
+              <p>根据《疫苗管理法》规定，接种疫苗须实名登记。您提交的信息仅用于正规医疗机构疫苗接种登记，不会对外泄露。</p>
+            </div>
+          </div>
+          <form @submit.prevent="submitVerify">
+            <div class="form-group">
+              <label>真实姓名 <span class="label-required">*</span></label>
+              <input v-model="verifyForm.realName" class="form-control input-enhanced" placeholder="请输入真实姓名"
+                     required type="text" maxlength="50"/>
+            </div>
+            <div class="form-group">
+              <label>身份证号码 <span class="label-required">*</span></label>
+              <input v-model="verifyForm.idCard" class="form-control input-enhanced" placeholder="请输入18位身份证号码"
+                     required type="text" maxlength="18"/>
+              <p class="verify-hint">格式：前6位地区码 + 8位出生日期 + 3位顺序码 + 1位校验码</p>
+            </div>
+            <button class="btn btn-shimmer" type="submit" style="width:100%;">提交认证</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Appointment Modal -->
     <AppointmentModal
       :vaccine="selectedVaccine"
@@ -133,7 +171,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue'
+import {computed, onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
@@ -154,8 +192,14 @@ const allVaccines = ref<Vaccine[]>([])
 const activeCategory = ref('all')
 const searchKeyword = ref('')
 const showModal = ref(false)
+const showVerifyModal = ref(false)
 const selectedVaccine = ref<Vaccine | null>(null)
 const isLoading = ref(true)
+
+const verifyForm = reactive({
+  realName: '',
+  idCard: ''
+})
 
 const categories = computed(() => {
   const cats = new Set(allVaccines.value.map(v => v.category).filter(Boolean))
@@ -223,8 +267,40 @@ async function loadVaccines() {
 }
 
 function openBooking(vaccine: Vaccine) {
+  if (!auth.currentUser?.isVerified) {
+    showVerifyModal.value = true
+    return
+  }
   selectedVaccine.value = vaccine
   showModal.value = true
+}
+
+async function submitVerify() {
+  if (!verifyForm.realName.trim() || !verifyForm.idCard.trim()) {
+    showAlert('请填写完整的实名信息', 'error')
+    return
+  }
+  try {
+    const response = await api.post(`/users/${auth.currentUser!.id}/verify`, {
+      realName: verifyForm.realName.trim(),
+      idCard: verifyForm.idCard.trim()
+    })
+    if (auth.currentUser) {
+      auth.currentUser.isVerified = 1
+      auth.currentUser.realName = verifyForm.realName.trim()
+      auth.currentUser.idCard = verifyForm.idCard.trim()
+      if (response.data.gender != null) {
+        auth.currentUser.gender = response.data.gender
+      }
+      localStorage.setItem('user', JSON.stringify(auth.currentUser))
+    }
+    showAlert('实名认证成功！现在可以预约疫苗了', 'success')
+    showVerifyModal.value = false
+    verifyForm.realName = ''
+    verifyForm.idCard = ''
+  } catch (error: any) {
+    showAlert(error.response?.data?.error || '实名认证失败', 'error')
+  }
 }
 
 async function handleBooking(appointmentTime: string) {
@@ -550,6 +626,46 @@ onMounted(() => {
 }
 
 /* Responsive */
+.verify-notice {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: #92400e;
+  line-height: 1.6;
+}
+
+.verify-notice strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #78350f;
+}
+
+.verify-notice .notice-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.verify-hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.label-required {
+  color: #e53e3e;
+  margin-left: 2px;
+}
+
+.verify-modal {
+  max-width: 480px;
+}
+
 @media (max-width: 768px) {
   .dashboard-banner-enhanced {
     padding: 24px 20px;

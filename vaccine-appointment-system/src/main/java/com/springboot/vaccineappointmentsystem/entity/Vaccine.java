@@ -6,6 +6,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,6 +20,9 @@ public class Vaccine {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal price;
 
     @Column(length = 100)
     private String manufacturer;

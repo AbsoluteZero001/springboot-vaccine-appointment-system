@@ -40,6 +40,21 @@ public class SysUser implements UserDetails {
     @Column(nullable = false)
     private Integer status = 1; // 0: disabled, 1: active
 
+    @Column(length = 50)
+    private String nickname;
+
+    @Column(length = 50)
+    private String realName;
+
+    @Column(length = 18)
+    private String idCard;
+
+    @Column(length = 255)
+    private String avatarUrl;
+
+    @Column(nullable = false)
+    private Integer isVerified = 0; // 0=未实名认证 1=已实名认证
+
     @Column
     private Integer gender; // 0=未知 1=男 2=女
 

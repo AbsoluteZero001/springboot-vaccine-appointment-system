@@ -221,3 +221,143 @@ VALUES
  'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop', '流脑疫苗', '曼海欣',
  '0.5ml/支', '多糖结合（CRM197载体）', '周一至周五 8:00-11:30, 14:00-16:30', 2, '3月龄至3周岁婴幼儿',
  '预防A/C/Y/W135群流行性脑脊髓膜炎', 0, NOW(), NOW());
+
+-- 疫苗价格初始化
+UPDATE `vaccine`
+SET `price` = 128.00
+WHERE `id` = 1;
+UPDATE `vaccine`
+SET `price` = 168.00
+WHERE `id` = 2;
+UPDATE `vaccine`
+SET `price` = 118.00
+WHERE `id` = 3;
+UPDATE `vaccine`
+SET `price` = 158.00
+WHERE `id` = 4;
+UPDATE `vaccine`
+SET `price` = 198.00
+WHERE `id` = 5;
+UPDATE `vaccine`
+SET `price` = 248.00
+WHERE `id` = 6;
+UPDATE `vaccine`
+SET `price` = 298.00
+WHERE `id` = 7;
+UPDATE `vaccine`
+SET `price` = 3980.00
+WHERE `id` = 8;
+UPDATE `vaccine`
+SET `price` = 2480.00
+WHERE `id` = 9;
+UPDATE `vaccine`
+SET `price` = 980.00
+WHERE `id` = 10;
+UPDATE `vaccine`
+SET `price` = 168.00
+WHERE `id` = 11;
+UPDATE `vaccine`
+SET `price` = 128.00
+WHERE `id` = 12;
+UPDATE `vaccine`
+SET `price` = 328.00
+WHERE `id` = 13;
+UPDATE `vaccine`
+SET `price` = 728.00
+WHERE `id` = 14;
+UPDATE `vaccine`
+SET `price` = 1628.00
+WHERE `id` = 15;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 16;
+UPDATE `vaccine`
+SET `price` = 288.00
+WHERE `id` = 17;
+UPDATE `vaccine`
+SET `price` = 168.00
+WHERE `id` = 18;
+UPDATE `vaccine`
+SET `price` = 158.00
+WHERE `id` = 19;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 20;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 21;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 22;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 23;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 24;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 25;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 26;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 27;
+UPDATE `vaccine`
+SET `price` = 158.00
+WHERE `id` = 28;
+UPDATE `vaccine`
+SET `price` = 198.00
+WHERE `id` = 29;
+UPDATE `vaccine`
+SET `price` = 328.00
+WHERE `id` = 30;
+UPDATE `vaccine`
+SET `price` = 268.00
+WHERE `id` = 31;
+UPDATE `vaccine`
+SET `price` = 628.00
+WHERE `id` = 32;
+UPDATE `vaccine`
+SET `price` = 258.00
+WHERE `id` = 33;
+UPDATE `vaccine`
+SET `price` = 198.00
+WHERE `id` = 34;
+UPDATE `vaccine`
+SET `price` = 1388.00
+WHERE `id` = 35;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 36;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 37;
+UPDATE `vaccine`
+SET `price` = 188.00
+WHERE `id` = 38;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 39;
+UPDATE `vaccine`
+SET `price` = 1280.00
+WHERE `id` = 40;
+UPDATE `vaccine`
+SET `price` = 148.00
+WHERE `id` = 41;
+UPDATE `vaccine`
+SET `price` = 248.00
+WHERE `id` = 42;
+UPDATE `vaccine`
+SET `price` = 288.00
+WHERE `id` = 43;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 44;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 45;
+UPDATE `vaccine`
+SET `price` = 398.00
+WHERE `id` = 46;

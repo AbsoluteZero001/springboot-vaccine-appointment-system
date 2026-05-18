@@ -35,13 +35,16 @@
       <!-- Appointments -->
       <div class="card">
         <h2>预约记录</h2>
+        <div class="records-table-wrapper">
         <table>
           <thead>
             <tr>
               <th>编号</th>
               <th>疫苗名称</th>
               <th>品牌/规格</th>
+              <th>价格</th>
               <th>预约时间</th>
+              <th>支付</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -51,27 +54,37 @@
               <td>{{ appt.id }}</td>
               <td>{{ appt.vaccine?.name || '—' }}</td>
               <td style="font-size:0.85rem; color: var(--gray-color);">{{ specText(appt.vaccine) }}</td>
+              <td style="font-weight:600; color:#dc2626;">
+                {{ appt.vaccine?.price != null ? '¥' + Number(appt.vaccine.price).toFixed(0) : '免费' }}
+              </td>
               <td>{{ formatDate(appt.appointmentTime) }}</td>
+              <td>
+                <span v-if="appt.paymentStatus === 1"
+                      style="padding:3px 10px;border-radius:50px;font-size:0.78rem;font-weight:600;background:#f0fdf4;color:#16a34a;">已支付</span>
+                <button v-else-if="appt.status === 0" class="btn btn-small btn-pay" @click="payAppointment(appt)">
+                  去支付
+                </button>
+                <span v-else style="color:#94a3b8;font-size:0.78rem;">—</span>
+              </td>
               <td>
                 <span :style="statusStyle(appt.status)">{{ statusLabel(appt.status) }}</span>
               </td>
               <td>
-                <button
-                    v-if="appt.status === 0"
-                  class="btn btn-danger btn-small"
-                  @click="cancelAppointment(appt.id)"
-                >
-                  取消预约
+                <button v-if="appt.status === 0" class="btn btn-danger btn-small" @click="cancelAppointment(appt.id)">
+                  取消
                 </button>
+                <span v-else-if="appt.remark" style="font-size:0.78rem;color:#64748b;">{{ appt.remark }}</span>
               </td>
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <!-- Vaccination Records -->
       <div class="card">
-        <h2>接种记录</h2>
+        <h2>💉 接种记录</h2>
+        <div class="records-table-wrapper">
         <table>
           <thead>
             <tr>
@@ -98,6 +111,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 
@@ -121,8 +135,10 @@ const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
 interface Appointment {
   id: number
   status: number
+  paymentStatus: number
   appointmentTime: string
-  vaccine?: { name?: string; brand?: string; dosage?: string }
+  remark?: string
+  vaccine?: { name?: string; brand?: string; dosage?: string; price?: number }
 }
 
 interface VaccinationRecord {
@@ -154,7 +170,6 @@ const STATUS_COLOR: Record<number, string> = {0: '#c2410c', 1: '#16a34a', 2: '#d
 function statusLabel(status: number) {
   return STATUS_LABELS[status] || '未知'
 }
-
 function statusStyle(status: number) {
   return `padding:3px 12px; border-radius:50px; font-size:0.8rem; font-weight:600; background:${STATUS_BG[status] || '#f5f5f5'}; color:${STATUS_COLOR[status] || '#6b7280'};`
 }
@@ -184,22 +199,29 @@ async function loadRecords() {
   try {
     const response = await api.get(`/vaccination-records/user/${auth.currentUser!.id}`)
     records.value = response.data
-  } catch {
-    // Ignore if no records
+  } catch { /* silent */
   }
 }
 
 async function cancelAppointment(appointmentId: number) {
   if (!confirm('确定要取消此预约吗？')) return
   try {
-    await api.post(`/appointments/${appointmentId}/cancel`, {
-      userId: auth.currentUser!.id
-    })
+    await api.post(`/appointments/${appointmentId}/cancel`, {userId: auth.currentUser!.id})
     showAlert('预约已取消', 'success')
     await loadAppointments()
   } catch (error: any) {
-    const msg = error.response?.data?.error || '取消失败'
-    showAlert(msg, 'error')
+    showAlert(error.response?.data?.error || '取消失败', 'error')
+  }
+}
+
+async function payAppointment(appt: Appointment) {
+  if (!confirm(`确认支付 ¥${appt.vaccine?.price != null ? Number(appt.vaccine.price).toFixed(0) : '0'} ？`)) return
+  try {
+    await api.post(`/appointments/${appt.id}/pay`, {userId: auth.currentUser!.id, remark: ''})
+    showAlert('支付成功！', 'success')
+    await loadAppointments()
+  } catch (error: any) {
+    showAlert(error.response?.data?.error || '支付失败', 'error')
   }
 }
 
@@ -212,3 +234,15 @@ onMounted(() => {
   loadRecords()
 })
 </script>
+
+<style scoped>
+.btn-pay {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
+  border: none;
+}
+
+.btn-pay:hover {
+  background: linear-gradient(135deg, #15803d, #16a34a);
+}
+</style>

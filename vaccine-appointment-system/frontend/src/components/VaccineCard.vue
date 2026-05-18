@@ -6,6 +6,9 @@
         <span v-if="vaccine.technique" class="vaccine-badge technique">{{ vaccine.technique }}</span>
         <span v-if="vaccine.targetDisease" class="vaccine-badge disease">{{ vaccine.targetDisease }}</span>
       </div>
+      <div v-if="vaccine.price != null" class="price-tag">
+        ¥{{ Number(vaccine.price).toFixed(0) }}
+      </div>
       <div class="stock-indicator" :class="stockClass" :title="stockText">
         <span class="status-dot" :class="stockDotClass"></span>
       </div>
@@ -72,6 +75,7 @@ import MedicalIllustration from './MedicalIllustration.vue'
 export interface Vaccine {
   id: number
   name: string
+  price?: number
   category?: string
   brand?: string
   dosage?: string
@@ -207,6 +211,17 @@ function truncate(text: string, len: number): string {
   background: #fef2f2;
   color: #dc2626;
   border: 1px solid #fecaca;
+}
+
+.price-tag {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 50px;
+  white-space: nowrap;
+  border: 1px solid #fcd34d;
 }
 
 .stock-indicator {

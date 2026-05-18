@@ -9,6 +9,7 @@
       </router-link>
       <nav class="main-nav">
         <template v-if="auth.isAdmin">
+          <span class="nav-greeting">👋 {{ auth.currentUser?.nickname || auth.currentUser?.username || '管理员' }}</span>
           <router-link :class="{ active: isActive('/admin') }" to="/admin">
             <span class="nav-icon">📋</span> 预约审核
           </router-link>
@@ -23,11 +24,15 @@
           </a>
         </template>
         <template v-else-if="auth.isUser">
+          <span class="nav-greeting">👋 {{ auth.currentUser?.nickname || auth.currentUser?.username || '用户' }}</span>
           <router-link :class="{ active: isActive('/dashboard') }" to="/dashboard">
             <span class="nav-icon">🏥</span> 疫苗列表
           </router-link>
           <router-link :class="{ active: isActive('/profile') }" to="/profile">
             <span class="nav-icon">📅</span> 我的预约
+          </router-link>
+          <router-link :class="{ active: isActive('/settings') }" to="/settings">
+            <span class="nav-icon">👤</span> 个人资料
           </router-link>
           <a href="#" class="nav-logout" @click.prevent="auth.logout()">
             <span class="nav-icon">🚪</span> 退出登录
@@ -180,6 +185,20 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   border-color: rgba(255, 255, 255, 0.25);
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-greeting {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 6px 14px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-right: 6px;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-logout {

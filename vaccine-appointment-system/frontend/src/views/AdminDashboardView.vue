@@ -15,7 +15,7 @@
           </div>
           <div class="banner-content">
             <div class="banner-text">
-              <h2>👋 欢迎，{{ auth.currentUser?.username || '管理员' }}</h2>
+              <h2>👋 欢迎，{{ auth.currentUser?.nickname || auth.currentUser?.username || '管理员' }}</h2>
               <p class="banner-subtitle">审核预约 · 完成接种 · 生成接种记录 · {{ today }}</p>
             </div>
             <div class="banner-stats">
@@ -63,9 +63,17 @@
           <div v-for="a in appointments" :key="a.id" class="appt-card">
             <div class="appt-info">
               <span class="appt-id">#{{ a.id }}</span>
-              <span class="appt-user">{{ a.user?.username || '—' }}</span>
+              <span class="appt-user">{{ a.user?.nickname || a.user?.username || '—' }}</span>
+              <span class="appt-phone" style="font-size:0.78rem; color:#94a3b8;"> · {{ a.user?.phone || '—' }}</span>
               <span class="appt-vaccine"> · {{ a.vaccine?.name || '—' }}</span>
               <span class="appt-vaccine"> · {{ specText(a.vaccine) }}</span>
+              <span v-if="a.vaccine?.price != null" style="font-weight:600; color:#dc2626; font-size:0.82rem;"> · ¥{{
+                  Number(a.vaccine.price).toFixed(0)
+                }}</span>
+              <span v-if="a.paymentStatus === 1"
+                    style="padding:2px 8px;border-radius:50px;font-size:0.72rem;font-weight:600;background:#f0fdf4;color:#16a34a;">已支付</span>
+              <span v-else-if="a.status === 0"
+                    style="padding:2px 8px;border-radius:50px;font-size:0.72rem;font-weight:600;background:#fef2f2;color:#dc2626;">未支付</span>
               <div class="appt-time">
                 🕐 {{ formatDate(a.appointmentTime) }}
                 <span :class="['status-badge', statusClass(a.status)]">{{ statusLabel(a.status) }}</span>

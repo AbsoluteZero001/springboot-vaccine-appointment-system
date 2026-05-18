@@ -92,7 +92,9 @@ public class AuthController {
             Map<String, Object> data = new HashMap<>();
             data.put("id", sysUser.getId());
             data.put("username", sysUser.getUsername());
+            data.put("nickname", sysUser.getNickname() != null ? sysUser.getNickname() : sysUser.getUsername());
             data.put("role", sysUser.getRole());
+            data.put("isVerified", sysUser.getIsVerified());
             data.put("token", jwt);
             response.put("data", data);
             return ResponseEntity.ok(response);

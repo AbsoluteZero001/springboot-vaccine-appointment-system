@@ -4,47 +4,151 @@
 
     <div class="container">
       <AlertMessage ref="alertRef" />
-      <div class="card">
-        <h2>用户列表</h2>
-        <table>
-          <thead>
-            <tr>
-              <th class="col-nowrap">ID</th>
-              <th>用户名</th>
-              <th class="col-nowrap">手机号</th>
-              <th class="col-nowrap">性别</th>
-              <th class="col-nowrap">生日</th>
-              <th class="col-nowrap">年龄</th>
-              <th>备注</th>
-              <th class="col-nowrap">状态</th>
-              <th class="col-nowrap">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users" :key="user.id">
-              <td class="col-nowrap">{{ user.id }}</td>
-              <td>{{ user.username }}</td>
-              <td class="col-nowrap">{{ user.phone || '—' }}</td>
-              <td class="col-nowrap">{{ genderLabel(user.gender) }}</td>
-              <td class="col-nowrap">{{ user.birthday || '—' }}</td>
-              <td class="col-nowrap">{{ calcAge(user.birthday) }}</td>
-              <td class="table-spec">{{ user.remark || '—' }}</td>
-              <td class="col-nowrap">
-                <span :class="['status-badge', user.status === 1 ? 'status-completed' : 'status-cancelled']">
-                  {{ user.status === 1 ? '正常' : '已停用' }}
-                </span>
-              </td>
-              <td class="col-nowrap">
-                <div class="table-btn-group">
-                  <button class="btn btn-small" @click="toggleUserStatus(user.id, user.status)">
-                    {{ user.status === 1 ? '停用' : '启用' }}
-                  </button>
-                  <button class="btn btn-danger btn-small" @click="deleteUser(user.id)">删除</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+      <!-- Page Banner -->
+      <div class="dashboard-banner-enhanced">
+        <div class="banner-bg-decoration">
+          <div class="banner-circle c1"></div>
+          <div class="banner-circle c2"></div>
+          <div class="banner-circle c3"></div>
+        </div>
+        <div class="banner-content">
+          <div class="banner-text">
+            <h2>👥 用户管理</h2>
+            <p class="banner-subtitle">用户名片 — 查看用户信息、实名状态、预约记录</p>
+          </div>
+          <div class="banner-stats">
+            <div class="banner-stat-card">
+              <span style="font-size:24px;">👤</span>
+              <div class="banner-stat-info">
+                <h3>{{ users.length }}</h3>
+                <p>注册用户</p>
+              </div>
+            </div>
+            <div class="banner-stat-card">
+              <span style="font-size:24px;">✅</span>
+              <div class="banner-stat-info">
+                <h3>{{ verifiedCount }}</h3>
+                <p>已实名</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div style="margin-bottom:20px;">
+        <input v-model="searchQuery" class="form-control" placeholder="🔍 搜索用户名、昵称、姓名、手机号或身份证号..."
+               type="text" style="max-width:500px;"/>
+      </div>
+
+      <!-- Business Card Grid -->
+      <div v-if="filteredUsers.length" class="card-grid">
+        <div v-for="user in filteredUsers" :key="user.id" class="business-card" @click="selectedUser = user">
+          <div class="bc-header">
+            <div class="bc-avatar" :style="user.avatarUrl ? `background-image:url(${user.avatarUrl})` : ''">
+              <span v-if="!user.avatarUrl"
+                    class="bc-avatar-initial">{{ (user.nickname || user.username)[0].toUpperCase() }}</span>
+            </div>
+            <div class="bc-name-section">
+              <div class="bc-nickname">{{ user.nickname || user.username }}</div>
+              <div class="bc-username">@{{ user.username }}</div>
+            </div>
+            <div class="bc-verified" :class="user.isVerified ? 'verified' : 'unverified'">
+              {{ user.isVerified ? '✓ 已实名' : '未实名' }}
+            </div>
+          </div>
+          <div class="bc-body">
+            <div class="bc-info-row" v-if="user.realName">
+              <span class="bc-label">姓名</span>
+              <span class="bc-value">{{ user.realName }}</span>
+            </div>
+            <div class="bc-info-row">
+              <span class="bc-label">手机</span>
+              <span class="bc-value">{{ user.phone || '—' }}</span>
+            </div>
+            <div class="bc-info-row" v-if="user.idCard">
+              <span class="bc-label">身份证</span>
+              <span class="bc-value id-card-mask">{{ maskIdCard(user.idCard) }}</span>
+            </div>
+            <div class="bc-info-row">
+              <span class="bc-label">性别</span>
+              <span class="bc-value">{{ genderLabel(user.gender) }}</span>
+            </div>
+            <div class="bc-info-row" v-if="user.birthday">
+              <span class="bc-label">生日</span>
+              <span class="bc-value">{{ user.birthday }} ({{ calcAge(user.birthday) }})</span>
+            </div>
+            <div class="bc-info-row" v-if="user.remark">
+              <span class="bc-label">备注</span>
+              <span class="bc-value bc-remark">{{ user.remark }}</span>
+            </div>
+          </div>
+          <div class="bc-footer">
+            <span class="bc-status"
+                  :class="user.status === 1 ? 'active' : 'disabled'">{{ user.status === 1 ? '正常' : '已停用' }}</span>
+            <div class="bc-actions">
+              <button class="btn btn-small" @click.stop="toggleUserStatus(user)">{{
+                  user.status === 1 ? '停用' : '启用'
+                }}
+              </button>
+              <button class="btn btn-danger btn-small" @click.stop="deleteUser(user.id)">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else class="empty-state-enhanced">
+        <span style="font-size:48px;">📭</span>
+        <h3>暂无匹配用户</h3>
+        <p>尝试其他搜索关键词</p>
+      </div>
+
+      <!-- User Detail Modal -->
+      <div v-if="selectedUser" :class="['modal-overlay', { active: !!selectedUser }]" @click.self="selectedUser = null">
+        <div class="modal-enhanced detail-modal">
+          <div class="modal-header">
+            <div class="modal-header-left">
+              <span class="modal-header-icon">👤</span>
+              <h3>用户详情</h3>
+            </div>
+            <button class="modal-close" @click="selectedUser = null">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="detail-header">
+              <div class="detail-avatar"
+                   :style="selectedUser.avatarUrl ? `background-image:url(${selectedUser.avatarUrl})` : ''">
+                <span v-if="!selectedUser.avatarUrl">{{
+                    (selectedUser.nickname || selectedUser.username)[0].toUpperCase()
+                  }}</span>
+              </div>
+              <div>
+                <h3>{{ selectedUser.nickname || selectedUser.username }}</h3>
+                <p>@{{ selectedUser.username }} · {{ selectedUser.isVerified ? '✅ 已实名' : '⚠️ 未实名' }}</p>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <div class="detail-item"><span class="detail-label">用户ID</span><span
+                  class="detail-value">{{ selectedUser.id }}</span></div>
+              <div class="detail-item"><span class="detail-label">真实姓名</span><span
+                  class="detail-value">{{ selectedUser.realName || '—' }}</span></div>
+              <div class="detail-item"><span class="detail-label">身份证号</span><span
+                  class="detail-value">{{ selectedUser.idCard ? maskIdCard(selectedUser.idCard) : '—' }}</span></div>
+              <div class="detail-item"><span class="detail-label">手机号</span><span
+                  class="detail-value">{{ selectedUser.phone || '—' }}</span></div>
+              <div class="detail-item"><span class="detail-label">性别</span><span
+                  class="detail-value">{{ genderLabel(selectedUser.gender) }}</span></div>
+              <div class="detail-item"><span class="detail-label">生日</span><span
+                  class="detail-value">{{ selectedUser.birthday || '—' }}</span></div>
+              <div class="detail-item"><span class="detail-label">状态</span><span
+                  class="detail-value">{{ selectedUser.status === 1 ? '正常' : '已停用' }}</span></div>
+              <div class="detail-item"><span class="detail-label">实名状态</span><span
+                  class="detail-value">{{ selectedUser.isVerified ? '已认证' : '未认证' }}</span></div>
+            </div>
+            <div v-if="selectedUser.remark" class="detail-remark">
+              <strong>备注：</strong>{{ selectedUser.remark }}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -53,7 +157,7 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
@@ -67,15 +171,36 @@ const auth = useAuthStore()
 interface User {
   id: number
   username: string
+  nickname?: string
   phone: string
   status: number
   gender?: number
   birthday?: string
   remark?: string
+  avatarUrl?: string
+  realName?: string
+  idCard?: string
+  isVerified?: number
 }
 
 const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
 const users = ref<User[]>([])
+const searchQuery = ref('')
+const selectedUser = ref<User | null>(null)
+
+const filteredUsers = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return users.value
+  return users.value.filter(u =>
+      (u.username || '').toLowerCase().includes(q) ||
+      (u.nickname || '').toLowerCase().includes(q) ||
+      (u.realName || '').toLowerCase().includes(q) ||
+      (u.phone || '').includes(q) ||
+      (u.idCard || '').includes(q)
+  )
+})
+
+const verifiedCount = computed(() => users.value.filter(u => u.isVerified === 1).length)
 
 function showAlert(msg: string, type: 'success' | 'error' = 'success') {
   alertRef.value?.showAlert(msg, type)
@@ -93,10 +218,13 @@ function calcAge(birthday?: string): string {
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-    age--
-  }
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
   return age > 0 ? `${age}岁` : '—'
+}
+
+function maskIdCard(idCard: string): string {
+  if (!idCard || idCard.length < 8) return idCard
+  return idCard.substring(0, 3) + '***********' + idCard.substring(14)
 }
 
 async function loadUsers() {
@@ -108,14 +236,14 @@ async function loadUsers() {
   }
 }
 
-async function toggleUserStatus(userId: number, currentStatus: number) {
-  const newStatus = currentStatus === 1 ? 0 : 1
+async function toggleUserStatus(user: User) {
+  const newStatus = user.status === 1 ? 0 : 1
   try {
-    await api.put(`/users/${userId}`, { status: newStatus })
+    await api.put(`/users/${user.id}`, {status: newStatus})
     showAlert('用户状态已更新', 'success')
     await loadUsers()
   } catch (error: any) {
-    showAlert(error.response?.data?.error || '更新用户状态失败', 'error')
+    showAlert(error.response?.data?.error || '更新失败', 'error')
   }
 }
 
@@ -124,9 +252,10 @@ async function deleteUser(userId: number) {
   try {
     await api.delete(`/users/${userId}`)
     showAlert('用户已删除', 'success')
+    selectedUser.value = null
     await loadUsers()
   } catch (error: any) {
-    showAlert(error.response?.data?.error || '删除用户失败', 'error')
+    showAlert(error.response?.data?.error || '删除失败', 'error')
   }
 }
 
@@ -138,3 +267,268 @@ onMounted(() => {
   loadUsers()
 })
 </script>
+
+<style scoped>
+/* Business Card Grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Business Card */
+.business-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.business-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(67, 97, 238, 0.12);
+  border-color: rgba(67, 97, 238, 0.2);
+}
+
+.bc-header {
+  background: linear-gradient(135deg, #1e1b4b, #3730a3, #4361ee);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bc-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(76, 201, 240, 0.15) 0%, transparent 60%);
+}
+
+.bc-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.bc-avatar-initial {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.bc-name-section {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.bc-nickname {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bc-username {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.bc-verified {
+  padding: 3px 12px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.bc-verified.verified {
+  background: rgba(34, 197, 94, 0.2);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.bc-verified.unverified {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fde68a;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.bc-body {
+  padding: 16px 20px;
+}
+
+.bc-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.bc-info-row:last-child {
+  border-bottom: none;
+}
+
+.bc-label {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.bc-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--dark-color);
+  text-align: right;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.id-card-mask {
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.bc-remark {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.bc-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fafbfc;
+}
+
+.bc-status {
+  padding: 3px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.bc-status.active {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.bc-status.disabled {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.bc-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Detail Modal */
+.detail-modal {
+  max-width: 560px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.detail-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: white;
+  font-weight: 700;
+}
+
+.detail-header h3 {
+  font-size: 1.15rem;
+  margin: 0 0 4px;
+}
+
+.detail-header p {
+  font-size: 0.82rem;
+  color: var(--gray-light);
+  margin: 0;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.detail-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.detail-remark {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.empty-state-enhanced {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--gray-light);
+}
+
+.empty-state-enhanced h3 {
+  color: var(--gray-color);
+  margin: 12px 0 6px;
+}
+</style>

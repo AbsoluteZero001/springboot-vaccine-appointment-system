@@ -6,12 +6,17 @@ import axios from 'axios'
 export interface SysUser {
   id: number
   username: string
+    nickname: string
     phone: string
     role: string        // ROLE_USER or ROLE_ADMIN
   status?: number
     gender?: number     // 0=未知 1=男 2=女
     birthday?: string
     remark?: string
+    avatarUrl?: string
+    realName?: string
+    idCard?: string
+    isVerified?: number // 0=未实名 1=已实名
 }
 
 export interface LoginData {
@@ -64,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await api.post<{
             code: number
             message: string
-            data: { id: number; username: string; role: string; token: string }
+            data: { id: number; username: string; nickname: string; role: string; token: string; isVerified: number }
         }>('/auth/login', {username, password})
         const body = response.data
         if (body.data && body.data.token) {
@@ -72,8 +77,10 @@ export const useAuthStore = defineStore('auth', () => {
             setCurrentUser({
                 id: body.data.id,
                 username: body.data.username,
+                nickname: body.data.nickname || body.data.username,
                 phone: '',
-                role: body.data.role
+                role: body.data.role,
+                isVerified: body.data.isVerified || 0
             })
         return {}
       }

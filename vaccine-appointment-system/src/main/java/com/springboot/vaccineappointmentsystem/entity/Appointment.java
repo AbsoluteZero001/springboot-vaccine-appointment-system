@@ -32,6 +32,15 @@ public class Appointment {
     @Column(nullable = false)
     private AppointmentStatus status = AppointmentStatus.APPOINTED;
 
+    @Column(nullable = false)
+    private Integer paymentStatus = 0; // 0=未支付 1=已支付 2=已退款
+
+    @Column
+    private LocalDateTime paymentTime;
+
+    @Column(length = 500)
+    private String remark;
+
     @Column
     private LocalDateTime statusUpdatedAt = LocalDateTime.now();
 

@@ -23,6 +23,12 @@
               <span class="summary-value">{{ vaccine?.dosage || '—' }}</span>
             </div>
             <div class="summary-item">
+              <span class="summary-label">价格</span>
+              <span class="summary-value price-highlight">{{
+                  vaccine?.price != null ? '¥' + Number(vaccine.price).toFixed(0) : '免费'
+                }}</span>
+            </div>
+            <div class="summary-item">
               <span class="summary-label">需接种剂次</span>
               <span class="summary-value">{{ vaccine?.dosesRequired || '—' }} 剂</span>
             </div>
@@ -279,6 +285,11 @@ function submitBooking() {
 .summary-value {
   font-weight: 600;
   color: var(--dark-color);
+}
+
+.price-highlight {
+  color: #dc2626 !important;
+  font-size: 1.05rem;
 }
 
 .schedule-notice {

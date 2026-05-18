@@ -59,6 +59,11 @@ CREATE TABLE `sys_user`
     `phone`       VARCHAR(20)  NOT NULL,
     `role`        VARCHAR(20)  NOT NULL,
     `status`      INT          NOT NULL DEFAULT 1 COMMENT '0=禁用 1=正常',
+    `nickname`    VARCHAR(50)  DEFAULT NULL COMMENT '用户昵称',
+    `real_name`   VARCHAR(50)  DEFAULT NULL COMMENT '真实姓名',
+    `id_card`     VARCHAR(18)  DEFAULT NULL COMMENT '身份证号',
+    `avatar_url`  VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
+    `is_verified` INT NOT NULL DEFAULT 0 COMMENT '0=未实名 1=已实名',
     `gender`      INT                   DEFAULT NULL COMMENT '0=未知 1=男 2=女',
     `birthday`    DATE                  DEFAULT NULL,
     `remark`      VARCHAR(500)          DEFAULT NULL,
@@ -89,6 +94,7 @@ CREATE TABLE `vaccine`
 (
     `id`             BIGINT       NOT NULL AUTO_INCREMENT,
     `name`           VARCHAR(100) NOT NULL,
+    `price` DECIMAL(10, 2) DEFAULT NULL COMMENT '疫苗价格',
     `manufacturer`   VARCHAR(100) NULL,
     `description`    TEXT         NULL,
     `stock_quantity` INT          NOT NULL DEFAULT 0,
@@ -123,6 +129,9 @@ CREATE TABLE `appointment`
     `vaccine_id`        BIGINT   NOT NULL,
     `appointment_time`  DATETIME NOT NULL,
     `status`            INT      NOT NULL DEFAULT 0 COMMENT '0=已预约 1=已完成 2=未到场 3=已取消',
+    `payment_status` INT          NOT NULL DEFAULT 0 COMMENT '0=未支付 1=已支付 2=已退款',
+    `payment_time`   DATETIME     NULL COMMENT '支付时间',
+    `remark`         VARCHAR(500) NULL COMMENT '用户备注',
     `status_updated_at` DATETIME NULL,
     `create_time`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -475,6 +484,148 @@ VALUES
  '0.5ml/支', '多糖结合（CRM197载体）', '周一至周五 8:00-11:30, 14:00-16:30', 2, '3月龄至3周岁婴幼儿',
  '预防A/C/Y/W135群流行性脑脊髓膜炎', 0, NOW(), NOW());
 
+
+-- ============================================================================
+-- 疫苗价格初始化
+-- ============================================================================
+UPDATE `vaccine`
+SET `price` = 128.00
+WHERE `id` = 1;
+UPDATE `vaccine`
+SET `price` = 168.00
+WHERE `id` = 2;
+UPDATE `vaccine`
+SET `price` = 118.00
+WHERE `id` = 3;
+UPDATE `vaccine`
+SET `price` = 158.00
+WHERE `id` = 4;
+UPDATE `vaccine`
+SET `price` = 198.00
+WHERE `id` = 5;
+UPDATE `vaccine`
+SET `price` = 248.00
+WHERE `id` = 6;
+UPDATE `vaccine`
+SET `price` = 298.00
+WHERE `id` = 7;
+UPDATE `vaccine`
+SET `price` = 3980.00
+WHERE `id` = 8;
+UPDATE `vaccine`
+SET `price` = 2480.00
+WHERE `id` = 9;
+UPDATE `vaccine`
+SET `price` = 980.00
+WHERE `id` = 10;
+UPDATE `vaccine`
+SET `price` = 168.00
+WHERE `id` = 11;
+UPDATE `vaccine`
+SET `price` = 128.00
+WHERE `id` = 12;
+UPDATE `vaccine`
+SET `price` = 328.00
+WHERE `id` = 13;
+UPDATE `vaccine`
+SET `price` = 728.00
+WHERE `id` = 14;
+UPDATE `vaccine`
+SET `price` = 1628.00
+WHERE `id` = 15;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 16;
+UPDATE `vaccine`
+SET `price` = 288.00
+WHERE `id` = 17;
+UPDATE `vaccine`
+SET `price` = 168.00
+WHERE `id` = 18;
+UPDATE `vaccine`
+SET `price` = 158.00
+WHERE `id` = 19;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 20;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 21;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 22;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 23;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 24;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 25;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 26;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 27;
+UPDATE `vaccine`
+SET `price` = 158.00
+WHERE `id` = 28;
+UPDATE `vaccine`
+SET `price` = 198.00
+WHERE `id` = 29;
+UPDATE `vaccine`
+SET `price` = 328.00
+WHERE `id` = 30;
+UPDATE `vaccine`
+SET `price` = 268.00
+WHERE `id` = 31;
+UPDATE `vaccine`
+SET `price` = 628.00
+WHERE `id` = 32;
+UPDATE `vaccine`
+SET `price` = 258.00
+WHERE `id` = 33;
+UPDATE `vaccine`
+SET `price` = 198.00
+WHERE `id` = 34;
+UPDATE `vaccine`
+SET `price` = 1388.00
+WHERE `id` = 35;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 36;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 37;
+UPDATE `vaccine`
+SET `price` = 188.00
+WHERE `id` = 38;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 39;
+UPDATE `vaccine`
+SET `price` = 1280.00
+WHERE `id` = 40;
+UPDATE `vaccine`
+SET `price` = 148.00
+WHERE `id` = 41;
+UPDATE `vaccine`
+SET `price` = 248.00
+WHERE `id` = 42;
+UPDATE `vaccine`
+SET `price` = 288.00
+WHERE `id` = 43;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 44;
+UPDATE `vaccine`
+SET `price` = 0.00
+WHERE `id` = 45;
+UPDATE `vaccine`
+SET `price` = 398.00
+WHERE `id` = 46;
 
 -- ============================================================================
 -- 恢复 SQL 模式设置

@@ -29,6 +29,7 @@ public class DataInitializer implements ApplicationRunner {
         migrateRoleColumn();
         seedAdminIfEmpty();
         seedVaccinesIfEmpty();
+        seedVaccinePrices();
     }
 
     /**
@@ -115,6 +116,35 @@ public class DataInitializer implements ApplicationRunner {
             }
         } catch (Exception e) {
             log.error("疫苗数据初始化失败: {}", e.getMessage(), e);
+        }
+    }
+
+    private void seedVaccinePrices() {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM vaccine WHERE price IS NOT NULL", Integer.class);
+            if (count != null && count >= 46) {
+                return; // all prices already set
+            }
+            log.info("初始化疫苗价格...");
+            Object[][] prices = {
+                    {1, 128.00}, {2, 168.00}, {3, 118.00}, {4, 158.00}, {5, 198.00},
+                    {6, 248.00}, {7, 298.00}, {8, 3980.00}, {9, 2480.00}, {10, 980.00},
+                    {11, 168.00}, {12, 128.00}, {13, 328.00}, {14, 728.00}, {15, 1628.00},
+                    {16, 0.00}, {17, 288.00}, {18, 168.00}, {19, 158.00}, {20, 0.00},
+                    {21, 0.00}, {22, 0.00}, {23, 0.00}, {24, 0.00}, {25, 0.00},
+                    {26, 0.00}, {27, 0.00}, {28, 158.00}, {29, 198.00}, {30, 328.00},
+                    {31, 268.00}, {32, 628.00}, {33, 258.00}, {34, 198.00}, {35, 1388.00},
+                    {36, 0.00}, {37, 0.00}, {38, 188.00}, {39, 0.00}, {40, 1280.00},
+                    {41, 148.00}, {42, 248.00}, {43, 288.00}, {44, 0.00}, {45, 0.00},
+                    {46, 398.00}
+            };
+            for (Object[] p : prices) {
+                jdbcTemplate.update("UPDATE vaccine SET price = ? WHERE id = ?", p[1], p[0]);
+            }
+            log.info("疫苗价格初始化完成");
+        } catch (Exception e) {
+            log.warn("疫苗价格初始化跳过: {}", e.getMessage());
         }
     }
 }

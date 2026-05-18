@@ -4,6 +4,7 @@ import com.springboot.vaccineappointmentsystem.entity.Appointment;
 import com.springboot.vaccineappointmentsystem.entity.AppointmentLog;
 import com.springboot.vaccineappointmentsystem.entity.VaccinationRecord;
 import com.springboot.vaccineappointmentsystem.enums.AppointmentStatus;
+import com.springboot.vaccineappointmentsystem.repository.AppointmentRepository;
 import com.springboot.vaccineappointmentsystem.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,9 @@ public class AppointmentController {
 
     @Autowired
     private AppointmentService appointmentService;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     @PostMapping
     public ResponseEntity<?> createAppointment(@RequestBody Map<String, Object> payload) {
@@ -141,6 +145,39 @@ public class AppointmentController {
             String notes = payload != null ? payload.get("notes") : null;
             VaccinationRecord record = appointmentService.createLateRecord(id, notes);
             return ResponseEntity.status(HttpStatus.CREATED).body(record);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    // ── Payment ─────────────────────────────────────────────────
+
+    @PostMapping("/{id}/pay")
+    public ResponseEntity<?> payAppointment(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
+        try {
+            Long userId = Long.valueOf(payload.get("userId").toString());
+            String remark = payload.get("remark") != null ? (String) payload.get("remark") : null;
+            Appointment appointment = appointmentService.getAppointmentById(id)
+                    .orElseThrow(() -> new RuntimeException("预约未找到"));
+            if (!appointment.getUser().getId().equals(userId)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "无权操作此预约");
+                return ResponseEntity.badRequest().body(error);
+            }
+            if (appointment.getPaymentStatus() == 1) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "该预约已支付");
+                return ResponseEntity.badRequest().body(error);
+            }
+            appointment.setPaymentStatus(1);
+            appointment.setPaymentTime(java.time.LocalDateTime.now());
+            if (remark != null) {
+                appointment.setRemark(remark);
+            }
+            Appointment saved = appointmentRepository.save(appointment);
+            return ResponseEntity.ok(saved);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());

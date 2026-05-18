@@ -85,11 +85,16 @@
             <label>疫苗简介</label>
             <textarea v-model="addForm.description" class="form-control" placeholder="简要描述疫苗的特点和适用信息" rows="3"></textarea>
           </div>
-          <div class="form-section-label">库存与图片</div>
+          <div class="form-section-label">库存与价格</div>
           <div class="form-row">
             <div class="form-group">
               <label>库存数量 *</label>
               <input v-model.number="addForm.stockQuantity" class="form-control" min="0" required type="number" />
+            </div>
+            <div class="form-group">
+              <label>价格 (¥)</label>
+              <input v-model.number="addForm.price" class="form-control" min="0" step="0.01" type="number"
+                     placeholder="如：128.00"/>
             </div>
             <div class="form-group" style="display:flex; align-items:center; gap:12px; padding-top:28px;">
               <input v-model="addForm.available" style="width:18px;height:18px;" type="checkbox" />
@@ -131,6 +136,7 @@
               <th>疫苗名称</th>
               <th class="col-nowrap">分类</th>
               <th>规格/工艺</th>
+              <th class="col-nowrap">价格</th>
               <th class="col-nowrap">库存</th>
               <th class="col-nowrap">状态</th>
               <th class="col-nowrap">操作</th>
@@ -145,6 +151,7 @@
               </td>
               <td class="col-nowrap">{{ v.category || '—' }}</td>
               <td class="table-spec">{{ [v.dosage, v.technique].filter(Boolean).join(' / ') || '—' }}</td>
+              <td class="col-nowrap">{{ v.price != null ? '¥' + Number(v.price).toFixed(0) : '—' }}</td>
               <td class="col-nowrap">{{ v.stockQuantity }}</td>
               <td class="col-nowrap">
                 <span :style="v.available && v.stockQuantity > 0
@@ -203,6 +210,7 @@ const addImagePreview = ref<string | null>(null)
 
 const addForm = reactive({
   name: '',
+  price: null as number | null,
   category: '',
   brand: '',
   dosage: '',
@@ -250,6 +258,7 @@ async function addVaccine() {
     await loadVaccines()
     // Reset form
     addForm.name = ''
+    addForm.price = null
     addForm.category = ''
     addForm.brand = ''
     addForm.dosage = ''

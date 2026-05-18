@@ -14,6 +14,13 @@
           </div>
           <div class="form-row">
             <div class="form-group">
+              <label>价格 (¥)</label>
+              <input v-model.number="form.price" class="form-control" min="0" step="0.01" type="number"
+                     placeholder="如：128.00"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
               <label>分类</label>
               <input v-model="form.category" class="form-control" type="text" />
             </div>
@@ -115,6 +122,7 @@ const imagePreview = ref<string | null>(null)
 
 const form = reactive({
   name: '',
+  price: null as number | null,
   category: '',
   brand: '',
   dosage: '',
@@ -140,6 +148,7 @@ watch(
     }
     if (v) {
       form.name = v.name || ''
+      form.price = v.price != null ? v.price : null
       form.category = v.category || ''
       form.brand = v.brand || ''
       form.dosage = v.dosage || ''
