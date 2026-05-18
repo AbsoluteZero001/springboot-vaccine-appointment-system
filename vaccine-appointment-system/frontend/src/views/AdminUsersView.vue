@@ -73,11 +73,11 @@
             </div>
             <div class="bc-info-row">
               <span class="bc-label">性别</span>
-              <span class="bc-value">{{ genderLabel(user.gender) }}</span>
+              <span class="bc-value">{{ displayGender(user) }}</span>
             </div>
-            <div class="bc-info-row" v-if="user.birthday">
+            <div class="bc-info-row">
               <span class="bc-label">生日</span>
-              <span class="bc-value">{{ user.birthday }} ({{ calcAge(user.birthday) }})</span>
+              <span class="bc-value">{{ displayBirthday(user) }}</span>
             </div>
             <div class="bc-info-row" v-if="user.remark">
               <span class="bc-label">备注</span>
@@ -136,9 +136,9 @@
               <div class="detail-item"><span class="detail-label">手机号</span><span
                   class="detail-value">{{ selectedUser.phone || '—' }}</span></div>
               <div class="detail-item"><span class="detail-label">性别</span><span
-                  class="detail-value">{{ genderLabel(selectedUser.gender) }}</span></div>
+                  class="detail-value">{{ displayGenderDetail(selectedUser) }}</span></div>
               <div class="detail-item"><span class="detail-label">生日</span><span
-                  class="detail-value">{{ selectedUser.birthday || '—' }}</span></div>
+                  class="detail-value">{{ displayBirthdayDetail(selectedUser) }}</span></div>
               <div class="detail-item"><span class="detail-label">状态</span><span
                   class="detail-value">{{ selectedUser.status === 1 ? '正常' : '已停用' }}</span></div>
               <div class="detail-item"><span class="detail-label">实名状态</span><span
@@ -220,6 +220,63 @@ function calcAge(birthday?: string): string {
   const m = today.getMonth() - birth.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
   return age > 0 ? `${age}岁` : '—'
+}
+
+// ── ID-card-derived fields (authoritative for verified users) ──
+
+function idCardGenderDigit(idCard?: string): number | null {
+  if (!idCard || idCard.length < 17) return null
+  const ch = idCard.charAt(16)
+  if (!/\d/.test(ch)) return null
+  return parseInt(ch, 10)
+}
+
+function idCardDerivedGender(idCard?: string): number | null {
+  const d = idCardGenderDigit(idCard)
+  if (d === null) return null
+  return (d % 2 === 1) ? 1 : 2
+}
+
+function idCardBirthday(idCard?: string): string | null {
+  if (!idCard || idCard.length < 14) return null
+  const y = idCard.substring(6, 10)
+  const m = idCard.substring(10, 12)
+  const d = idCard.substring(12, 14)
+  if (!/^\d{8}$/.test(y + m + d)) return null
+  return `${y}-${m}-${d}`
+}
+
+function displayGender(user: User): string {
+  if (user.isVerified === 1 && user.idCard) {
+    const g = idCardDerivedGender(user.idCard)
+    if (g !== null) return genderLabel(g)
+  }
+  return genderLabel(user.gender)
+}
+
+function displayBirthday(user: User): string {
+  if (user.isVerified === 1 && user.idCard) {
+    const bday = idCardBirthday(user.idCard)
+    if (bday) return `${bday} (${calcAge(bday)})`
+  }
+  if (user.birthday) return `${user.birthday} (${calcAge(user.birthday)})`
+  return '—'
+}
+
+function displayGenderDetail(user: User): string {
+  if (user.isVerified === 1 && user.idCard) {
+    const g = idCardDerivedGender(user.idCard)
+    if (g !== null) return genderLabel(g)
+  }
+  return genderLabel(user.gender)
+}
+
+function displayBirthdayDetail(user: User): string {
+  if (user.isVerified === 1 && user.idCard) {
+    const bday = idCardBirthday(user.idCard)
+    if (bday) return bday
+  }
+  return user.birthday || '—'
 }
 
 function maskIdCard(idCard: string): string {
