@@ -36,17 +36,19 @@
 | 在线预约    | 选择日期 + 时段，自动区分工作日 / 周六半天 / 周日休息        |
 | 我的预约    | 查看 / 取消预约，状态流转：已预约 → 已完成 / 未到场 / 已取消 |
 | 接种记录    | 查看个人历史接种记录                                         |
+| 个人设置    | 个人信息管理、头像上传、实名认证（身份证自动派生性别/生日）  |
 | 资讯轮播    | 首页疫苗健康资讯轮播                                         |
 
 ### 管理端
 
-| 功能     | 说明                                                                              |
-| -------- | --------------------------------------------------------------------------------- |
-| 预约审核 | 按状态筛选（已预约 / 已完成 / 未到场 / 已取消），支持完成接种、补录接种、取消预约 |
-| 疫苗管理 | 上架 / 下架、添加、编辑、删除、库存调整、图片上传                                 |
-| 用户管理 | 用户列表、启用 / 停用、删除                                                       |
-| 接种记录 | 查看所有用户的接种记录                                                            |
-| 数据概览 | 各状态预约数量实时统计                                                            |
+| 功能       | 说明                                                                              |
+| ---------- | --------------------------------------------------------------------------------- |
+| 预约审核   | 按状态筛选（已预约 / 已完成 / 未到场 / 已取消），支持完成接种、补录接种、取消预约 |
+| 疫苗管理   | 上架 / 下架、添加、编辑、删除、库存调整、图片上传                                 |
+| 用户管理   | 用户列表、启用 / 停用、删除、查看实名认证信息                                     |
+| 管理员管理 | 管理员账号的增删改查                                                              |
+| 接种记录   | 查看所有用户的接种记录，执行接种操作                                              |
+| 数据概览   | 各状态预约数量实时统计                                                            |
 
 ### 基础设施
 
@@ -56,6 +58,7 @@
 | BCrypt 密码加密 | 所有密码 BCrypt 哈希存储                           |
 | 防暴力破解      | 登录失败 5 次触发逐级冻结 30s → 60s                |
 | Redis 分布式锁  | 预约操作防并发超卖，Redis 不可用时自动降级为本地锁 |
+| 乐观锁          | Vaccine 库存使用 @Version 防并发超卖               |
 | CORS 跨域防护   | 仅允许配置的源                                     |
 | 角色权限        | ROLE_USER / ROLE_ADMIN 二级隔离                    |
 
@@ -95,7 +98,7 @@ start.bat
 | `vaccine-backend`  | Spring Boot 应用  | 8080 |
 | `vaccine-frontend` | Nginx + Vue 3 SPA | 80   |
 
-数据库首次启动自动执行 `docker/mysql/init.sql`，创建 5 张表并初始化 46 种疫苗 + 1 个管理员账号。
+数据库首次启动自动执行 `database/init.sql`，创建 5 张表并初始化 46 种疫苗 + 1 个管理员账号。
 
 ### 方式二：开发模式（前后端分离）
 
@@ -131,9 +134,11 @@ java -jar target/vaccine-appointment-system-0.0.1-SNAPSHOT.jar
 
 ### 默认管理员账号
 
-默认管理员账号首次启动自动生成，可在 docker/mysql/init.sql 中查看或自行修改。
+| 用户名 | 密码      | 角色       |
+| ------ | --------- | ---------- |
+| admin  | admin123  | ROLE_ADMIN |
 
-> 普通用户通过注册页面自行注册。
+> 普通用户通过注册页面自行注册。管理员账号可在管理后台增删改查。
 
 ---
 
@@ -180,42 +185,99 @@ FRONTEND_PORT=80
 | GET    | `/api/auth/verify`    | 验证 Token 有效性        |
 | POST   | `/api/users/register` | 用户注册                 |
 
-### 需认证接口
+### 用户接口
 
-| Method  | Path                                       | 说明                       |
-| ------- | ------------------------------------------ | -------------------------- |
-| GET     | `/api/vaccines`                            | 疫苗列表                   |
-| GET     | `/api/vaccines/available`                  | 可用疫苗（已上架且有库存） |
-| GET     | `/api/vaccines/search?name=`               | 搜索疫苗                   |
-| GET     | `/api/vaccines/{id}`                       | 疫苗详情                   |
-| POST    | `/api/appointments`                        | 创建预约                   |
-| GET     | `/api/appointments/user/{userId}`          | 用户预约列表               |
-| GET     | `/api/appointments/{id}`                   | 预约详情                   |
-| POST    | `/api/appointments/{id}/cancel`            | 取消预约                   |
-| GET/PUT | `/api/users/{id}`                          | 获取 / 更新个人信息        |
-| POST    | `/api/vaccination-records`                 | 创建接种记录               |
-| GET     | `/api/vaccination-records/user/{userId}`   | 用户接种记录               |
-| GET     | `/api/vaccination-records/status/{status}` | 按状态查询接种记录         |
+| Method | Path                         | 说明              |
+| ------ | ---------------------------- | ----------------- |
+| GET    | `/api/users/{id}`            | 获取用户信息      |
+| GET    | `/api/users/username/{name}` | 按用户名查询      |
+| PUT    | `/api/users/{id}/profile`    | 更新个人资料      |
+| POST   | `/api/users/{id}/avatar`     | 上传头像          |
+| POST   | `/api/users/{id}/verify`     | 实名认证          |
+
+### 疫苗接口
+
+| Method | Path                               | 说明                       |
+| ------ | ---------------------------------- | -------------------------- |
+| GET    | `/api/vaccines`                    | 疫苗列表                   |
+| GET    | `/api/vaccines/available`          | 可用疫苗（已上架且有库存） |
+| GET    | `/api/vaccines/search?name=`       | 搜索疫苗                   |
+| GET    | `/api/vaccines/{id}`               | 疫苗详情                   |
+
+### 预约接口
+
+| Method | Path                                  | 说明         |
+| ------ | ------------------------------------- | ------------ |
+| POST   | `/api/appointments`                   | 创建预约     |
+| GET    | `/api/appointments/user/{userId}`     | 用户预约列表 |
+| GET    | `/api/appointments/{id}`              | 预约详情     |
+| POST   | `/api/appointments/{id}/cancel`       | 取消预约     |
+| POST   | `/api/appointments/{id}/pay`          | 支付         |
+
+### 接种记录接口
+
+| Method | Path                                        | 说明             |
+| ------ | ------------------------------------------- | ---------------- |
+| GET    | `/api/vaccination-records/user/{userId}`    | 用户接种记录     |
+| GET    | `/api/vaccination-records/status/{status}`  | 按状态查询记录   |
 
 ### 管理员接口 (ROLE_ADMIN)
 
-| Method | Path                                  | 说明                |
-| ------ | ------------------------------------- | ------------------- |
-| GET    | `/api/users`                          | 用户列表            |
-| PUT    | `/api/users/{id}`                     | 更新用户 (状态切换) |
-| DELETE | `/api/users/{id}`                     | 删除用户            |
-| POST   | `/api/vaccines`                       | 添加疫苗            |
-| PUT    | `/api/vaccines/{id}`                  | 更新疫苗            |
-| DELETE | `/api/vaccines/{id}`                  | 删除疫苗            |
-| PATCH  | `/api/vaccines/{id}/availability`     | 上架 / 下架         |
-| POST   | `/api/vaccines/{id}/upload-image`     | 上传疫苗图片        |
-| GET    | `/api/appointments`                   | 全部预约            |
-| GET    | `/api/appointments/status/{status}`   | 按状态查询预约      |
-| POST   | `/api/appointments/{id}/complete`     | 完成接种            |
-| POST   | `/api/appointments/{id}/late-record`  | 补录接种            |
-| POST   | `/api/appointments/{id}/cancel/admin` | 管理员取消预约      |
-| GET    | `/api/appointments/logs/status/1`     | 预约操作日志        |
-| GET    | `/api/statistics`                     | 统计数据            |
+#### 用户管理
+
+| Method | Path                  | 说明                |
+| ------ | --------------------- | ------------------- |
+| GET    | `/api/users`          | 用户列表            |
+| PUT    | `/api/users/{id}`     | 更新用户 (状态切换) |
+| DELETE | `/api/users/{id}`     | 删除用户            |
+
+#### 管理员账号管理
+
+| Method | Path               | 说明           |
+| ------ | ------------------ | -------------- |
+| GET    | `/api/admins`      | 管理员列表     |
+| GET    | `/api/admins/{id}` | 管理员详情     |
+| POST   | `/api/admins`      | 创建管理员     |
+| PUT    | `/api/admins/{id}` | 更新管理员     |
+| DELETE | `/api/admins/{id}` | 删除管理员     |
+
+#### 疫苗管理
+
+| Method | Path                              | 说明         |
+| ------ | --------------------------------- | ------------ |
+| POST   | `/api/vaccines`                   | 添加疫苗     |
+| PUT    | `/api/vaccines/{id}`              | 更新疫苗     |
+| DELETE | `/api/vaccines/{id}`              | 删除疫苗     |
+| PATCH  | `/api/vaccines/{id}/availability` | 上架 / 下架  |
+| PATCH  | `/api/vaccines/{id}/stock`        | 调整库存     |
+| POST   | `/api/vaccines/{id}/upload-image` | 上传疫苗图片 |
+
+#### 预约管理
+
+| Method | Path                                  | 说明           |
+| ------ | ------------------------------------- | -------------- |
+| GET    | `/api/appointments`                   | 全部预约       |
+| GET    | `/api/appointments/pending`           | 待处理预约     |
+| GET    | `/api/appointments/status/{status}`   | 按状态查询预约 |
+| GET    | `/api/appointments/{id}/logs`         | 预约操作日志   |
+| POST   | `/api/appointments/{id}/complete`     | 完成接种       |
+| POST   | `/api/appointments/{id}/late-record`  | 补录接种       |
+| POST   | `/api/appointments/{id}/cancel/admin` | 管理员取消预约 |
+
+#### 接种记录管理
+
+| Method | Path                                          | 说明             |
+| ------ | --------------------------------------------- | ---------------- |
+| GET    | `/api/vaccination-records/{id}`                | 记录详情         |
+| GET    | `/api/vaccination-records/vaccine/{vaccineId}` | 按疫苗查询记录   |
+| PUT    | `/api/vaccination-records/{id}`                | 更新接种记录     |
+| POST   | `/api/vaccination-records/{id}/administer`     | 执行接种         |
+
+#### 统计
+
+| Method | Path              | 说明       |
+| ------ | ----------------- | ---------- |
+| GET    | `/api/statistics` | 数据概览   |
 
 ---
 
@@ -227,9 +289,9 @@ vaccine-appointment-system/
 │   ├── src/
 │   │   ├── views/                     # 页面视图
 │   │   │   ├── HomeView.vue           #   首页（登录 / 注册 / 轮播）
-│   │   │   ├── AdminLoginView.vue     #   管理员登录
 │   │   │   ├── UserDashboardView.vue  #   疫苗浏览与预约
 │   │   │   ├── UserProfileView.vue    #   我的预约与接种记录
+│   │   │   ├── UserSettingsView.vue   #   个人设置（资料 / 头像 / 实名认证）
 │   │   │   ├── AdminDashboardView.vue #   预约管理控制台
 │   │   │   ├── AdminVaccineView.vue   #   疫苗 CRUD 管理
 │   │   │   └── AdminUsersView.vue     #   用户管理
@@ -239,6 +301,7 @@ vaccine-appointment-system/
 │   │   │   ├── AlertMessage.vue       #   消息提示
 │   │   │   ├── LoadingOverlay.vue     #   加载遮罩
 │   │   │   ├── NewsCarousel.vue       #   疫苗资讯轮播
+│   │   │   ├── MedicalIllustration.vue#   医学插画装饰
 │   │   │   ├── LoginMessage.vue       #   登录防暴力破解提示
 │   │   │   ├── VaccineCard.vue        #   疫苗卡片
 │   │   │   ├── AppointmentModal.vue   #   预约日期时段选择
@@ -252,25 +315,28 @@ vaccine-appointment-system/
 │   └── package.json
 ├── src/main/
 │   ├── java/com/springboot/vaccineappointmentsystem/
-│   │   ├── config/                    # SecurityConfig, JwtTokenProvider, RedisConfig ...
-│   │   ├── controller/                # AuthController, VaccineController, AppointmentController ...
+│   │   ├── config/                    # SecurityConfig, JwtTokenProvider, RedisConfig, DataInitializer ...
+│   │   ├── controller/                # AuthController, VaccineController, AppointmentController, AdminController ...
 │   │   ├── service/                   # 业务接口 + impl 实现
 │   │   ├── repository/                # JPA 数据访问层
 │   │   ├── entity/                    # SysUser, Vaccine, Appointment, VaccinationRecord, AppointmentLog
-│   │   ├── dto/                       # ApiResponse 统一响应体
+│   │   ├── enums/                     # AppointmentStatus, VaccinationRecordStatus 枚举及 JPA 转换器
+│   │   ├── dto/                       # ApiResponse 统一响应体, AppointmentStatistics
 │   │   └── exception/                 # GlobalExceptionHandler 全局异常处理
 │   └── resources/
 │       ├── application.yml            # 主配置
 │       ├── application-dev.yml        # 开发环境配置
 │       ├── application-prod.yml       # 生产环境配置
 │       └── static/                    # Vite 构建输出 (开发模式不使用，已 .gitignore)
+├── database/
+│   └── init.sql                       # 数据库初始化脚本 (DDL + 46 疫苗 + 1 管理员)
 ├── docker/
-│   ├── mysql/
-│   │   └── init.sql                   # 数据库初始化脚本 (DDL + 46 疫苗 + 1 管理员)
-│   ├── nginx/
-│   │   └── nginx.conf                 # Nginx 反向代理 + SPA 配置
 │   ├── Dockerfile.backend             # Spring Boot 多阶段构建
-│   └── Dockerfile.frontend            # Vue 3 + Nginx 多阶段构建
+│   ├── Dockerfile.frontend            # Vue 3 + Nginx 多阶段构建
+│   ├── mysql/
+│   │   └── init.sql                   # MySQL 容器初始化脚本
+│   └── nginx/
+│       └── nginx.conf                 # Nginx 反向代理 + SPA 配置
 ├── .github/workflows/
 │   └── ci-cd.yml                      # CI/CD 流水线
 ├── docker-compose.yml                 # Docker 一键编排
@@ -284,15 +350,15 @@ vaccine-appointment-system/
 
 ## 数据库
 
-5 张表由 Hibernate `ddl-auto: update` 自动维护，Docker 部署时由 `docker/mysql/init.sql` 初始化。
+5 张表由 Hibernate `ddl-auto: update` 自动维护，Docker 部署时由 `database/init.sql` 初始化。
 
 | 表名                 | 说明                                              |
 | -------------------- | ------------------------------------------------- |
-| `sys_user`           | 用户表（含管理员，通过 role 字段区分）            |
-| `vaccine`            | 疫苗库存与元数据                                  |
-| `appointment`        | 预约记录 (0=已预约, 1=已完成, 2=未到场, 3=已取消) |
-| `vaccination_record` | 接种记录                                          |
-| `appointment_log`    | 预约操作日志                                      |
+| `sys_user`           | 用户表（含管理员，通过 role 字段区分），支持实名认证、头像 |
+| `vaccine`            | 疫苗库存与元数据，@Version 乐观锁防并发超卖       |
+| `appointment`        | 预约记录 (0=已预约, 1=已完成, 2=未到场, 3=已取消)，含支付状态 |
+| `vaccination_record` | 接种记录，关联预约、用户、疫苗、医生              |
+| `appointment_log`    | 预约操作审计日志                                  |
 
 ### 疫苗种子数据（46 种）
 
@@ -347,13 +413,13 @@ vaccine-appointment-system/
 
 ---
 
-## 🏠 首页
+## 首页
 
 ![首页](vaccine-appointment-system/docs/images/home.png)
 
 ---
 
-## 👤 用户端
+## 用户端
 
 ### 疫苗列表
 
@@ -367,7 +433,7 @@ vaccine-appointment-system/
 
 ---
 
-## 🛠 管理员端
+## 管理员端
 
 ### 疫苗管理列表
 
@@ -409,4 +475,4 @@ MIT
 
 本项目为 Spring Boot + Vue 3 全栈学习实践项目，不涉及任何真实业务数据，所有数据均为模拟测试数据。欢迎 Fork 与学习交流。
 
-© 2026 All Rights Reserved.
+(c) 2026 All Rights Reserved.
