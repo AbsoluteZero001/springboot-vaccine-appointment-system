@@ -133,6 +133,7 @@
           <thead>
             <tr>
               <th class="col-nowrap">ID</th>
+              <th style="width:60px;">图片</th>
               <th>疫苗名称</th>
               <th class="col-nowrap">分类</th>
               <th>规格/工艺</th>
@@ -145,6 +146,10 @@
           <tbody>
             <tr v-for="v in vaccines" :key="v.id">
               <td class="col-nowrap">{{ v.id }}</td>
+              <td>
+                <img v-if="v.imageUrl" :src="v.imageUrl" class="vax-thumb" @click.stop="openEdit(v.id)"/>
+                <span v-else class="vax-thumb-placeholder">💉</span>
+              </td>
               <td>
                 <strong>{{ v.name }}</strong>
                 <br v-if="v.brand" /><span v-if="v.brand" class="table-spec">{{ v.brand }}</span>
@@ -367,3 +372,33 @@ onMounted(() => {
   loadVaccines()
 })
 </script>
+
+<style scoped>
+.vax-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.vax-thumb:hover {
+  border-color: var(--primary-color);
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2);
+}
+
+.vax-thumb-placeholder {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  border: 2px dashed #e2e8f0;
+}
+</style>

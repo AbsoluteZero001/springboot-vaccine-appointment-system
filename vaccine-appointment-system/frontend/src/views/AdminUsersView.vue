@@ -48,10 +48,12 @@
           <div class="bc-header">
             <div class="bc-avatar" :style="user.avatarUrl ? `background-image:url(${user.avatarUrl})` : ''">
               <span v-if="!user.avatarUrl"
-                    class="bc-avatar-initial">{{ (user.nickname || user.username)[0].toUpperCase() }}</span>
+                    class="bc-avatar-initial">{{
+                  (user.realName || user.nickname || user.username)[0].toUpperCase()
+                }}</span>
             </div>
             <div class="bc-name-section">
-              <div class="bc-nickname">{{ user.nickname || user.username }}</div>
+              <div class="bc-nickname">{{ user.realName || user.nickname || user.username }}</div>
               <div class="bc-username">@{{ user.username }}</div>
             </div>
             <div class="bc-verified" :class="user.isVerified ? 'verified' : 'unverified'">
@@ -61,11 +63,7 @@
           <div class="bc-body">
             <div class="bc-info-row" v-if="user.realName">
               <span class="bc-label">姓名</span>
-              <span class="bc-value">{{ user.realName }}</span>
-            </div>
-            <div class="bc-info-row">
-              <span class="bc-label">手机</span>
-              <span class="bc-value">{{ user.phone || '—' }}</span>
+              <span class="bc-value bc-realname">{{ user.realName }}</span>
             </div>
             <div class="bc-info-row" v-if="user.idCard">
               <span class="bc-label">身份证</span>
@@ -78,6 +76,14 @@
             <div class="bc-info-row">
               <span class="bc-label">生日</span>
               <span class="bc-value">{{ displayBirthday(user) }}</span>
+            </div>
+            <div class="bc-info-row">
+              <span class="bc-label">手机</span>
+              <span class="bc-value">{{ user.phone || '—' }}</span>
+            </div>
+            <div class="bc-info-row">
+              <span class="bc-label">昵称</span>
+              <span class="bc-value bc-nickname-secondary">{{ user.nickname || user.username }}</span>
             </div>
             <div class="bc-info-row" v-if="user.remark">
               <span class="bc-label">备注</span>
@@ -118,11 +124,11 @@
               <div class="detail-avatar"
                    :style="selectedUser.avatarUrl ? `background-image:url(${selectedUser.avatarUrl})` : ''">
                 <span v-if="!selectedUser.avatarUrl">{{
-                    (selectedUser.nickname || selectedUser.username)[0].toUpperCase()
+                    (selectedUser.realName || selectedUser.nickname || selectedUser.username)[0].toUpperCase()
                   }}</span>
               </div>
               <div>
-                <h3>{{ selectedUser.nickname || selectedUser.username }}</h3>
+                <h3>{{ selectedUser.realName || selectedUser.nickname || selectedUser.username }}</h3>
                 <p>@{{ selectedUser.username }} · {{ selectedUser.isVerified ? '✅ 已实名' : '⚠️ 未实名' }}</p>
               </div>
             </div>
@@ -471,6 +477,17 @@ onMounted(() => {
 
 .bc-remark {
   color: #64748b;
+  font-size: 0.8rem;
+}
+
+.bc-realname {
+  font-weight: 700;
+  color: #1e1b4b;
+  font-size: 0.9rem;
+}
+
+.bc-nickname-secondary {
+  color: #94a3b8;
   font-size: 0.8rem;
 }
 
