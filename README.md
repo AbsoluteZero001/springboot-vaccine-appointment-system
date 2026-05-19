@@ -443,7 +443,7 @@ vaccine-appointment-system/
 
 ### 用户修改个人资料
 
-![用户修改个人资料](vaccine-appointment-system/docs/images/user-profile-update.png)
+![用户修改个人资料](vaccine-appointment-system/docs/images/User-Profile-Update.png)
 
 ---
 
