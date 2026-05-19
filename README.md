@@ -135,13 +135,15 @@ java -jar target/vaccine-appointment-system-0.0.1-SNAPSHOT.jar
 
 ---
 
-### 默认管理员账号
+### 默认管理员账号（初始化机制）
 
-| 用户名 | 密码      | 角色       |
-| ------ | --------- | ---------- |
-| admin  | admin123  | ROLE_ADMIN |
+系统启动时通过 DataInitializer 自动创建管理员账号（仅当数据库无管理员数据时执行）：
 
-> 普通用户通过注册页面自行注册。管理员账号可在管理后台增删改查。
+- 默认角色：ROLE_ADMIN
+- 账号来源：系统初始化脚本 / DataInitializer
+- 密码策略：BCrypt 加密存储（生产环境建议通过环境变量覆盖）
+
+普通用户可通过注册接口自行创建账号。
 
 ---
 
