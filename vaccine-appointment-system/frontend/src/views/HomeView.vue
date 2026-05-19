@@ -325,8 +325,8 @@ onMounted(() => {
 
 .hero-poster {
   position: relative;
-  flex: 0 0 340px;
-  height: 300px;
+  flex: 0 0 380px;
+  height: 320px;
   border-radius: 20px;
   overflow: hidden;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.04) 100%);

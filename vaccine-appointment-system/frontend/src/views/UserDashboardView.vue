@@ -554,7 +554,7 @@ onMounted(() => {
   border: 2px solid #e2e8f0;
   border-radius: 50px;
   font-size: 0.88rem;
-  width: 240px;
+  width: 280px;
   transition: all 0.3s ease;
   background: #f8fafc;
   font-family: inherit;
@@ -566,7 +566,7 @@ onMounted(() => {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.08);
   background: white;
-  width: 280px;
+  width: 320px;
 }
 
 .search-box-enhanced .search-icon {
