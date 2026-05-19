@@ -17,6 +17,7 @@ export interface SysUser {
     realName?: string
     idCard?: string
     isVerified?: number // 0=未实名 1=已实名
+    lastUsernameChangeTime?: string
 }
 
 export interface LoginData {
@@ -69,7 +70,23 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await api.post<{
             code: number
             message: string
-            data: { id: number; username: string; nickname: string; role: string; token: string; isVerified: number }
+            data: {
+                id: number;
+                username: string;
+                nickname: string;
+                phone: string;
+                role: string
+                status: number;
+                isVerified: number;
+                realName: string;
+                idCard: string
+                avatarUrl: string;
+                gender: number;
+                birthday: string;
+                remark: string;
+                lastUsernameChangeTime: string;
+                token: string
+            }
         }>('/auth/login', {username, password})
         const body = response.data
         if (body.data && body.data.token) {
@@ -78,9 +95,17 @@ export const useAuthStore = defineStore('auth', () => {
                 id: body.data.id,
                 username: body.data.username,
                 nickname: body.data.nickname || body.data.username,
-                phone: '',
+                phone: body.data.phone || '',
                 role: body.data.role,
-                isVerified: body.data.isVerified || 0
+                status: body.data.status,
+                isVerified: body.data.isVerified || 0,
+                realName: body.data.realName || '',
+                idCard: body.data.idCard || '',
+                avatarUrl: body.data.avatarUrl || '',
+                gender: body.data.gender ?? 0,
+                birthday: body.data.birthday || '',
+                remark: body.data.remark || '',
+                lastUsernameChangeTime: body.data.lastUsernameChangeTime || ''
             })
         return {}
       }
@@ -112,7 +137,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Verify the stored token with the backend on app startup.
+    // Verify the stored token with the backend on app startup and sync user profile.
   async function verifySession() {
     const storedToken = localStorage.getItem('accessToken')
     if (!storedToken) {
@@ -125,10 +150,24 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await axios.get('/api/auth/verify', {
         headers: { Authorization: `Bearer ${storedToken}` }
       })
-        // Update role from backend response
-        if (currentUser.value && response.data.role) {
-            currentUser.value.role = response.data.role
-            localStorage.setItem('user', JSON.stringify(currentUser.value))
+        // Sync full user profile from backend
+        if (response.data.authenticated && response.data.id) {
+            setCurrentUser({
+                id: response.data.id,
+                username: response.data.username,
+                nickname: response.data.nickname || response.data.username,
+                phone: response.data.phone || '',
+                role: response.data.role,
+                status: response.data.status,
+                isVerified: response.data.isVerified || 0,
+                realName: response.data.realName || '',
+                idCard: response.data.idCard || '',
+                avatarUrl: response.data.avatarUrl || '',
+                gender: response.data.gender ?? 0,
+                birthday: response.data.birthday || '',
+                remark: response.data.remark || '',
+                lastUsernameChangeTime: response.data.lastUsernameChangeTime || ''
+            })
         }
     } catch {
       clearAuth()

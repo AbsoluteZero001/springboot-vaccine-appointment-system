@@ -28,6 +28,8 @@ public class UserController {
     private FileStorageService fileStorageService;
 
     private static final Pattern ID_CARD_PATTERN = Pattern.compile("^[1-9]\\d{5}(18|19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    private static final long ONE_YEAR_SECONDS = 365L * 24 * 60 * 60;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, Object> body) {
@@ -113,7 +115,10 @@ public class UserController {
             user.setStatus(((Number) body.get("status")).intValue());
         }
         if (body.get("phone") != null) {
-            String phone = (String) body.get("phone");
+            String phone = ((String) body.get("phone")).trim();
+            if (!PHONE_PATTERN.matcher(phone).matches()) {
+                return badRequest("手机号格式不正确");
+            }
             if (!phone.equals(user.getPhone()) && sysUserRepository.existsByPhone(phone)) {
                 return badRequest("手机号已注册");
             }
@@ -147,7 +152,10 @@ public class UserController {
             user.setBirthday(java.time.LocalDate.parse((String) body.get("birthday")));
         }
         if (body.get("phone") != null) {
-            String phone = (String) body.get("phone");
+            String phone = ((String) body.get("phone")).trim();
+            if (!PHONE_PATTERN.matcher(phone).matches()) {
+                return badRequest("手机号格式不正确");
+            }
             if (!phone.equals(user.getPhone()) && sysUserRepository.existsByPhone(phone)) {
                 return badRequest("手机号已注册");
             }
@@ -158,6 +166,47 @@ public class UserController {
         }
         sysUserRepository.save(user);
         return ResponseEntity.ok(user);
+    }
+
+    // ── Username modification (once per year) ────────────────────
+
+    @PutMapping("/{id}/username")
+    public ResponseEntity<?> updateUsername(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        var opt = sysUserRepository.findById(id);
+        if (opt.isEmpty()) return badRequest("用户未找到");
+        SysUser user = opt.get();
+
+        String newUsername = body.get("username");
+        if (newUsername == null || newUsername.trim().isBlank()) {
+            return badRequest("用户名不能为空");
+        }
+        newUsername = newUsername.trim();
+        if (newUsername.length() < 3 || newUsername.length() > 50) {
+            return badRequest("用户名长度须在3-50个字符之间");
+        }
+        if (!newUsername.equals(user.getUsername()) && sysUserRepository.existsByUsername(newUsername)) {
+            return badRequest("用户名已被占用");
+        }
+
+        // Check 1-year cooldown
+        if (user.getLastUsernameChangeTime() != null) {
+            long secondsSinceLastChange = java.time.Duration.between(
+                    user.getLastUsernameChangeTime(), java.time.LocalDateTime.now()).getSeconds();
+            if (secondsSinceLastChange < ONE_YEAR_SECONDS) {
+                long remainingDays = (ONE_YEAR_SECONDS - secondsSinceLastChange) / (24 * 60 * 60);
+                return badRequest("用户名修改间隔不足一年，还需等待 " + remainingDays + " 天");
+            }
+        }
+
+        user.setUsername(newUsername);
+        user.setLastUsernameChangeTime(java.time.LocalDateTime.now());
+        sysUserRepository.save(user);
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("username", newUsername);
+        resp.put("lastUsernameChangeTime", user.getLastUsernameChangeTime().toString());
+        resp.put("message", "用户名修改成功（每年仅可修改一次）");
+        return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/{id}/avatar")

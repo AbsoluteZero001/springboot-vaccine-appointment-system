@@ -64,6 +64,8 @@ public class SysUser implements UserDetails {
     @Column(length = 500)
     private String remark;
 
+    private LocalDateTime lastUsernameChangeTime;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createTime;
