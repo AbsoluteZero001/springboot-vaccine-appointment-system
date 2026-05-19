@@ -28,19 +28,19 @@
 
 ### 用户端
 
-| 功能        | 说明                                                         |
-| ----------- | ------------------------------------------------------------ |
-| 注册 / 登录 | JWT 令牌认证，防暴力破解（5 次失败触发逐级冻结），登录后自动同步完整用户资料 |
-| 疫苗浏览    | 按分类筛选、关键词搜索，46 种疫苗含品牌、剂量、工艺等详情    |
-| 疫苗详情    | 品牌、制造商、剂次、接种途径、年龄范围、目标疾病、免疫程序   |
-| 在线预约    | 选择日期 + 时段，自动区分工作日 / 周六半天 / 周日休息，需先完成实名认证 |
+| 功能        | 说明                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| 注册 / 登录 | JWT 令牌认证，防暴力破解（5 次失败触发逐级冻结），登录后自动同步完整用户资料                      |
+| 疫苗浏览    | 按分类筛选、关键词搜索，46 种疫苗含品牌、剂量、工艺等详情                                         |
+| 疫苗详情    | 品牌、制造商、剂次、接种途径、年龄范围、目标疾病、免疫程序                                        |
+| 在线预约    | 选择日期 + 时段，自动区分工作日 / 周六半天 / 周日休息，需先完成实名认证                           |
 | 我的预约    | 查看 / 取消预约 / 在线支付，状态流转：已预约 → 已完成 / 未到场 / 已取消，支付与状态区域加宽更醒目 |
-| 接种记录    | 查看个人历史接种记录                                         |
-| 个人设置    | 头像上传与预览、昵称修改、性别 / 生日 / 手机号编辑、备注     |
-| 实名认证    | 身份证号自动派生性别，格式校验，认证后解锁预约功能           |
-| 用户名修改  | 每年仅可修改一次，显示下次可修改日期，用户名是账户唯一身份标识 |
-| 手机号校验  | 11 位数字，1 开头第二位 3-9，前后端双重校验                   |
-| 弹窗反馈    | 全局弹窗提示（成功 / 失败），3 秒自动消失，替代内联提醒更醒目  |
+| 接种记录    | 查看个人历史接种记录                                                                              |
+| 个人设置    | 头像上传与预览、昵称修改、性别 / 生日 / 手机号编辑、备注                                          |
+| 实名认证    | 身份证号自动派生性别，格式校验，认证后解锁预约功能                                                |
+| 用户名修改  | 每年仅可修改一次，显示下次可修改日期，用户名是账户唯一身份标识                                    |
+| 手机号校验  | 11 位数字，1 开头第二位 3-9，前后端双重校验                                                       |
+| 弹窗反馈    | 全局弹窗提示（成功 / 失败），3 秒自动消失，替代内联提醒更醒目                                     |
 
 ### 管理端
 
@@ -184,68 +184,68 @@ FRONTEND_PORT=80
 
 ### 公开接口
 
-| Method | Path                  | 说明                                         |
-| ------ | --------------------- | -------------------------------------------- |
+| Method | Path                  | 说明                                               |
+| ------ | --------------------- | -------------------------------------------------- |
 | POST   | `/api/auth/login`     | 统一登录，返回完整用户资料（含头像、实名、手机等） |
-| GET    | `/api/auth/verify`    | 验证 Token 并同步完整用户资料                   |
-| POST   | `/api/users/register` | 用户注册                                     |
+| GET    | `/api/auth/verify`    | 验证 Token 并同步完整用户资料                      |
+| POST   | `/api/users/register` | 用户注册                                           |
 
 ### 用户接口
 
-| Method | Path                         | 说明                        |
-| ------ | ---------------------------- | --------------------------- |
-| GET    | `/api/users/{id}`            | 获取用户信息（含完整资料）  |
-| GET    | `/api/users/username/{name}` | 按用户名查询                |
-| PUT    | `/api/users/{id}/profile`    | 更新个人资料（含手机号校验）|
-| PUT    | `/api/users/{id}/username`   | 修改用户名（每年一次）      |
-| POST   | `/api/users/{id}/avatar`     | 上传头像                    |
-| POST   | `/api/users/{id}/verify`     | 实名认证（身份证自动派生性别）|
+| Method | Path                         | 说明                           |
+| ------ | ---------------------------- | ------------------------------ |
+| GET    | `/api/users/{id}`            | 获取用户信息（含完整资料）     |
+| GET    | `/api/users/username/{name}` | 按用户名查询                   |
+| PUT    | `/api/users/{id}/profile`    | 更新个人资料（含手机号校验）   |
+| PUT    | `/api/users/{id}/username`   | 修改用户名（每年一次）         |
+| POST   | `/api/users/{id}/avatar`     | 上传头像                       |
+| POST   | `/api/users/{id}/verify`     | 实名认证（身份证自动派生性别） |
 
 ### 疫苗接口
 
-| Method | Path                               | 说明                       |
-| ------ | ---------------------------------- | -------------------------- |
-| GET    | `/api/vaccines`                    | 疫苗列表                   |
-| GET    | `/api/vaccines/available`          | 可用疫苗（已上架且有库存） |
-| GET    | `/api/vaccines/search?name=`       | 搜索疫苗                   |
-| GET    | `/api/vaccines/{id}`               | 疫苗详情                   |
+| Method | Path                         | 说明                       |
+| ------ | ---------------------------- | -------------------------- |
+| GET    | `/api/vaccines`              | 疫苗列表                   |
+| GET    | `/api/vaccines/available`    | 可用疫苗（已上架且有库存） |
+| GET    | `/api/vaccines/search?name=` | 搜索疫苗                   |
+| GET    | `/api/vaccines/{id}`         | 疫苗详情                   |
 
 ### 预约接口
 
-| Method | Path                                  | 说明         |
-| ------ | ------------------------------------- | ------------ |
-| POST   | `/api/appointments`                   | 创建预约     |
-| GET    | `/api/appointments/user/{userId}`     | 用户预约列表 |
-| GET    | `/api/appointments/{id}`              | 预约详情     |
-| POST   | `/api/appointments/{id}/cancel`       | 取消预约     |
-| POST   | `/api/appointments/{id}/pay`          | 支付         |
+| Method | Path                              | 说明         |
+| ------ | --------------------------------- | ------------ |
+| POST   | `/api/appointments`               | 创建预约     |
+| GET    | `/api/appointments/user/{userId}` | 用户预约列表 |
+| GET    | `/api/appointments/{id}`          | 预约详情     |
+| POST   | `/api/appointments/{id}/cancel`   | 取消预约     |
+| POST   | `/api/appointments/{id}/pay`      | 支付         |
 
 ### 接种记录接口
 
-| Method | Path                                        | 说明             |
-| ------ | ------------------------------------------- | ---------------- |
-| GET    | `/api/vaccination-records/user/{userId}`    | 用户接种记录     |
-| GET    | `/api/vaccination-records/status/{status}`  | 按状态查询记录   |
+| Method | Path                                       | 说明           |
+| ------ | ------------------------------------------ | -------------- |
+| GET    | `/api/vaccination-records/user/{userId}`   | 用户接种记录   |
+| GET    | `/api/vaccination-records/status/{status}` | 按状态查询记录 |
 
 ### 管理员接口 (ROLE_ADMIN)
 
 #### 用户管理
 
-| Method | Path                  | 说明                |
-| ------ | --------------------- | ------------------- |
-| GET    | `/api/users`          | 用户列表            |
-| PUT    | `/api/users/{id}`     | 更新用户 (状态切换) |
-| DELETE | `/api/users/{id}`     | 删除用户            |
+| Method | Path              | 说明                |
+| ------ | ----------------- | ------------------- |
+| GET    | `/api/users`      | 用户列表            |
+| PUT    | `/api/users/{id}` | 更新用户 (状态切换) |
+| DELETE | `/api/users/{id}` | 删除用户            |
 
 #### 管理员账号管理
 
-| Method | Path               | 说明           |
-| ------ | ------------------ | -------------- |
-| GET    | `/api/admins`      | 管理员列表     |
-| GET    | `/api/admins/{id}` | 管理员详情     |
-| POST   | `/api/admins`      | 创建管理员     |
-| PUT    | `/api/admins/{id}` | 更新管理员     |
-| DELETE | `/api/admins/{id}` | 删除管理员     |
+| Method | Path               | 说明       |
+| ------ | ------------------ | ---------- |
+| GET    | `/api/admins`      | 管理员列表 |
+| GET    | `/api/admins/{id}` | 管理员详情 |
+| POST   | `/api/admins`      | 创建管理员 |
+| PUT    | `/api/admins/{id}` | 更新管理员 |
+| DELETE | `/api/admins/{id}` | 删除管理员 |
 
 #### 疫苗管理
 
@@ -272,18 +272,18 @@ FRONTEND_PORT=80
 
 #### 接种记录管理
 
-| Method | Path                                          | 说明             |
-| ------ | --------------------------------------------- | ---------------- |
-| GET    | `/api/vaccination-records/{id}`                | 记录详情         |
-| GET    | `/api/vaccination-records/vaccine/{vaccineId}` | 按疫苗查询记录   |
-| PUT    | `/api/vaccination-records/{id}`                | 更新接种记录     |
-| POST   | `/api/vaccination-records/{id}/administer`     | 执行接种         |
+| Method | Path                                           | 说明           |
+| ------ | ---------------------------------------------- | -------------- |
+| GET    | `/api/vaccination-records/{id}`                | 记录详情       |
+| GET    | `/api/vaccination-records/vaccine/{vaccineId}` | 按疫苗查询记录 |
+| PUT    | `/api/vaccination-records/{id}`                | 更新接种记录   |
+| POST   | `/api/vaccination-records/{id}/administer`     | 执行接种       |
 
 #### 统计
 
-| Method | Path              | 说明       |
-| ------ | ----------------- | ---------- |
-| GET    | `/api/statistics` | 数据概览   |
+| Method | Path              | 说明     |
+| ------ | ----------------- | -------- |
+| GET    | `/api/statistics` | 数据概览 |
 
 ---
 
@@ -358,13 +358,13 @@ vaccine-appointment-system/
 
 5 张表由 Hibernate `ddl-auto: update` 自动维护，Docker 部署时由 `database/init.sql` 初始化。
 
-| 表名                 | 说明                                              |
-| -------------------- | ------------------------------------------------- |
-| `sys_user`           | 用户表（含管理员，通过 role 区分），支持头像、实名认证、用户名修改冷却 |
-| `vaccine`            | 疫苗库存与元数据，@Version 乐观锁防并发超卖       |
+| 表名                 | 说明                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| `sys_user`           | 用户表（含管理员，通过 role 区分），支持头像、实名认证、用户名修改冷却               |
+| `vaccine`            | 疫苗库存与元数据，@Version 乐观锁防并发超卖                                          |
 | `appointment`        | 预约记录 (0=已预约, 1=已完成, 2=未到场, 3=已取消)，支持在线支付 (0=未支付, 1=已支付) |
-| `vaccination_record` | 接种记录，关联预约、用户、疫苗、医生              |
-| `appointment_log`    | 预约操作审计日志                                  |
+| `vaccination_record` | 接种记录，关联预约、用户、疫苗、医生                                                 |
+| `appointment_log`    | 预约操作审计日志                                                                     |
 
 ### 疫苗种子数据（46 种）
 
@@ -425,17 +425,25 @@ vaccine-appointment-system/
 
 ---
 
+## 密码防暴力破解
+
+## ![密码防暴力破解](vaccine-appointment-system/docs/images/Password-brute-force-protection.png)
+
 ## 用户端
 
-### 疫苗列表
+### 用户查看疫苗列表
 
 ![用户疫苗列表](vaccine-appointment-system/docs/images/user-vaccine-list.png)
 
 ---
 
-### 用户预约页面
+### 用户预约疫苗页面
 
 ![用户预约页面](vaccine-appointment-system/docs/images/user-appointment.png)
+
+### 用户修改个人资料
+
+![用户修改个人资料](vaccine-appointment-system/docs/images/user-profile-update.png)
 
 ---
 
@@ -465,9 +473,9 @@ vaccine-appointment-system/
 
 ---
 
-### 用户管理
+### 管理员管理用户
 
-![管理员用户管理](vaccine-appointment-system/docs/images/admin-user-management.png)
+![管理员用户管理](vaccine-appointment-system/docs/images/User-Management-Admin.png)
 
 ## License
 
