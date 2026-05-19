@@ -4,7 +4,7 @@
 
     <main class="homepage-main">
       <div class="container">
-        <AlertMessage ref="alertRef" />
+        <ModalMessage ref="modalRef"/>
 
         <!-- Welcome Banner -->
         <div class="dashboard-banner-enhanced">
@@ -175,7 +175,7 @@ import {computed, onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
+import ModalMessage from '@/components/ModalMessage.vue'
 import MedicalIllustration from '@/components/MedicalIllustration.vue'
 import type {Vaccine} from '@/components/VaccineCard.vue'
 import VaccineCard from '@/components/VaccineCard.vue'
@@ -185,7 +185,7 @@ import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const modalRef = ref<InstanceType<typeof ModalMessage> | null>(null)
 
 const today = new Date().toLocaleDateString('zh-CN', {year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'})
 const allVaccines = ref<Vaccine[]>([])
@@ -248,7 +248,7 @@ function getCategoryIcon(cat: string): string {
 }
 
 function showAlert(message: string, type: 'success' | 'error' = 'success') {
-  alertRef.value?.showAlert(message, type)
+  modalRef.value?.showModal(message, type)
 }
 
 async function loadVaccines() {

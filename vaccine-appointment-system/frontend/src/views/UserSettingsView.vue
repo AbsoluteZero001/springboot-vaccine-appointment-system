@@ -3,7 +3,7 @@
     <SiteHeader active-nav="/settings"/>
 
     <div class="container">
-      <AlertMessage ref="alertRef"/>
+      <ModalMessage ref="modalRef"/>
 
       <!-- Banner -->
       <div class="dashboard-banner-enhanced" style="margin-bottom: 28px;">
@@ -104,8 +104,8 @@
                   <span v-if="!canChangeUsername && usernameCooldownDays > 0">
                     还需等待 <strong>{{ usernameCooldownDays }}</strong> 天。
                   </span>
-                  <span v-else-if="canChangeUsername && auth.currentUser?.lastUsernameChangeTime">
-                    上次修改：{{ auth.currentUser.lastUsernameChangeTime?.substring(0, 10) }}
+                  <span v-else-if="auth.currentUser?.lastUsernameChangeTime">
+                    下次可修改日期：<strong>{{ nextChangeDate }}</strong>
                   </span>
                 </p>
               </div>
@@ -154,13 +154,13 @@ import {computed, onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
+import ModalMessage from '@/components/ModalMessage.vue'
 import {useAuthStore} from '@/stores/auth'
 import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const modalRef = ref<InstanceType<typeof ModalMessage> | null>(null)
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 
 const avatarPreview = ref('')
@@ -190,6 +190,13 @@ const canChangeUsername = computed(() => {
   return elapsed >= ONE_YEAR_MS
 })
 
+const nextChangeDate = computed(() => {
+  const last = auth.currentUser?.lastUsernameChangeTime
+  if (!last) return ''
+  const next = new Date(new Date(last).getTime() + ONE_YEAR_MS)
+  return next.toLocaleDateString('zh-CN')
+})
+
 const usernameCooldownDays = computed(() => {
   const last = auth.currentUser?.lastUsernameChangeTime
   if (!last) return 0
@@ -199,7 +206,7 @@ const usernameCooldownDays = computed(() => {
 })
 
 function showAlert(message: string, type: 'success' | 'error' = 'success') {
-  alertRef.value?.showAlert(message, type)
+  modalRef.value?.showModal(message, type)
 }
 
 function maskIdCard(idCard: string): string {

@@ -3,7 +3,7 @@
     <SiteHeader active-nav="/admin/users" />
 
     <div class="container">
-      <AlertMessage ref="alertRef" />
+      <ModalMessage ref="alertRef"/>
 
       <!-- Page Banner -->
       <div class="dashboard-banner-enhanced">
@@ -167,7 +167,7 @@ import {computed, onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
+import ModalMessage from '@/components/ModalMessage.vue'
 import {useAuthStore} from '@/stores/auth'
 import api from '@/services/api'
 
@@ -189,7 +189,7 @@ interface User {
   isVerified?: number
 }
 
-const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const alertRef = ref<InstanceType<typeof ModalMessage> | null>(null)
 const users = ref<User[]>([])
 const searchQuery = ref('')
 const selectedUser = ref<User | null>(null)
@@ -209,7 +209,7 @@ const filteredUsers = computed(() => {
 const verifiedCount = computed(() => users.value.filter(u => u.isVerified === 1).length)
 
 function showAlert(msg: string, type: 'success' | 'error' = 'success') {
-  alertRef.value?.showAlert(msg, type)
+  alertRef.value?.showModal(msg, type)
 }
 
 function genderLabel(g?: number): string {

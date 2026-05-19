@@ -3,7 +3,7 @@
     <SiteHeader active-nav="/admin/vaccines" />
 
     <div class="container">
-      <AlertMessage ref="alertRef" />
+      <ModalMessage ref="alertRef"/>
 
       <!-- Page Banner -->
       <div class="dashboard-banner-enhanced">
@@ -199,7 +199,7 @@ import {onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
+import ModalMessage from '@/components/ModalMessage.vue'
 import VaccineEditModal from '@/components/VaccineEditModal.vue'
 import type {Vaccine} from '@/components/VaccineCard.vue'
 import {useAuthStore} from '@/stores/auth'
@@ -207,7 +207,7 @@ import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const alertRef = ref<InstanceType<typeof ModalMessage> | null>(null)
 const vaccines = ref<Vaccine[]>([])
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const addImageFile = ref<File | null>(null)
@@ -235,7 +235,7 @@ const editingVaccine = ref<Vaccine | null>(null)
 let editVaccineId: number | null = null
 
 function showAlert(msg: string, type: 'success' | 'error' = 'success') {
-  alertRef.value?.showAlert(msg, type)
+  alertRef.value?.showModal(msg, type)
 }
 
 async function loadVaccines() {

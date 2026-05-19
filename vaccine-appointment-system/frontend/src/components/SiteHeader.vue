@@ -208,9 +208,12 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   background: rgba(255, 255, 255, 0.1);
   margin-right: 6px;
   white-space: nowrap;
-  max-width: 160px;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .nav-logout {
@@ -225,12 +228,13 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 
 .nav-avatar {
   display: inline-flex;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
+  vertical-align: middle;
 }
 
 .nav-avatar img {
@@ -241,8 +245,9 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .nav-avatar-placeholder {
-  font-size: 16px;
+  font-size: 18px;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 @media (max-width: 768px) {
