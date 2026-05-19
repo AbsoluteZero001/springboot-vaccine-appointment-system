@@ -205,7 +205,7 @@
     <SiteFooter />
 
     <!-- Alert container for inline alerts -->
-    <AlertMessage ref="alertRef" />
+    <ModalMessage ref="alertRef"/>
   </div>
 </template>
 
@@ -216,14 +216,14 @@ import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import NewsCarousel from '@/components/NewsCarousel.vue'
 import LoginMessage from '@/components/LoginMessage.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
+import ModalMessage from '@/components/ModalMessage.vue'
 import MedicalIllustration from '@/components/MedicalIllustration.vue'
 import type {LoginData} from '@/stores/auth'
 import {useAuthStore} from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const alertRef = ref<InstanceType<typeof ModalMessage> | null>(null)
 
 const activeTab = ref('user-login')
 
@@ -241,7 +241,7 @@ const loginMsgData = ref<LoginData | null>(null)
 const regMsgData = ref<LoginData | null>(null)
 
 function showAlert(message: string, type: 'success' | 'error' = 'success') {
-  alertRef.value?.showAlert(message, type)
+  alertRef.value?.showModal(message, type)
 }
 
 async function handleLogin() {

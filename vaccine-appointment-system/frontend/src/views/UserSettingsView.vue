@@ -3,7 +3,7 @@
     <SiteHeader active-nav="/settings"/>
 
     <div class="container">
-      <AlertMessage ref="alertRef"/>
+      <ModalMessage ref="modalRef"/>
 
       <!-- Banner -->
       <div class="dashboard-banner-enhanced" style="margin-bottom: 28px;">
@@ -86,6 +86,29 @@
           <div class="card">
             <h3>编辑资料</h3>
             <form @submit.prevent="saveProfile">
+              <!-- Username modification -->
+              <div class="form-group">
+                <label>用户名 <span class="label-required">*</span></label>
+                <div class="input-with-button">
+                  <input v-model="usernameForm.newUsername" class="form-control input-enhanced"
+                         placeholder="修改用户名" type="text" maxlength="50"
+                         :disabled="!canChangeUsername"/>
+                  <button type="button" class="btn btn-small"
+                          :disabled="!canChangeUsername || !usernameForm.newUsername.trim()"
+                          @click="saveUsername">
+                    {{ canChangeUsername ? '修改' : '冷却中' }}
+                  </button>
+                </div>
+                <p class="field-hint">
+                  ⚠️ 用户名是识别账户的唯一身份，每年仅可修改一次。
+                  <span v-if="!canChangeUsername && usernameCooldownDays > 0">
+                    还需等待 <strong>{{ usernameCooldownDays }}</strong> 天。
+                  </span>
+                  <span v-else-if="auth.currentUser?.lastUsernameChangeTime">
+                    下次可修改日期：<strong>{{ nextChangeDate }}</strong>
+                  </span>
+                </p>
+              </div>
               <div class="form-group">
                 <label>昵称 <span class="label-required">*</span></label>
                 <input v-model="userForm.nickname" class="form-control input-enhanced" placeholder="设置您的昵称"
@@ -127,17 +150,17 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive, ref} from 'vue'
+import {computed, onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
+import ModalMessage from '@/components/ModalMessage.vue'
 import {useAuthStore} from '@/stores/auth'
 import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const modalRef = ref<InstanceType<typeof ModalMessage> | null>(null)
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 
 const avatarPreview = ref('')
@@ -154,8 +177,36 @@ const verifyForm = reactive({
   idCard: ''
 })
 
+const usernameForm = reactive({
+  newUsername: ''
+})
+
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000
+
+const canChangeUsername = computed(() => {
+  const last = auth.currentUser?.lastUsernameChangeTime
+  if (!last) return true
+  const elapsed = Date.now() - new Date(last).getTime()
+  return elapsed >= ONE_YEAR_MS
+})
+
+const nextChangeDate = computed(() => {
+  const last = auth.currentUser?.lastUsernameChangeTime
+  if (!last) return ''
+  const next = new Date(new Date(last).getTime() + ONE_YEAR_MS)
+  return next.toLocaleDateString('zh-CN')
+})
+
+const usernameCooldownDays = computed(() => {
+  const last = auth.currentUser?.lastUsernameChangeTime
+  if (!last) return 0
+  const elapsed = Date.now() - new Date(last).getTime()
+  if (elapsed >= ONE_YEAR_MS) return 0
+  return Math.ceil((ONE_YEAR_MS - elapsed) / (24 * 60 * 60 * 1000))
+})
+
 function showAlert(message: string, type: 'success' | 'error' = 'success') {
-  alertRef.value?.showAlert(message, type)
+  modalRef.value?.showModal(message, type)
 }
 
 function maskIdCard(idCard: string): string {
@@ -204,6 +255,7 @@ async function handleAvatarChange(event: Event) {
 function loadProfile() {
   const u = auth.currentUser
   if (!u) return
+  usernameForm.newUsername = u.username || ''
   userForm.nickname = u.nickname || u.username || ''
   userForm.gender = u.gender || 0
   userForm.birthday = u.birthday || ''
@@ -219,6 +271,10 @@ async function saveProfile() {
   }
   if (!userForm.phone.trim()) {
     showAlert('手机号不能为空', 'error')
+    return
+  }
+  if (!/^1[3-9]\d{9}$/.test(userForm.phone.trim())) {
+    showAlert('手机号格式不正确', 'error')
     return
   }
   try {
@@ -242,6 +298,34 @@ async function saveProfile() {
     showAlert('资料已保存')
   } catch (error: any) {
     showAlert(error.response?.data?.error || '保存失败', 'error')
+  }
+}
+
+// ── Username ─────────────────────────────────────────────────
+
+async function saveUsername() {
+  const name = usernameForm.newUsername.trim()
+  if (!name) {
+    showAlert('请输入新用户名', 'error')
+    return
+  }
+  if (name.length < 3) {
+    showAlert('用户名至少需要3个字符', 'error')
+    return
+  }
+  try {
+    const response = await api.put(`/users/${auth.currentUser!.id}/username`, {
+      username: name
+    })
+    if (auth.currentUser) {
+      auth.currentUser.username = name
+      auth.currentUser.lastUsernameChangeTime = response.data.lastUsernameChangeTime
+      localStorage.setItem('user', JSON.stringify(auth.currentUser))
+    }
+    showAlert('用户名修改成功（每年仅可修改一次）')
+    usernameForm.newUsername = ''
+  } catch (error: any) {
+    showAlert(error.response?.data?.error || '修改失败', 'error')
   }
 }
 
@@ -421,5 +505,38 @@ onMounted(() => {
   font-size: 0.75rem;
   color: #94a3b8;
   margin-top: 4px;
+}
+
+.input-with-button {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-button input {
+  flex: 1;
+}
+
+.input-with-button input:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.input-with-button .btn-small {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.field-hint strong {
+  color: #e53e3e;
 }
 </style>

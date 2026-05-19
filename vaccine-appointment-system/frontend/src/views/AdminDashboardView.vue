@@ -4,7 +4,7 @@
 
     <main class="homepage-main">
       <div class="container">
-        <AlertMessage ref="alertRef" />
+        <ModalMessage ref="alertRef"/>
 
         <!-- Dashboard Banner -->
         <div class="dashboard-banner-enhanced" style="margin-bottom: 28px;">
@@ -140,13 +140,13 @@ import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
+import ModalMessage from '@/components/ModalMessage.vue'
 import {useAuthStore} from '@/stores/auth'
 import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const alertRef = ref<InstanceType<typeof ModalMessage> | null>(null)
 const today = new Date().toLocaleDateString('zh-CN')
 
 const tabs = [
@@ -181,7 +181,7 @@ function formatDate(dateStr: string) {
 }
 
 function showAlert(msg: string, type: 'success' | 'error' = 'success') {
-  alertRef.value?.showAlert(msg, type)
+  alertRef.value?.showModal(msg, type)
 }
 
 async function loadStats() {

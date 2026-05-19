@@ -93,8 +93,17 @@ public class AuthController {
             data.put("id", sysUser.getId());
             data.put("username", sysUser.getUsername());
             data.put("nickname", sysUser.getNickname() != null ? sysUser.getNickname() : sysUser.getUsername());
+            data.put("phone", sysUser.getPhone());
             data.put("role", sysUser.getRole());
+            data.put("status", sysUser.getStatus());
             data.put("isVerified", sysUser.getIsVerified());
+            data.put("realName", sysUser.getRealName());
+            data.put("idCard", sysUser.getIdCard());
+            data.put("avatarUrl", sysUser.getAvatarUrl());
+            data.put("gender", sysUser.getGender());
+            data.put("birthday", sysUser.getBirthday() != null ? sysUser.getBirthday().toString() : null);
+            data.put("remark", sysUser.getRemark());
+            data.put("lastUsernameChangeTime", sysUser.getLastUsernameChangeTime() != null ? sysUser.getLastUsernameChangeTime().toString() : null);
             data.put("token", jwt);
             response.put("data", data);
             return ResponseEntity.ok(response);
@@ -117,11 +126,31 @@ public class AuthController {
             return ResponseEntity.status(401).body(error);
         }
 
+        String username = auth.getName();
+        var userOpt = sysUserRepository.findByUsername(username);
+
         Map<String, Object> response = new HashMap<>();
         response.put("authenticated", true);
-        response.put("username", auth.getName());
+        response.put("username", username);
         response.put("role", auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")) ? "ROLE_ADMIN" : "ROLE_USER");
+
+        if (userOpt.isPresent()) {
+            SysUser u = userOpt.get();
+            response.put("id", u.getId());
+            response.put("nickname", u.getNickname());
+            response.put("phone", u.getPhone());
+            response.put("status", u.getStatus());
+            response.put("isVerified", u.getIsVerified());
+            response.put("realName", u.getRealName());
+            response.put("idCard", u.getIdCard());
+            response.put("avatarUrl", u.getAvatarUrl());
+            response.put("gender", u.getGender());
+            response.put("birthday", u.getBirthday() != null ? u.getBirthday().toString() : null);
+            response.put("remark", u.getRemark());
+            response.put("lastUsernameChangeTime", u.getLastUsernameChangeTime() != null ? u.getLastUsernameChangeTime().toString() : null);
+        }
+
         return ResponseEntity.ok(response);
     }
 }

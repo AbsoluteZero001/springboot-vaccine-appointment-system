@@ -9,7 +9,13 @@
       </router-link>
       <nav class="main-nav">
         <template v-if="auth.isAdmin">
-          <span class="nav-greeting">👋 {{ auth.currentUser?.nickname || auth.currentUser?.username || '管理员' }}</span>
+          <span class="nav-greeting">
+            <span class="nav-avatar" v-if="auth.currentUser?.avatarUrl">
+              <img :src="auth.currentUser.avatarUrl" alt="avatar"/>
+            </span>
+            <span class="nav-avatar-placeholder" v-else>👤</span>
+            {{ auth.currentUser?.nickname || auth.currentUser?.username || '管理员' }}
+          </span>
           <router-link :class="{ active: isActive('/admin') }" to="/admin">
             <span class="nav-icon">📋</span> 预约审核
           </router-link>
@@ -24,7 +30,13 @@
           </a>
         </template>
         <template v-else-if="auth.isUser">
-          <span class="nav-greeting">👋 {{ auth.currentUser?.nickname || auth.currentUser?.username || '用户' }}</span>
+          <span class="nav-greeting">
+            <span class="nav-avatar" v-if="auth.currentUser?.avatarUrl">
+              <img :src="auth.currentUser.avatarUrl" alt="avatar"/>
+            </span>
+            <span class="nav-avatar-placeholder" v-else>👤</span>
+            {{ auth.currentUser?.nickname || auth.currentUser?.username || '用户' }}
+          </span>
           <router-link :class="{ active: isActive('/dashboard') }" to="/dashboard">
             <span class="nav-icon">🏥</span> 疫苗列表
           </router-link>
@@ -196,9 +208,12 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   background: rgba(255, 255, 255, 0.1);
   margin-right: 6px;
   white-space: nowrap;
-  max-width: 160px;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .nav-logout {
@@ -209,6 +224,30 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   color: rgba(255, 255, 255, 0.9) !important;
   background: rgba(247, 37, 133, 0.2) !important;
   border-color: rgba(247, 37, 133, 0.25) !important;
+}
+
+.nav-avatar {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.nav-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nav-avatar-placeholder {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 @media (max-width: 768px) {

@@ -3,7 +3,7 @@
     <SiteHeader active-nav="/profile" />
 
     <div class="container">
-      <AlertMessage ref="alertRef" />
+      <ModalMessage ref="modalRef"/>
 
       <div class="dashboard-banner-enhanced" style="margin-bottom: 28px;">
         <div class="banner-bg-decoration">
@@ -44,9 +44,9 @@
               <th>品牌/规格</th>
               <th>价格</th>
               <th>预约时间</th>
-              <th>支付</th>
-              <th>状态</th>
-              <th>操作</th>
+              <th style="min-width:100px;">支付</th>
+              <th style="min-width:90px;">状态</th>
+              <th style="min-width:80px;">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -58,15 +58,16 @@
                 {{ appt.vaccine?.price != null ? '¥' + Number(appt.vaccine.price).toFixed(0) : '免费' }}
               </td>
               <td>{{ formatDate(appt.appointmentTime) }}</td>
-              <td>
+              <td style="text-align:center;">
                 <span v-if="appt.paymentStatus === 1"
-                      style="padding:3px 10px;border-radius:50px;font-size:0.78rem;font-weight:600;background:#f0fdf4;color:#16a34a;">已支付</span>
-                <button v-else-if="appt.status === 0" class="btn btn-small btn-pay" @click="payAppointment(appt)">
+                      style="display:inline-block;padding:5px 16px;border-radius:50px;font-size:0.82rem;font-weight:600;background:#f0fdf4;color:#16a34a;">已支付</span>
+                <button v-else-if="appt.status === 0" class="btn btn-small btn-pay" @click="payAppointment(appt)"
+                        style="padding:5px 16px;">
                   去支付
                 </button>
-                <span v-else style="color:#94a3b8;font-size:0.78rem;">—</span>
+                <span v-else style="color:#94a3b8;font-size:0.82rem;">—</span>
               </td>
-              <td>
+              <td style="text-align:center;">
                 <span :style="statusStyle(appt.status)">{{ statusLabel(appt.status) }}</span>
               </td>
               <td>
@@ -124,13 +125,13 @@ import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
-import AlertMessage from '@/components/AlertMessage.vue'
+import ModalMessage from '@/components/ModalMessage.vue'
 import {useAuthStore} from '@/stores/auth'
 import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const modalRef = ref<InstanceType<typeof ModalMessage> | null>(null)
 
 interface Appointment {
   id: number
@@ -155,7 +156,7 @@ const pendingCount = ref(0)
 const completedCount = ref(0)
 
 function showAlert(message: string, type: 'success' | 'error' = 'success') {
-  alertRef.value?.showAlert(message, type)
+  modalRef.value?.showModal(message, type)
 }
 
 function specText(vaccine?: { brand?: string; dosage?: string }) {
@@ -171,7 +172,7 @@ function statusLabel(status: number) {
   return STATUS_LABELS[status] || '未知'
 }
 function statusStyle(status: number) {
-  return `padding:3px 12px; border-radius:50px; font-size:0.8rem; font-weight:600; background:${STATUS_BG[status] || '#f5f5f5'}; color:${STATUS_COLOR[status] || '#6b7280'};`
+  return `display:inline-block;padding:5px 18px; border-radius:50px; font-size:0.82rem; font-weight:600; background:${STATUS_BG[status] || '#f5f5f5'}; color:${STATUS_COLOR[status] || '#6b7280'};`
 }
 
 function formatDate(dateStr: string) {
