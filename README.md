@@ -1,8 +1,8 @@
-<h1 align="center">💉 SpringBoot Vaccine Appointment System</h1>
 
-<p align="center">
-  基于 Spring Boot 3 + Vue 3 的前后端分离疫苗预约系统
-</p>
+<h1 align="center">疫苗预约系统 | Vaccine Appointment System</h1>
+
+> 基于 Vue 3 + Spring Boot 3 构建的前后端分离全栈疫苗预约管理平台，集成 Spring Security、JWT、Redis、MySQL、Docker 与 GitHub Actions，支持在线预约、后台审核、库存管理及自动化部署。
+
 
 <br/>
 
@@ -30,9 +30,6 @@
 </p>
 
 
-# 疫苗预约系统 | Vaccine Appointment System
-
-> 基于 Vue 3 + Spring Boot 3 构建的前后端分离全栈疫苗预约管理平台，集成 Spring Security、JWT、Redis、MySQL、Docker 与 GitHub Actions，支持在线预约、后台审核、库存管理及自动化部署。
 
 ---
 
