@@ -1,3 +1,5 @@
+[简体中文](README.md) | [English](README_EN.md)
+
 # 疫苗预约系统 | Vaccine Appointment System
 
 > 基于 Vue 3 + Spring Boot 3 构建的前后端分离全栈疫苗预约管理平台，集成 Spring Security、JWT、Redis、MySQL、Docker 与 GitHub Actions，支持在线预约、后台审核、库存管理及自动化部署。
