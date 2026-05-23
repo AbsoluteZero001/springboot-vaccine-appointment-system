@@ -1,8 +1,35 @@
-# 疫苗预约系统 | Vaccine Appointment System
 
-> A full-stack vaccine appointment management platform built with Vue 3 + Spring Boot 3, featuring Spring Security, JWT, Redis, MySQL, Docker, and GitHub Actions. Supports online booking, admin review, inventory management, and automated deployment.
+<h1 align="center">疫苗预约系统 | Vaccine Appointment System</h1>
 
-[简体中文](README.md) | [English](README_EN.md)
+> A full-stack vaccine appointment management platform built with Vue 3 and Spring Boot 3 using a separated frontend-backend architecture. The system integrates Spring Security, JWT-based authentication, Redis caching, MySQL, Docker containerization, and GitHub Actions CI/CD. It supports online appointment scheduling, admin approval workflows, inventory management, and automated deployment pipelines.
+
+
+<br/>
+
+<!-- 语言切换按钮 -->
+<p align="center">
+  <a href="README.md">
+    <img src="https://img.shields.io/badge/中文版本-点击查看-red?style=for-the-badge&logo=markdown&logoColor=white" />
+  </a>
+
+  <a href="README_EN.md">
+    <img src="https://img.shields.io/badge/English-Version-blue?style=for-the-badge&logo=markdown&logoColor=white" />
+  </a>
+</p>
+
+<br/>
+
+<!-- 技术栈标签 -->
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-17%2B-orange?style=flat-square&logo=openjdk" />
+  <img src="https://img.shields.io/badge/SpringBoot-3.1.5-green?style=flat-square&logo=springboot" />
+  <img src="https://img.shields.io/badge/Vue-3-brightgreen?style=flat-square&logo=vuedotjs" />
+  <img src="https://img.shields.io/badge/MySQL-8-blue?style=flat-square&logo=mysql" />
+  <img src="https://img.shields.io/badge/Redis-7-red?style=flat-square&logo=redis" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" />
+</p>
+
+
 
 ---
 
