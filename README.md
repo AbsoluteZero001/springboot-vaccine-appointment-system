@@ -8,11 +8,11 @@
 
 <!-- 语言切换按钮 -->
 <p align="center">
-  <a href="README.md#top">
-    <img src="https://img.shields.io/badge/中文版本-当前-red?style=for-the-badge&logo=markdown&logoColor=white" />
+  <a href="README.md">
+    <img src="https://img.shields.io/badge/中文版本-点击查看-red?style=for-the-badge&logo=markdown&logoColor=white" />
   </a>
 
-  <a href="README_EN.md#top">
+  <a href="README_EN.md">
     <img src="https://img.shields.io/badge/English-Version-blue?style=for-the-badge&logo=markdown&logoColor=white" />
   </a>
 </p>
