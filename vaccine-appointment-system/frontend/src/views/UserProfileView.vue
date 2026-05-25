@@ -120,7 +120,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
@@ -131,61 +131,44 @@ import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const modalRef = ref<InstanceType<typeof ModalMessage> | null>(null)
+const modalRef = ref(null)
 
-interface Appointment {
-  id: number
-  status: number
-  paymentStatus: number
-  appointmentTime: string
-  remark?: string
-  vaccine?: { name?: string; brand?: string; dosage?: string; price?: number }
-}
-
-interface VaccinationRecord {
-  id: number
-  status: number
-  vaccinationTime: string
-  notes?: string
-  vaccine?: { name?: string; brand?: string; dosage?: string }
-}
-
-const appointments = ref<Appointment[]>([])
-const records = ref<VaccinationRecord[]>([])
+const appointments = ref([])
+const records = ref([])
 const pendingCount = ref(0)
 const completedCount = ref(0)
 
-function showAlert(message: string, type: 'success' | 'error' = 'success') {
+function showAlert(message, type = 'success') {
   modalRef.value?.showModal(message, type)
 }
 
-function specText(vaccine?: { brand?: string; dosage?: string }) {
+function specText(vaccine) {
   if (!vaccine) return '—'
   return [vaccine.brand, vaccine.dosage].filter(Boolean).join(' | ') || '—'
 }
 
-const STATUS_LABELS: Record<number, string> = {0: '已预约', 1: '已完成', 2: '未到场', 3: '已取消'}
-const STATUS_BG: Record<number, string> = {0: '#fff7ed', 1: '#f0fdf4', 2: '#fee2e2', 3: '#f5f5f5'}
-const STATUS_COLOR: Record<number, string> = {0: '#c2410c', 1: '#16a34a', 2: '#dc2626', 3: '#6b7280'}
+const STATUS_LABELS = {0: '已预约', 1: '已完成', 2: '未到场', 3: '已取消'}
+const STATUS_BG = {0: '#fff7ed', 1: '#f0fdf4', 2: '#fee2e2', 3: '#f5f5f5'}
+const STATUS_COLOR = {0: '#c2410c', 1: '#16a34a', 2: '#dc2626', 3: '#6b7280'}
 
-function statusLabel(status: number) {
+function statusLabel(status) {
   return STATUS_LABELS[status] || '未知'
 }
-function statusStyle(status: number) {
+function statusStyle(status) {
   return `display:inline-block;padding:5px 18px; border-radius:50px; font-size:0.82rem; font-weight:600; background:${STATUS_BG[status] || '#f5f5f5'}; color:${STATUS_COLOR[status] || '#6b7280'};`
 }
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr) {
   return new Date(dateStr).toLocaleString('zh-CN')
 }
 
 async function loadAppointments() {
   try {
-    const response = await api.get(`/appointments/user/${auth.currentUser!.id}`)
+    const response = await api.get(`/appointments/user/${auth.currentUser.id}`)
     const data = response.data
     appointments.value = data
     let pending = 0, completed = 0
-    data.forEach((a: Appointment) => {
+    data.forEach((a) => {
       if (a.status === 0) pending++
       if (a.status === 1) completed++
     })
@@ -198,30 +181,30 @@ async function loadAppointments() {
 
 async function loadRecords() {
   try {
-    const response = await api.get(`/vaccination-records/user/${auth.currentUser!.id}`)
+    const response = await api.get(`/vaccination-records/user/${auth.currentUser.id}`)
     records.value = response.data
   } catch { /* silent */
   }
 }
 
-async function cancelAppointment(appointmentId: number) {
+async function cancelAppointment(appointmentId) {
   if (!confirm('确定要取消此预约吗？')) return
   try {
-    await api.post(`/appointments/${appointmentId}/cancel`, {userId: auth.currentUser!.id})
+    await api.post(`/appointments/${appointmentId}/cancel`, {userId: auth.currentUser.id})
     showAlert('预约已取消', 'success')
     await loadAppointments()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '取消失败', 'error')
   }
 }
 
-async function payAppointment(appt: Appointment) {
+async function payAppointment(appt) {
   if (!confirm(`确认支付 ¥${appt.vaccine?.price != null ? Number(appt.vaccine.price).toFixed(0) : '0'} ？`)) return
   try {
-    await api.post(`/appointments/${appt.id}/pay`, {userId: auth.currentUser!.id, remark: ''})
+    await api.post(`/appointments/${appt.id}/pay`, {userId: auth.currentUser.id, remark: ''})
     showAlert('支付成功！', 'success')
     await loadAppointments()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '支付失败', 'error')
   }
 }

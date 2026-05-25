@@ -68,35 +68,16 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {computed} from 'vue'
 import MedicalIllustration from './MedicalIllustration.vue'
 
-export interface Vaccine {
-  id: number
-  name: string
-  price?: number
-  category?: string
-  brand?: string
-  dosage?: string
-  technique?: string
-  dosesRequired?: number
-  ageRange?: string
-  targetDisease?: string
-  manufacturer?: string
-  scheduleInfo?: string
-  description?: string
-  imageUrl?: string
-  stockQuantity: number
-  available: boolean
-}
+const props = defineProps({
+  vaccine: { type: Object, required: true },
+  staggerIndex: { type: Number, default: 0 }
+})
 
-const props = defineProps<{
-  vaccine: Vaccine
-  staggerIndex?: number
-}>()
-
-defineEmits<{ book: [vaccine: Vaccine] }>()
+defineEmits(['book'])
 
 const canBook = computed(() => props.vaccine.stockQuantity > 0 && props.vaccine.available !== false)
 const stockClass = computed(() =>
@@ -122,7 +103,7 @@ const illustrationType = computed(() => {
   return 'vaccine'
 })
 
-function truncate(text: string, len: number): string {
+function truncate(text, len) {
   return text.length > len ? text.substring(0, len) + '...' : text
 }
 </script>

@@ -2,19 +2,15 @@
   <div :class="msgClass">{{ displayText }}</div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {computed, onUnmounted, ref, watch} from 'vue'
 
-interface LoginData {
-  error?: string
-  frozen?: boolean
-  freezeSeconds?: number
-}
-
-const props = defineProps<{ data: LoginData | null }>()
+const props = defineProps({
+  data: { type: Object, default: null }
+})
 
 const freezeRemaining = ref(0)
-let timer: ReturnType<typeof setInterval> | null = null
+let timer = null
 
 const isFrozen = computed(() => props.data?.frozen === true && freezeRemaining.value > 0)
 const isError = computed(() => !props.data?.frozen && !!props.data?.error)
@@ -38,7 +34,7 @@ function clearTimer() {
   }
 }
 
-function startCountdown(seconds: number) {
+function startCountdown(seconds) {
   clearTimer()
   freezeRemaining.value = seconds
   timer = setInterval(() => {
@@ -54,7 +50,7 @@ watch(
   (newData) => {
     clearTimer()
     if (newData?.frozen && (newData.freezeSeconds ?? 0) > 0) {
-      startCountdown(newData.freezeSeconds!)
+      startCountdown(newData.freezeSeconds)
     } else {
       freezeRemaining.value = 0
     }

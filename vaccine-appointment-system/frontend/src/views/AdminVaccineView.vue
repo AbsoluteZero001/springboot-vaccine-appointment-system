@@ -194,33 +194,32 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import ModalMessage from '@/components/ModalMessage.vue'
 import VaccineEditModal from '@/components/VaccineEditModal.vue'
-import type {Vaccine} from '@/components/VaccineCard.vue'
 import {useAuthStore} from '@/stores/auth'
 import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof ModalMessage> | null>(null)
-const vaccines = ref<Vaccine[]>([])
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const addImageFile = ref<File | null>(null)
-const addImagePreview = ref<string | null>(null)
+const alertRef = ref(null)
+const vaccines = ref([])
+const fileInputRef = ref(null)
+const addImageFile = ref(null)
+const addImagePreview = ref(null)
 
 const addForm = reactive({
   name: '',
-  price: null as number | null,
+  price: null,
   category: '',
   brand: '',
   dosage: '',
   technique: '',
-  dosesRequired: null as number | null,
+  dosesRequired: null,
   ageRange: '',
   targetDisease: '',
   manufacturer: '',
@@ -231,10 +230,10 @@ const addForm = reactive({
 })
 
 const editModalVisible = ref(false)
-const editingVaccine = ref<Vaccine | null>(null)
-let editVaccineId: number | null = null
+const editingVaccine = ref(null)
+let editVaccineId = null
 
-function showAlert(msg: string, type: 'success' | 'error' = 'success') {
+function showAlert(msg, type = 'success') {
   alertRef.value?.showModal(msg, type)
 }
 
@@ -277,7 +276,7 @@ async function addVaccine() {
     addForm.stockQuantity = 100
     addForm.available = true
     removeAddImage()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '添加失败', 'error')
   }
 }
@@ -286,8 +285,8 @@ function triggerFileInput() {
   fileInputRef.value?.click()
 }
 
-function onAddImageSelected(e: Event) {
-  const input = e.target as HTMLInputElement
+function onAddImageSelected(e) {
+  const input = e.target
   if (input.files && input.files[0]) {
     const file = input.files[0]
     if (!file.type.startsWith('image/')) {
@@ -297,7 +296,7 @@ function onAddImageSelected(e: Event) {
     addImageFile.value = file
     const reader = new FileReader()
     reader.onload = (ev) => {
-      addImagePreview.value = ev.target?.result as string
+      addImagePreview.value = ev.target?.result
     }
     reader.readAsDataURL(file)
   }
@@ -311,7 +310,7 @@ function removeAddImage() {
   }
 }
 
-async function openEdit(vaccineId: number) {
+async function openEdit(vaccineId) {
   try {
     const response = await api.get(`/vaccines/${vaccineId}`)
     editVaccineId = vaccineId
@@ -322,7 +321,7 @@ async function openEdit(vaccineId: number) {
   }
 }
 
-async function handleEditSave(data: Record<string, any>, imageFile?: File | null) {
+async function handleEditSave(data, imageFile) {
   if (!editVaccineId) return
   try {
     await api.put(`/vaccines/${editVaccineId}`, data)
@@ -337,29 +336,29 @@ async function handleEditSave(data: Record<string, any>, imageFile?: File | null
     showAlert('疫苗更新成功', 'success')
     editModalVisible.value = false
     await loadVaccines()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '更新失败', 'error')
   }
 }
 
-async function deleteVaccine(vaccineId: number) {
+async function deleteVaccine(vaccineId) {
   if (!confirm('确定要删除此疫苗吗？')) return
   try {
     await api.delete(`/vaccines/${vaccineId}`)
     showAlert('疫苗已删除', 'success')
     await loadVaccines()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '删除失败', 'error')
   }
 }
 
-async function toggleAvailability(vaccineId: number, current: boolean) {
+async function toggleAvailability(vaccineId, current) {
   if (!confirm(`确定要${current ? '下架' : '上架'}此疫苗吗？`)) return
   try {
     await api.patch(`/vaccines/${vaccineId}/availability`, { available: !current })
     showAlert('状态已更新', 'success')
     await loadVaccines()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '更新失败', 'error')
   }
 }

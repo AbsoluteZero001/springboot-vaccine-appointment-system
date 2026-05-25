@@ -5,7 +5,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {onMounted} from 'vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import {useAuthStore} from '@/stores/auth'

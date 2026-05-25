@@ -170,14 +170,13 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {computed, onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import ModalMessage from '@/components/ModalMessage.vue'
 import MedicalIllustration from '@/components/MedicalIllustration.vue'
-import type {Vaccine} from '@/components/VaccineCard.vue'
 import VaccineCard from '@/components/VaccineCard.vue'
 import AppointmentModal from '@/components/AppointmentModal.vue'
 import {useAuthStore} from '@/stores/auth'
@@ -185,15 +184,15 @@ import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const modalRef = ref<InstanceType<typeof ModalMessage> | null>(null)
+const modalRef = ref(null)
 
 const today = new Date().toLocaleDateString('zh-CN', {year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'})
-const allVaccines = ref<Vaccine[]>([])
+const allVaccines = ref([])
 const activeCategory = ref('all')
 const searchKeyword = ref('')
 const showModal = ref(false)
 const showVerifyModal = ref(false)
-const selectedVaccine = ref<Vaccine | null>(null)
+const selectedVaccine = ref(null)
 const isLoading = ref(true)
 
 const verifyForm = reactive({
@@ -203,7 +202,7 @@ const verifyForm = reactive({
 
 const categories = computed(() => {
   const cats = new Set(allVaccines.value.map(v => v.category).filter(Boolean))
-  return cats as Set<string>
+  return cats
 })
 
 const filteredVaccines = computed(() => {
@@ -222,7 +221,7 @@ const filteredVaccines = computed(() => {
   return result
 })
 
-function filterByCategory(cat: string) {
+function filterByCategory(cat) {
   activeCategory.value = cat
 }
 
@@ -235,8 +234,8 @@ function resetFilters() {
   searchKeyword.value = ''
 }
 
-function getCategoryIcon(cat: string): string {
-  const icons: Record<string, string> = {
+function getCategoryIcon(cat) {
+  const icons = {
     '新冠疫苗': '🦠',
     '流感疫苗': '🌡️',
     'HPV疫苗': '🎗️',
@@ -247,7 +246,7 @@ function getCategoryIcon(cat: string): string {
   return icons[cat] || '💉'
 }
 
-function showAlert(message: string, type: 'success' | 'error' = 'success') {
+function showAlert(message, type = 'success') {
   modalRef.value?.showModal(message, type)
 }
 
@@ -266,7 +265,7 @@ async function loadVaccines() {
   }
 }
 
-function openBooking(vaccine: Vaccine) {
+function openBooking(vaccine) {
   if (!auth.currentUser?.isVerified) {
     showVerifyModal.value = true
     return
@@ -281,7 +280,7 @@ async function submitVerify() {
     return
   }
   try {
-    const response = await api.post(`/users/${auth.currentUser!.id}/verify`, {
+    const response = await api.post(`/users/${auth.currentUser.id}/verify`, {
       realName: verifyForm.realName.trim(),
       idCard: verifyForm.idCard.trim()
     })
@@ -298,12 +297,12 @@ async function submitVerify() {
     showVerifyModal.value = false
     verifyForm.realName = ''
     verifyForm.idCard = ''
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '实名认证失败', 'error')
   }
 }
 
-async function handleBooking(appointmentTime: string) {
+async function handleBooking(appointmentTime) {
   if (!selectedVaccine.value) return
 
   const date = new Date(appointmentTime)
@@ -314,14 +313,14 @@ async function handleBooking(appointmentTime: string) {
 
   try {
     await api.post('/appointments', {
-      userId: auth.currentUser!.id,
+      userId: auth.currentUser.id,
       vaccineId: selectedVaccine.value.id,
       appointmentTime
     })
     showAlert('预约成功！请按时前往接种', 'success')
     showModal.value = false
     await loadVaccines()
-  } catch (error: any) {
+  } catch (error) {
     const msg = error.response?.data?.error || error.response?.data?.message || '预约失败，请稍后重试'
     showAlert(msg, 'error')
   }

@@ -81,26 +81,22 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {ref} from 'vue'
 import MedicalIllustration from './MedicalIllustration.vue'
-import type {Vaccine} from './VaccineCard.vue'
 
-const props = defineProps<{
-  visible: boolean
-  vaccine: Vaccine | null
-}>()
+const props = defineProps({
+  visible: { type: Boolean, required: true },
+  vaccine: { type: Object, default: null }
+})
 
-const emit = defineEmits<{
-  close: []
-  booked: [appointmentTime: string]
-}>()
+const emit = defineEmits(['close', 'booked'])
 
 const today = new Date().toISOString().split('T')[0]
 const selectedDate = ref('')
 const selectedTime = ref('')
 
-const timeSlots = ref<{ text: string; value: string }[]>([])
+const timeSlots = ref([])
 
 function closeModal() {
   selectedDate.value = ''

@@ -3,32 +3,9 @@ import {computed, ref} from 'vue'
 import api from '@/services/api'
 import axios from 'axios'
 
-export interface SysUser {
-  id: number
-  username: string
-    nickname: string
-    phone: string
-    role: string        // ROLE_USER or ROLE_ADMIN
-  status?: number
-    gender?: number     // 0=未知 1=男 2=女
-    birthday?: string
-    remark?: string
-    avatarUrl?: string
-    realName?: string
-    idCard?: string
-    isVerified?: number // 0=未实名 1=已实名
-    lastUsernameChangeTime?: string
-}
-
-export interface LoginData {
-  error?: string
-  frozen?: boolean
-  freezeSeconds?: number
-}
-
 export const useAuthStore = defineStore('auth', () => {
-    const currentUser = ref<SysUser | null>(null)
-  const token = ref<string | null>(null)
+    const currentUser = ref(null)
+  const token = ref(null)
   const isAuthReady = ref(false)
 
     // Initialize from localStorage
@@ -43,12 +20,12 @@ export const useAuthStore = defineStore('auth', () => {
   const authToken = computed(() => token.value)
     const userRole = computed(() => currentUser.value?.role ?? null)
 
-  function setAuthToken(t: string) {
+  function setAuthToken(t) {
     token.value = t
     localStorage.setItem('accessToken', t)
   }
 
-    function setCurrentUser(u: SysUser) {
+    function setCurrentUser(u) {
         currentUser.value = u
     localStorage.setItem('user', JSON.stringify(u))
   }
@@ -65,29 +42,9 @@ export const useAuthStore = defineStore('auth', () => {
     window.location.href = '/'
   }
 
-    async function login(username: string, password: string): Promise<LoginData> {
+    async function login(username, password) {
     try {
-        const response = await api.post<{
-            code: number
-            message: string
-            data: {
-                id: number;
-                username: string;
-                nickname: string;
-                phone: string;
-                role: string
-                status: number;
-                isVerified: number;
-                realName: string;
-                idCard: string
-                avatarUrl: string;
-                gender: number;
-                birthday: string;
-                remark: string;
-                lastUsernameChangeTime: string;
-                token: string
-            }
-        }>('/auth/login', {username, password})
+        const response = await api.post('/auth/login', {username, password})
         const body = response.data
         if (body.data && body.data.token) {
             setAuthToken(body.data.token)
@@ -109,27 +66,20 @@ export const useAuthStore = defineStore('auth', () => {
             })
         return {}
       }
-        return body as unknown as LoginData
-    } catch (error: any) {
+        return body
+    } catch (error) {
       if (error.response?.data) {
-        return error.response.data as LoginData
+        return error.response.data
       }
       return { error: '网络连接失败，请稍后重试' }
     }
   }
 
-  async function registerUser(userData: {
-    username: string
-    password: string
-      phone: string
-      gender?: number
-      birthday?: string
-      remark?: string
-  }): Promise<{ error?: string }> {
+  async function registerUser(userData) {
     try {
       await api.post('/users/register', userData)
       return {}
-    } catch (error: any) {
+    } catch (error) {
       if (error.response?.data) {
         return { error: error.response.data.error || '注册失败' }
       }

@@ -16,25 +16,11 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-export interface ApiResponse<T> {
-  success: boolean
-  message?: string
-  data?: T
-  timestamp?: string
-  status?: number
-  error?: string
-  frozen?: boolean
-  freezeSeconds?: number
-  accessToken?: string
-  user?: any
-  admin?: any
-}
-
 // Loading state
 export let isLoading = false
 let loadingCount = 0
 
-export function setLoading(loading: boolean) {
+export function setLoading(loading) {
   if (loading) {
     loadingCount++
     isLoading = true

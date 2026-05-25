@@ -162,7 +162,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {computed, onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
@@ -174,25 +174,10 @@ import api from '@/services/api'
 const router = useRouter()
 const auth = useAuthStore()
 
-interface User {
-  id: number
-  username: string
-  nickname?: string
-  phone: string
-  status: number
-  gender?: number
-  birthday?: string
-  remark?: string
-  avatarUrl?: string
-  realName?: string
-  idCard?: string
-  isVerified?: number
-}
-
-const alertRef = ref<InstanceType<typeof ModalMessage> | null>(null)
-const users = ref<User[]>([])
+const alertRef = ref(null)
+const users = ref([])
 const searchQuery = ref('')
-const selectedUser = ref<User | null>(null)
+const selectedUser = ref(null)
 
 const filteredUsers = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -208,17 +193,17 @@ const filteredUsers = computed(() => {
 
 const verifiedCount = computed(() => users.value.filter(u => u.isVerified === 1).length)
 
-function showAlert(msg: string, type: 'success' | 'error' = 'success') {
+function showAlert(msg, type = 'success') {
   alertRef.value?.showModal(msg, type)
 }
 
-function genderLabel(g?: number): string {
+function genderLabel(g) {
   if (g === 1) return '男'
   if (g === 2) return '女'
   return '未知'
 }
 
-function calcAge(birthday?: string): string {
+function calcAge(birthday) {
   if (!birthday) return '—'
   const birth = new Date(birthday)
   const today = new Date()
@@ -230,20 +215,20 @@ function calcAge(birthday?: string): string {
 
 // ── ID-card-derived fields (authoritative for verified users) ──
 
-function idCardGenderDigit(idCard?: string): number | null {
+function idCardGenderDigit(idCard) {
   if (!idCard || idCard.length < 17) return null
   const ch = idCard.charAt(16)
   if (!/\d/.test(ch)) return null
   return parseInt(ch, 10)
 }
 
-function idCardDerivedGender(idCard?: string): number | null {
+function idCardDerivedGender(idCard) {
   const d = idCardGenderDigit(idCard)
   if (d === null) return null
   return (d % 2 === 1) ? 1 : 2
 }
 
-function idCardBirthday(idCard?: string): string | null {
+function idCardBirthday(idCard) {
   if (!idCard || idCard.length < 14) return null
   const y = idCard.substring(6, 10)
   const m = idCard.substring(10, 12)
@@ -252,7 +237,7 @@ function idCardBirthday(idCard?: string): string | null {
   return `${y}-${m}-${d}`
 }
 
-function displayGender(user: User): string {
+function displayGender(user) {
   if (user.isVerified === 1 && user.idCard) {
     const g = idCardDerivedGender(user.idCard)
     if (g !== null) return genderLabel(g)
@@ -260,7 +245,7 @@ function displayGender(user: User): string {
   return genderLabel(user.gender)
 }
 
-function displayBirthday(user: User): string {
+function displayBirthday(user) {
   if (user.isVerified === 1 && user.idCard) {
     const bday = idCardBirthday(user.idCard)
     if (bday) return `${bday} (${calcAge(bday)})`
@@ -269,7 +254,7 @@ function displayBirthday(user: User): string {
   return '—'
 }
 
-function displayGenderDetail(user: User): string {
+function displayGenderDetail(user) {
   if (user.isVerified === 1 && user.idCard) {
     const g = idCardDerivedGender(user.idCard)
     if (g !== null) return genderLabel(g)
@@ -277,7 +262,7 @@ function displayGenderDetail(user: User): string {
   return genderLabel(user.gender)
 }
 
-function displayBirthdayDetail(user: User): string {
+function displayBirthdayDetail(user) {
   if (user.isVerified === 1 && user.idCard) {
     const bday = idCardBirthday(user.idCard)
     if (bday) return bday
@@ -285,7 +270,7 @@ function displayBirthdayDetail(user: User): string {
   return user.birthday || '—'
 }
 
-function maskIdCard(idCard: string): string {
+function maskIdCard(idCard) {
   if (!idCard || idCard.length < 8) return idCard
   return idCard.substring(0, 3) + '***********' + idCard.substring(14)
 }
@@ -299,25 +284,25 @@ async function loadUsers() {
   }
 }
 
-async function toggleUserStatus(user: User) {
+async function toggleUserStatus(user) {
   const newStatus = user.status === 1 ? 0 : 1
   try {
     await api.put(`/users/${user.id}`, {status: newStatus})
     showAlert('用户状态已更新', 'success')
     await loadUsers()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '更新失败', 'error')
   }
 }
 
-async function deleteUser(userId: number) {
+async function deleteUser(userId) {
   if (!confirm('确定要删除此用户吗？其所有预约记录也将被删除。')) return
   try {
     await api.delete(`/users/${userId}`)
     showAlert('用户已删除', 'success')
     selectedUser.value = null
     await loadUsers()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '删除失败', 'error')
   }
 }
