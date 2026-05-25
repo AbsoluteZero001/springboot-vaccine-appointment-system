@@ -25,6 +25,9 @@
           <router-link :class="{ active: isActive('/admin/users') }" to="/admin/users">
             <span class="nav-icon">👥</span> 用户管理
           </router-link>
+          <router-link :class="{ active: isActive('/admin/statistics') }" to="/admin/statistics">
+            <span class="nav-icon">📊</span> 数据统计
+          </router-link>
           <a href="#" class="nav-logout" @click.prevent="auth.logout()">
             <span class="nav-icon">🚪</span> 退出登录
           </a>
@@ -43,9 +46,17 @@
           <router-link :class="{ active: isActive('/profile') }" to="/profile">
             <span class="nav-icon">📅</span> 我的预约
           </router-link>
+          <router-link :class="{ active: isActive('/family') }" to="/family">
+            <span class="nav-icon">👨‍👩‍👧‍👦</span> 家庭成员
+          </router-link>
           <router-link :class="{ active: isActive('/settings') }" to="/settings">
             <span class="nav-icon">👤</span> 个人资料
           </router-link>
+          <a href="#" class="nav-reminder" @click.prevent="goReminders" v-if="reminderCount > 0"
+             :title="`${reminderCount} 条接种提醒`">
+            <span class="nav-icon">🔔</span>
+            <span class="reminder-badge">{{ reminderCount > 99 ? '99+' : reminderCount }}</span>
+          </a>
           <a href="#" class="nav-logout" @click.prevent="auth.logout()">
             <span class="nav-icon">🚪</span> 退出登录
           </a>
@@ -54,12 +65,12 @@
           <router-link :class="{ active: isActive('/') }" to="/">
             <span class="nav-icon">🏠</span> 首页
           </router-link>
-          <a href="#about">
+          <router-link :class="{ active: isActive('/news') }" to="/news">
             <span class="nav-icon">📰</span> 疫苗资讯
-          </a>
-          <a href="#about">
+          </router-link>
+          <router-link :class="{ active: isActive('/guide') }" to="/guide">
             <span class="nav-icon">📖</span> 预约指南
-          </a>
+          </router-link>
           <a href="#footer">
             <span class="nav-icon">ℹ️</span> 关于我们
           </a>
@@ -70,13 +81,15 @@
 </template>
 
 <script setup>
-import {onMounted, onUnmounted, ref} from 'vue'
+import {onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRoute} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
+import api from '@/services/api'
 
 const route = useRoute()
 const auth = useAuthStore()
 const isScrolled = ref(false)
+const reminderCount = ref(0)
 
 function isActive(path) {
   if (path === '/') return route.path === '/'
@@ -87,7 +100,26 @@ function handleScroll() {
   isScrolled.value = window.scrollY > 10
 }
 
-onMounted(() => window.addEventListener('scroll', handleScroll, {passive: true}))
+function goReminders() {
+  window.location.href = '/profile'
+}
+
+async function loadReminderCount() {
+  if (!auth.isUser) return
+  try {
+    const res = await api.get(`/reminders/user/${auth.currentUser.id}/count`)
+    reminderCount.value = res.data.count || 0
+  } catch { /* silent */
+  }
+}
+
+watch(() => auth.currentUser, () => {
+  loadReminderCount()
+})
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, {passive: true})
+  loadReminderCount()
+})
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 
@@ -248,6 +280,28 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   font-size: 18px;
   flex-shrink: 0;
   line-height: 1;
+}
+
+.nav-reminder {
+  position: relative;
+}
+
+.reminder-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #f72585;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid white;
 }
 
 @media (max-width: 768px) {

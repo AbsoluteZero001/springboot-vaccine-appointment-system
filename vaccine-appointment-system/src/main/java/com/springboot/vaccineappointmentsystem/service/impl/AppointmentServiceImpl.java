@@ -32,6 +32,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Autowired
     private VaccineRepository vaccineRepository;
     @Autowired
+    private FamilyMemberRepository familyMemberRepository;
+    @Autowired
     private VaccinationRecordRepository vaccinationRecordRepository;
     @Autowired
     private AppointmentLogRepository appointmentLogRepository;
@@ -90,7 +92,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     // ── Business methods ─────────────────────────────────────────
 
     @Override
-    public Appointment createAppointment(Long userId, Long vaccineId, LocalDateTime appointmentTime) {
+    public Appointment createAppointment(Long userId, Long vaccineId, LocalDateTime appointmentTime, Long familyMemberId) {
         boolean lockAcquired = false;
         try {
             lockAcquired = redisLockService.lockForAppointment(userId, vaccineId);
@@ -107,9 +109,18 @@ public class AppointmentServiceImpl implements AppointmentService {
             if (appointmentTime.isBefore(LocalDateTime.now()))
                 throw new RuntimeException("无法预约过去的时间");
 
+            FamilyMember familyMember = null;
+            if (familyMemberId != null) {
+                familyMember = familyMemberRepository.findById(familyMemberId)
+                        .orElseThrow(() -> new RuntimeException("家庭成员不存在"));
+                if (!familyMember.getUser().getId().equals(userId))
+                    throw new RuntimeException("该家庭成员不属于当前用户");
+            }
+
             Appointment appointment = new Appointment();
             appointment.setUser(user);
             appointment.setVaccine(vaccine);
+            appointment.setFamilyMember(familyMember);
             appointment.setAppointmentTime(appointmentTime);
             appointment.setStatus(AppointmentStatus.APPOINTED);
             appointment.setStatusUpdatedAt(LocalDateTime.now());
@@ -117,8 +128,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
             decrementStock(vaccine);
 
+            String auditDetail = familyMember != null
+                    ? "用户为家属 " + familyMember.getName() + " 预约疫苗 " + vaccine.getName()
+                    : "用户预约疫苗 " + vaccine.getName();
             audit(saved.getId(), "CREATE", null, AppointmentStatus.APPOINTED.getCode(),
-                    user.getUsername(), "用户预约疫苗 " + vaccine.getName());
+                    user.getUsername(), auditDetail);
             return saved;
         } finally {
             if (lockAcquired) redisLockService.unlockForAppointment(userId, vaccineId);
@@ -235,6 +249,29 @@ public class AppointmentServiceImpl implements AppointmentService {
         audit(appointmentId, "LATE_RECORD", AppointmentStatus.NO_SHOW.getCode(), null,
                 "ADMIN", "补录逾期接种记录，库存已扣减: " + (notes != null ? notes : "无备注"));
         log.info("Late vaccination record created for NO_SHOW appointment {}, stock deducted", appointmentId);
+        return saved;
+    }
+
+    @Override
+    public Appointment rescheduleAppointment(Long appointmentId, Long userId, LocalDateTime newTime) {
+        Appointment appointment = appointmentRepository.findByIdAndUserId(appointmentId, userId)
+                .orElseThrow(() -> new RuntimeException("预约未找到或不属于当前用户"));
+
+        AppointmentStatus cur = appointment.getStatus();
+        if (cur != AppointmentStatus.APPOINTED)
+            throw new RuntimeException("只能改期待处理的预约，当前状态: " + cur.getDisplayName());
+        if (newTime.isBefore(LocalDateTime.now()))
+            throw new RuntimeException("新预约时间不能是过去的时间");
+
+        int oldCode = cur.getCode();
+        appointment.setAppointmentTime(newTime);
+        appointment.setStatusUpdatedAt(LocalDateTime.now());
+        Appointment saved = appointmentRepository.save(appointment);
+
+        audit(appointmentId, "RESCHEDULE", oldCode, oldCode,
+                appointment.getUser().getUsername(),
+                "改期至 " + newTime);
+        log.info("Appointment {} rescheduled to {}", appointmentId, newTime);
         return saved;
     }
 

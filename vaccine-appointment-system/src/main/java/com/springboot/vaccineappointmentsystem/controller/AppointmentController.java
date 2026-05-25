@@ -34,7 +34,9 @@ public class AppointmentController {
             Long userId = Long.valueOf(payload.get("userId").toString());
             Long vaccineId = Long.valueOf(payload.get("vaccineId").toString());
             LocalDateTime appointmentTime = LocalDateTime.parse(payload.get("appointmentTime").toString());
-            Appointment appointment = appointmentService.createAppointment(userId, vaccineId, appointmentTime);
+            Long familyMemberId = payload.get("familyMemberId") != null
+                    ? Long.valueOf(payload.get("familyMemberId").toString()) : null;
+            Appointment appointment = appointmentService.createAppointment(userId, vaccineId, appointmentTime, familyMemberId);
             return ResponseEntity.status(HttpStatus.CREATED).body(appointment);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
@@ -178,6 +180,22 @@ public class AppointmentController {
             }
             Appointment saved = appointmentRepository.save(appointment);
             return ResponseEntity.ok(saved);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    // ── Reschedule ────────────────────────────────────────────────
+
+    @PostMapping("/{id}/reschedule")
+    public ResponseEntity<?> rescheduleAppointment(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
+        try {
+            Long userId = Long.valueOf(payload.get("userId").toString());
+            java.time.LocalDateTime newTime = java.time.LocalDateTime.parse(payload.get("newTime").toString());
+            Appointment appointment = appointmentService.rescheduleAppointment(id, userId, newTime);
+            return ResponseEntity.ok(appointment);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());

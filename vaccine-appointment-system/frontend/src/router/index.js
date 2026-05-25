@@ -11,6 +11,16 @@ const router = createRouter({
       component: () => import('@/views/HomeView.vue')
     },
     {
+        path: '/news',
+        name: 'news',
+        component: () => import('@/views/VaccineNewsView.vue')
+    },
+      {
+          path: '/guide',
+          name: 'guide',
+          component: () => import('@/views/AppointmentGuideView.vue')
+      },
+      {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/UserDashboardView.vue'),
@@ -21,6 +31,12 @@ const router = createRouter({
       name: 'profile',
       component: () => import('@/views/UserProfileView.vue'),
         meta: {requiresAuth: true}
+    },
+      {
+          path: '/family',
+          name: 'family',
+          component: () => import('@/views/FamilyMembersView.vue'),
+          meta: {requiresAuth: true}
     },
     {
         path: '/settings',
@@ -45,6 +61,24 @@ const router = createRouter({
       name: 'admin-users',
       component: () => import('@/views/AdminUsersView.vue'),
       meta: { requiresAdmin: true }
+    },
+      {
+          path: '/admin/statistics',
+          name: 'admin-statistics',
+          component: () => import('@/views/AdminStatisticsView.vue'),
+          meta: {requiresAdmin: true}
+      },
+      {
+          path: '/vaccines/:id',
+          name: 'vaccine-detail',
+          component: () => import('@/views/VaccineDetailView.vue'),
+          meta: {requiresAuth: true}
+      },
+      {
+          path: '/records/:id/certificate',
+          name: 'vaccination-certificate',
+          component: () => import('@/views/VaccinationCertificateView.vue'),
+          meta: {requiresAuth: true}
     }
   ]
 })

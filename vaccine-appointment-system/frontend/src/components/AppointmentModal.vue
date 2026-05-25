@@ -51,6 +51,17 @@
         <form @submit.prevent="submitBooking">
           <div class="form-group">
             <label>
+              <span class="label-icon">👤</span> 预约对象
+            </label>
+            <select v-model="selectedFamilyMemberId" class="form-control input-enhanced">
+              <option :value="null">本人</option>
+              <option v-for="m in familyMembers" :key="m.id" :value="m.id">
+                {{ m.name }}（家属）
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>
               <span class="label-icon">📅</span> 选择预约日期
             </label>
             <input v-model="selectedDate" :min="today" class="form-control input-enhanced" type="date"
@@ -87,7 +98,8 @@ import MedicalIllustration from './MedicalIllustration.vue'
 
 const props = defineProps({
   visible: { type: Boolean, required: true },
-  vaccine: { type: Object, default: null }
+  vaccine: {type: Object, default: null},
+  familyMembers: {type: Array, default: () => []}
 })
 
 const emit = defineEmits(['close', 'booked'])
@@ -95,12 +107,14 @@ const emit = defineEmits(['close', 'booked'])
 const today = new Date().toISOString().split('T')[0]
 const selectedDate = ref('')
 const selectedTime = ref('')
+const selectedFamilyMemberId = ref(null)
 
 const timeSlots = ref([])
 
 function closeModal() {
   selectedDate.value = ''
   selectedTime.value = ''
+  selectedFamilyMemberId.value = null
   timeSlots.value = []
   emit('close')
 }
@@ -152,7 +166,7 @@ function submitBooking() {
   if (date.getDay() === 0) return
 
   const appointmentTime = selectedDate.value + 'T' + selectedTime.value + ':00'
-  emit('booked', appointmentTime)
+  emit('booked', appointmentTime, selectedFamilyMemberId.value)
 }
 </script>
 

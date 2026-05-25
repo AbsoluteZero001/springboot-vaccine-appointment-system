@@ -162,6 +162,7 @@
     <AppointmentModal
       :vaccine="selectedVaccine"
       :visible="showModal"
+      :family-members="familyMembers"
       @booked="handleBooking"
       @close="showModal = false"
     />
@@ -194,6 +195,8 @@ const showModal = ref(false)
 const showVerifyModal = ref(false)
 const selectedVaccine = ref(null)
 const isLoading = ref(true)
+
+const familyMembers = ref([])
 
 const verifyForm = reactive({
   realName: '',
@@ -302,7 +305,7 @@ async function submitVerify() {
   }
 }
 
-async function handleBooking(appointmentTime) {
+async function handleBooking(appointmentTime, familyMemberId) {
   if (!selectedVaccine.value) return
 
   const date = new Date(appointmentTime)
@@ -312,11 +315,15 @@ async function handleBooking(appointmentTime) {
   }
 
   try {
-    await api.post('/appointments', {
+    const payload = {
       userId: auth.currentUser.id,
       vaccineId: selectedVaccine.value.id,
       appointmentTime
-    })
+    }
+    if (familyMemberId) {
+      payload.familyMemberId = familyMemberId
+    }
+    await api.post('/appointments', payload)
     showAlert('预约成功！请按时前往接种', 'success')
     showModal.value = false
     await loadVaccines()
@@ -326,12 +333,21 @@ async function handleBooking(appointmentTime) {
   }
 }
 
+async function loadFamilyMembers() {
+  try {
+    const res = await api.get(`/family-members/user/${auth.currentUser.id}`)
+    familyMembers.value = res.data
+  } catch { /* silent */
+  }
+}
+
 onMounted(() => {
   if (!auth.isUser) {
     router.replace('/')
     return
   }
   loadVaccines()
+  loadFamilyMembers()
 })
 </script>
 
