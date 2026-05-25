@@ -153,6 +153,26 @@
             <div v-if="selectedUser.remark" class="detail-remark">
               <strong>备注：</strong>{{ selectedUser.remark }}
             </div>
+            <div class="detail-family">
+              <div class="family-header">
+                <strong>家庭成员（{{ familyMembers.length }}人）</strong>
+              </div>
+              <div v-if="familyLoading" style="text-align:center;padding:16px;">
+                <div class="loading"></div>
+              </div>
+              <div v-else-if="familyMembers.length === 0"
+                   style="text-align:center;padding:12px;color:#94a3b8;font-size:0.85rem;">
+                该用户暂无家庭成员
+              </div>
+              <div v-else class="family-list">
+                <div v-for="m in familyMembers" :key="m.id" class="family-item">
+                  <span class="family-item-name">{{ m.name }}</span>
+                  <span v-if="m.idCard" class="family-item-detail">身份证：{{ maskIdCard(m.idCard) }}</span>
+                  <span v-if="m.phone" class="family-item-detail">📞 {{ m.phone }}</span>
+                  <span v-if="m.remark" class="family-item-detail family-item-remark">{{ m.remark }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -163,7 +183,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
@@ -178,6 +198,8 @@ const alertRef = ref(null)
 const users = ref([])
 const searchQuery = ref('')
 const selectedUser = ref(null)
+const familyMembers = ref([])
+const familyLoading = ref(false)
 
 const filteredUsers = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -306,6 +328,26 @@ async function deleteUser(userId) {
     showAlert(error.response?.data?.error || '删除失败', 'error')
   }
 }
+
+async function loadFamilyMembers(userId) {
+  familyLoading.value = true
+  familyMembers.value = []
+  try {
+    const res = await api.get(`/family-members/user/${userId}`)
+    familyMembers.value = res.data
+  } catch { /* silent */
+  } finally {
+    familyLoading.value = false
+  }
+}
+
+watch(selectedUser, (user) => {
+  if (user) {
+    loadFamilyMembers(user.id)
+  } else {
+    familyMembers.value = []
+  }
+})
 
 onMounted(() => {
   if (!auth.isAdmin) {
@@ -580,6 +622,50 @@ onMounted(() => {
   line-height: 1.6;
 }
 
+.detail-family {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.family-header {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.family-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.family-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.family-item-name {
+  font-weight: 700;
+  color: var(--dark-color);
+  font-size: 0.88rem;
+}
+
+.family-item-detail {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.family-item-remark {
+  font-style: italic;
+  color: #94a3b8;
+}
+
 .empty-state-enhanced {
   text-align: center;
   padding: 60px 20px;
@@ -589,5 +675,9 @@ onMounted(() => {
 .empty-state-enhanced h3 {
   color: var(--gray-color);
   margin: 12px 0 6px;
+}
+
+.empty-state-enhanced p {
+  font-size: 0.9rem;
 }
 </style>

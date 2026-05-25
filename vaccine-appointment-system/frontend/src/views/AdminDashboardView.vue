@@ -63,8 +63,14 @@
           <div v-for="a in appointments" :key="a.id" class="appt-card">
             <div class="appt-info">
               <span class="appt-id">#{{ a.id }}</span>
-              <span class="appt-user">{{ a.user?.nickname || a.user?.username || '—' }}</span>
+              <span class="appt-user">{{
+                  a.familyMember ? a.familyMember.name : (a.user?.realName || a.user?.nickname || a.user?.username || '—')
+                }}</span>
+              <span v-if="a.familyMember" style="font-size:0.78rem; color:#f59e0b;">（家属）</span>
               <span class="appt-phone" style="font-size:0.78rem; color:#94a3b8;"> · {{ a.user?.phone || '—' }}</span>
+              <span v-if="a.user?.idCard"
+                    style="font-size:0.78rem; color:#94a3b8;"> · 身份证：{{ maskIdCard(a.user.idCard) }}</span>
+              <span style="font-size:0.78rem; color:#94a3b8;"> · {{ genderLabel(a.user?.gender) }}</span>
               <span class="appt-vaccine"> · {{ a.vaccine?.name || '—' }}</span>
               <span class="appt-vaccine"> · {{ specText(a.vaccine) }}</span>
               <span v-if="a.vaccine?.price != null" style="font-weight:600; color:#dc2626; font-size:0.82rem;"> · ¥{{
@@ -77,6 +83,9 @@
               <div class="appt-time">
                 🕐 {{ formatDate(a.appointmentTime) }}
                 <span :class="['status-badge', statusClass(a.status)]">{{ statusLabel(a.status) }}</span>
+                <span v-if="a.remark" style="font-size:0.75rem; color:#94a3b8; margin-left:8px;">备注：{{
+                    a.remark
+                  }}</span>
               </div>
             </div>
             <div v-if="a.status === 0 || a.status === 2" class="appt-actions">
@@ -115,7 +124,7 @@
                 </tr>
                 <tr v-for="r in records" :key="r.id">
                   <td class="col-nowrap">{{ r.id }}</td>
-                  <td>{{ r.user?.username || '—' }}</td>
+                  <td>{{ r.user?.realName || r.user?.nickname || r.user?.username || '—' }}</td>
                   <td>{{ r.vaccine?.name || '—' }}</td>
                   <td style="font-size:0.85rem;color:var(--gray-color);">{{ specText(r.vaccine) }}</td>
                   <td class="col-nowrap">{{ formatDate(r.vaccinationTime) }}</td>
@@ -178,6 +187,17 @@ function specText(vaccine) {
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleString('zh-CN')
+}
+
+function maskIdCard(idCard) {
+  if (!idCard || idCard.length < 8) return idCard
+  return idCard.substring(0, 3) + '***********' + idCard.substring(14)
+}
+
+function genderLabel(g) {
+  if (g === 1) return '男'
+  if (g === 2) return '女'
+  return '未知'
 }
 
 function showAlert(msg, type = 'success') {

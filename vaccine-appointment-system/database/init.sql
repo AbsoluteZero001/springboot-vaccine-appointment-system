@@ -93,13 +93,34 @@ CREATE TABLE `vaccine`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ============================================
--- 3. 预约表 appointment
+-- 3. 家庭成员表 family_member
+-- ============================================
+CREATE TABLE `family_member`
+(
+    `id`          BIGINT       NOT NULL AUTO_INCREMENT,
+    `user_id`     BIGINT       NOT NULL,
+    `name`        VARCHAR(50)  NOT NULL COMMENT '真实姓名',
+    `id_card`     VARCHAR(18)  NULL COMMENT '身份证号',
+    `phone`       VARCHAR(20)  NULL COMMENT '手机号',
+    `remark`      VARCHAR(500) NULL COMMENT '备注',
+    `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_family_member_user` (`user_id`),
+    CONSTRAINT `fk_family_member_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+-- ============================================
+-- 4. 预约表 appointment
 --    status: 0=已预约 1=已完成 2=未到场 3=已取消
 -- ============================================
 CREATE TABLE `appointment`
 (
     `id`                BIGINT   NOT NULL AUTO_INCREMENT,
     `user_id`           BIGINT   NOT NULL,
+    `family_member_id` BIGINT NULL COMMENT '为家属预约时的家属ID',
     `vaccine_id`        BIGINT   NOT NULL,
     `appointment_time`  DATETIME NOT NULL,
     `status`            INT      NOT NULL DEFAULT 0 COMMENT '0=已预约 1=已完成 2=未到场 3=已取消',
@@ -114,13 +135,14 @@ CREATE TABLE `appointment`
     INDEX `idx_appointment_status` (`status`),
     INDEX `idx_appointment_time` (`appointment_time`),
     CONSTRAINT `fk_appointment_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
+    CONSTRAINT `fk_appointment_family_member` FOREIGN KEY (`family_member_id`) REFERENCES `family_member` (`id`),
     CONSTRAINT `fk_appointment_vaccine` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
 -- ============================================
--- 4. 接种记录表 vaccination_record
+-- 5. 接种记录表 vaccination_record
 --    status: 0=已安排 1=已接种
 -- ============================================
 CREATE TABLE `vaccination_record`
@@ -151,7 +173,7 @@ CREATE TABLE `vaccination_record`
   COLLATE = utf8mb4_0900_ai_ci;
 
 -- ============================================
--- 5. 预约操作日志表 appointment_log
+-- 6. 预约操作日志表 appointment_log
 -- ============================================
 CREATE TABLE `appointment_log`
 (
@@ -171,7 +193,7 @@ CREATE TABLE `appointment_log`
 
 
 -- ============================================
--- 6. 疫苗初始数据 (46 种)
+-- 7. 疫苗初始数据 (46 种)
 -- ============================================
 INSERT INTO `vaccine`
 (`id`, `name`, `manufacturer`, `description`, `stock_quantity`, `available`, `image_url`,

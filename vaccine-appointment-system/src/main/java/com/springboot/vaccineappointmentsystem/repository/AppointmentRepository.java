@@ -19,9 +19,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByVaccine(Vaccine vaccine);
     List<Appointment> findByUserId(Long userId);
 
-    @Query("SELECT a FROM Appointment a JOIN FETCH a.vaccine JOIN FETCH a.user WHERE a.user.id = :userId")
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.vaccine JOIN FETCH a.user LEFT JOIN FETCH a.familyMember WHERE a.user.id = :userId")
     List<Appointment> findByUserIdWithVaccine(@Param("userId") Long userId);
-    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine WHERE a.vaccine.id = :vaccineId")
+
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine LEFT JOIN FETCH a.familyMember WHERE a.vaccine.id = :vaccineId")
     List<Appointment> findByVaccineId(@Param("vaccineId") Long vaccineId);
 
     List<Appointment> findByStatus(AppointmentStatus status);
@@ -32,10 +33,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Query("SELECT a FROM Appointment a WHERE a.user.id = :userId AND a.status IN :statuses")
     List<Appointment> findByUserAndStatusIn(@Param("userId") Long userId, @Param("statuses") List<AppointmentStatus> statuses);
 
-    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine ORDER BY a.createTime DESC")
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine LEFT JOIN FETCH a.familyMember ORDER BY a.createTime DESC")
     List<Appointment> findAllWithDetails();
 
-    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine WHERE a.status = :status ORDER BY a.createTime DESC")
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.user JOIN FETCH a.vaccine LEFT JOIN FETCH a.familyMember WHERE a.status = :status ORDER BY a.createTime DESC")
     List<Appointment> findByStatusWithDetails(@Param("status") AppointmentStatus status);
 
     Optional<Appointment> findByIdAndUserId(Long id, Long userId);
