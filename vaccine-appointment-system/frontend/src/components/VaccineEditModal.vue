@@ -102,32 +102,28 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {reactive, ref, watch} from 'vue'
-import type {Vaccine} from './VaccineCard.vue'
 
-const props = defineProps<{
-  visible: boolean
-  vaccine: Vaccine | null
-}>()
+const props = defineProps({
+  visible: { type: Boolean, required: true },
+  vaccine: { type: Object, default: null }
+})
 
-const emit = defineEmits<{
-  close: []
-  saved: [data: Record<string, any>, imageFile?: File | null]
-}>()
+const emit = defineEmits(['close', 'saved'])
 
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const selectedImageFile = ref<File | null>(null)
-const imagePreview = ref<string | null>(null)
+const fileInputRef = ref(null)
+const selectedImageFile = ref(null)
+const imagePreview = ref(null)
 
 const form = reactive({
   name: '',
-  price: null as number | null,
+  price: null,
   category: '',
   brand: '',
   dosage: '',
   technique: '',
-  dosesRequired: null as number | null,
+  dosesRequired: null,
   ageRange: '',
   targetDisease: '',
   manufacturer: '',
@@ -173,8 +169,8 @@ function triggerFileInput() {
   fileInputRef.value?.click()
 }
 
-function onImageSelected(e: Event) {
-  const input = e.target as HTMLInputElement
+function onImageSelected(e) {
+  const input = e.target
   if (input.files && input.files[0]) {
     const file = input.files[0]
     if (!file.type.startsWith('image/')) {
@@ -183,7 +179,7 @@ function onImageSelected(e: Event) {
     selectedImageFile.value = file
     const reader = new FileReader()
     reader.onload = (ev) => {
-      imagePreview.value = ev.target?.result as string
+      imagePreview.value = ev.target?.result
     }
     reader.readAsDataURL(file)
   }

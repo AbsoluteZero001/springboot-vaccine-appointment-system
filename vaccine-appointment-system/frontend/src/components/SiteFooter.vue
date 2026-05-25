@@ -46,8 +46,8 @@
   </footer>
 </template>
 
-<script lang="ts" setup>
-defineProps<{ adminMode?: boolean }>()
+<script setup>
+defineProps({ adminMode: Boolean })
 </script>
 
 <style scoped>

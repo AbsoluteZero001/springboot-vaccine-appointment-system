@@ -54,7 +54,7 @@ router.beforeEach(async (to, _from) => {
 
     // Block navigation until session verified
   if (!auth.isAuthReady) {
-    await new Promise<void>((resolve) => {
+    await new Promise((resolve) => {
       const stop = watch(() => auth.isAuthReady, (ready) => {
         if (ready) {
           stop()

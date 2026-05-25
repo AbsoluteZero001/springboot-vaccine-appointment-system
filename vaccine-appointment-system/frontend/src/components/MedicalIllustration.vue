@@ -153,15 +153,12 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-withDefaults(defineProps<{
-  type: 'vaccine' | 'syringe' | 'hospital' | 'shield' | 'calendar' | 'doctor' | 'heartbeat' | 'capsule' | 'search'
-  size?: 'sm' | 'md' | 'lg'
-  width?: string
-  height?: string
-}>(), {
-  type: 'vaccine',
-  size: 'md'
+<script setup>
+defineProps({
+  type: { type: String, default: 'vaccine' },
+  size: { type: String, default: 'md' },
+  width: { type: String, default: undefined },
+  height: { type: String, default: undefined }
 })
 </script>
 

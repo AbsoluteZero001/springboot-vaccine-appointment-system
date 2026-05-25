@@ -135,7 +135,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
@@ -146,7 +146,7 @@ import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof ModalMessage> | null>(null)
+const alertRef = ref(null)
 const today = new Date().toLocaleDateString('zh-CN')
 
 const tabs = [
@@ -157,30 +157,30 @@ const tabs = [
 ]
 
 const activeStatus = ref(0)
-const counts = ref<Record<number, number>>({ 0: 0, 1: 0, 2: 0, 3: 0 })
-const appointments = ref<any[]>([])
-const records = ref<any[]>([])
+const counts = ref({ 0: 0, 1: 0, 2: 0, 3: 0 })
+const appointments = ref([])
+const records = ref([])
 
-const STATUS: Record<number, { text: string; cls: string }> = {
+const STATUS = {
   0: {text: '已预约', cls: 'status-pending'},
   1: {text: '已完成', cls: 'status-completed'},
   2: {text: '未到场', cls: 'status-cancelled'},
   3: { text: '已取消', cls: 'status-cancelled' }
 }
 
-function statusLabel(s: number) { return STATUS[s]?.text || '未知' }
-function statusClass(s: number) { return STATUS[s]?.cls || '' }
+function statusLabel(s) { return STATUS[s]?.text || '未知' }
+function statusClass(s) { return STATUS[s]?.cls || '' }
 
-function specText(vaccine?: { brand?: string; dosage?: string }) {
+function specText(vaccine) {
   if (!vaccine) return '—'
   return [vaccine.brand, vaccine.dosage].filter(Boolean).join(' | ') || '—'
 }
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr) {
   return new Date(dateStr).toLocaleString('zh-CN')
 }
 
-function showAlert(msg: string, type: 'success' | 'error' = 'success') {
+function showAlert(msg, type = 'success') {
   alertRef.value?.showModal(msg, type)
 }
 
@@ -188,13 +188,13 @@ async function loadStats() {
   try {
     const response = await api.get('/appointments')
     const data = response.data
-    const c: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 }
-    data.forEach((a: any) => { c[a.status] = (c[a.status] || 0) + 1 })
+    const c = { 0: 0, 1: 0, 2: 0, 3: 0 }
+    data.forEach((a) => { c[a.status] = (c[a.status] || 0) + 1 })
     counts.value = c
   } catch { /* silent */ }
 }
 
-async function loadAppointments(status: number) {
+async function loadAppointments(status) {
   try {
     const response = await api.get(`/appointments/status/${status}`)
     appointments.value = response.data
@@ -210,12 +210,12 @@ async function loadRecords() {
   } catch { /* silent */ }
 }
 
-function switchTab(status: number) {
+function switchTab(status) {
   activeStatus.value = status
   loadAppointments(status)
 }
 
-async function completeAppt(id: number) {
+async function completeAppt(id) {
   if (!confirm('确认完成接种？系统将自动生成接种记录。')) return
   try {
     await api.post(`/appointments/${id}/complete`)
@@ -223,12 +223,12 @@ async function completeAppt(id: number) {
     await loadStats()
     await loadAppointments(activeStatus.value)
     await loadRecords()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '完成接种失败', 'error')
   }
 }
 
-async function createLateRecord(id: number) {
+async function createLateRecord(id) {
   const notes = prompt('请输入补录说明（可选）：')
   if (notes === null) return
   try {
@@ -237,19 +237,19 @@ async function createLateRecord(id: number) {
     await loadStats()
     await loadAppointments(activeStatus.value)
     await loadRecords()
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '补录失败', 'error')
   }
 }
 
-async function cancelAppt(id: number) {
+async function cancelAppt(id) {
   if (!confirm('确定要取消此预约吗？')) return
   try {
     await api.post(`/appointments/${id}/cancel/admin`)
     showAlert('预约已取消', 'success')
     await loadStats()
     await loadAppointments(activeStatus.value)
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '取消失败', 'error')
   }
 }

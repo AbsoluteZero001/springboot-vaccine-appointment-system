@@ -10,18 +10,13 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {ref} from 'vue'
 
-interface Alert {
-  message: string
-  type: 'success' | 'error'
-}
+const alerts = ref([])
 
-const alerts = ref<Alert[]>([])
-
-function showAlert(message: string, type: 'success' | 'error' = 'success') {
-  const alert: Alert = { message, type }
+function showAlert(message, type = 'success') {
+  const alert = { message, type }
   alerts.value.push(alert)
   setTimeout(() => {
     const idx = alerts.value.indexOf(alert)

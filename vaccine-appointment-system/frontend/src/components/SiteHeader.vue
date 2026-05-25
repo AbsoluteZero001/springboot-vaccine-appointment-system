@@ -69,7 +69,7 @@
   </header>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {onMounted, onUnmounted, ref} from 'vue'
 import {useRoute} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
@@ -78,7 +78,7 @@ const route = useRoute()
 const auth = useAuthStore()
 const isScrolled = ref(false)
 
-function isActive(path: string): boolean {
+function isActive(path) {
   if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
 }

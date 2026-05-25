@@ -10,15 +10,15 @@
   </Teleport>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {ref} from 'vue'
 
 const visible = ref(false)
 const message = ref('')
-const type = ref<'success' | 'error'>('success')
-let timer: ReturnType<typeof setTimeout> | null = null
+const type = ref('success')
+let timer = null
 
-function showModal(msg: string, t: 'success' | 'error' = 'success') {
+function showModal(msg, t = 'success') {
   if (timer) clearTimeout(timer)
   message.value = msg
   type.value = t

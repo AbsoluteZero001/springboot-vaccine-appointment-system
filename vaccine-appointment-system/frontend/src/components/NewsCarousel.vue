@@ -38,7 +38,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {onMounted, onUnmounted, ref} from 'vue'
 
 const slides = [
@@ -96,7 +96,7 @@ const slides = [
 
 const totalSlides = slides.length
 const currentSlide = ref(0)
-let autoPlayInterval: ReturnType<typeof setInterval> | null = null
+let autoPlayInterval = null
 
 function nextSlide() {
   currentSlide.value = (currentSlide.value + 1) % totalSlides
@@ -106,7 +106,7 @@ function prevSlide() {
   currentSlide.value = (currentSlide.value - 1 + totalSlides) % totalSlides
 }
 
-function goToSlide(index: number) {
+function goToSlide(index) {
   currentSlide.value = index
   resetAutoPlay()
 }

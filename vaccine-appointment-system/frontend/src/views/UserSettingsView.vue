@@ -149,7 +149,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {computed, onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
@@ -160,8 +160,8 @@ import api from '@/services/api'
 
 const router = useRouter()
 const auth = useAuthStore()
-const modalRef = ref<InstanceType<typeof ModalMessage> | null>(null)
-const avatarInputRef = ref<HTMLInputElement | null>(null)
+const modalRef = ref(null)
+const avatarInputRef = ref(null)
 
 const avatarPreview = ref('')
 const userForm = reactive({
@@ -205,11 +205,11 @@ const usernameCooldownDays = computed(() => {
   return Math.ceil((ONE_YEAR_MS - elapsed) / (24 * 60 * 60 * 1000))
 })
 
-function showAlert(message: string, type: 'success' | 'error' = 'success') {
+function showAlert(message, type = 'success') {
   modalRef.value?.showModal(message, type)
 }
 
-function maskIdCard(idCard: string): string {
+function maskIdCard(idCard) {
   if (!idCard || idCard.length < 8) return idCard
   return idCard.substring(0, 3) + '***********' + idCard.substring(14)
 }
@@ -220,8 +220,8 @@ function triggerAvatarUpload() {
   avatarInputRef.value?.click()
 }
 
-async function handleAvatarChange(event: Event) {
-  const target = event.target as HTMLInputElement
+async function handleAvatarChange(event) {
+  const target = event.target
   const file = target.files?.[0]
   if (!file) return
 
@@ -234,7 +234,7 @@ async function handleAvatarChange(event: Event) {
   formData.append('file', file)
 
   try {
-    const response = await api.post(`/users/${auth.currentUser!.id}/avatar`, formData, {
+    const response = await api.post(`/users/${auth.currentUser.id}/avatar`, formData, {
       headers: {'Content-Type': 'multipart/form-data'}
     })
     avatarPreview.value = response.data.avatarUrl
@@ -243,7 +243,7 @@ async function handleAvatarChange(event: Event) {
       localStorage.setItem('user', JSON.stringify(auth.currentUser))
     }
     showAlert('头像上传成功')
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '上传失败', 'error')
   } finally {
     target.value = ''
@@ -278,7 +278,7 @@ async function saveProfile() {
     return
   }
   try {
-    const response = await api.put(`/users/${auth.currentUser!.id}/profile`, {
+    const response = await api.put(`/users/${auth.currentUser.id}/profile`, {
       nickname: userForm.nickname.trim(),
       gender: userForm.gender,
       birthday: userForm.birthday || null,
@@ -296,7 +296,7 @@ async function saveProfile() {
       localStorage.setItem('user', JSON.stringify(u))
     }
     showAlert('资料已保存')
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '保存失败', 'error')
   }
 }
@@ -314,7 +314,7 @@ async function saveUsername() {
     return
   }
   try {
-    const response = await api.put(`/users/${auth.currentUser!.id}/username`, {
+    const response = await api.put(`/users/${auth.currentUser.id}/username`, {
       username: name
     })
     if (auth.currentUser) {
@@ -324,7 +324,7 @@ async function saveUsername() {
     }
     showAlert('用户名修改成功（每年仅可修改一次）')
     usernameForm.newUsername = ''
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '修改失败', 'error')
   }
 }
@@ -337,7 +337,7 @@ async function submitVerify() {
     return
   }
   try {
-    const response = await api.post(`/users/${auth.currentUser!.id}/verify`, {
+    const response = await api.post(`/users/${auth.currentUser.id}/verify`, {
       realName: verifyForm.realName.trim(),
       idCard: verifyForm.idCard.trim()
     })
@@ -353,7 +353,7 @@ async function submitVerify() {
     showAlert('实名认证成功！现在可以预约疫苗了')
     verifyForm.realName = ''
     verifyForm.idCard = ''
-  } catch (error: any) {
+  } catch (error) {
     showAlert(error.response?.data?.error || '实名认证失败', 'error')
   }
 }

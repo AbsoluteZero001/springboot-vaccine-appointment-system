@@ -209,7 +209,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import SiteHeader from '@/components/SiteHeader.vue'
@@ -218,12 +218,11 @@ import NewsCarousel from '@/components/NewsCarousel.vue'
 import LoginMessage from '@/components/LoginMessage.vue'
 import ModalMessage from '@/components/ModalMessage.vue'
 import MedicalIllustration from '@/components/MedicalIllustration.vue'
-import type {LoginData} from '@/stores/auth'
 import {useAuthStore} from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
-const alertRef = ref<InstanceType<typeof ModalMessage> | null>(null)
+const alertRef = ref(null)
 
 const activeTab = ref('user-login')
 
@@ -232,15 +231,15 @@ const regForm = reactive({
   username: '',
   password: '',
   phone: '',
-  gender: 0 as number,
+  gender: 0,
   birthday: '',
   remark: ''
 })
 
-const loginMsgData = ref<LoginData | null>(null)
-const regMsgData = ref<LoginData | null>(null)
+const loginMsgData = ref(null)
+const regMsgData = ref(null)
 
-function showAlert(message: string, type: 'success' | 'error' = 'success') {
+function showAlert(message, type = 'success') {
   alertRef.value?.showModal(message, type)
 }
 

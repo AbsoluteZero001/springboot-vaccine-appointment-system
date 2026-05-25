@@ -8,8 +8,10 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {isLoading} from '@/services/api'
 
-withDefaults(defineProps<{ message?: string }>(), {message: '加载中...'})
+defineProps({
+  message: { type: String, default: '加载中...' }
+})
 </script>
