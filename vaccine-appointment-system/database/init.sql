@@ -191,9 +191,53 @@ CREATE TABLE `appointment_log`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
+-- ============================================
+-- 7. 接种提醒表 vaccination_reminder
+-- ============================================
+CREATE TABLE `vaccination_reminder`
+(
+    `id`            BIGINT       NOT NULL AUTO_INCREMENT,
+    `user_id`       BIGINT       NOT NULL,
+    `vaccine_id`    BIGINT       NOT NULL,
+    `dose_number`   INT          NOT NULL COMMENT '第几针',
+    `total_doses`   INT          NOT NULL COMMENT '总针数',
+    `reminder_date` DATETIME     NOT NULL,
+    `is_read`       BIT(1)       NOT NULL DEFAULT 0 COMMENT '0=未读 1=已读',
+    `message`       VARCHAR(200) NULL,
+    `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_reminder_user` (`user_id`),
+    INDEX `idx_reminder_read` (`is_read`),
+    CONSTRAINT `fk_reminder_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
+    CONSTRAINT `fk_reminder_vaccine` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
 
 -- ============================================
--- 7. 疫苗初始数据 (46 种)
+-- 8. 疫苗评价表 review
+-- ============================================
+CREATE TABLE `review`
+(
+    `id`          BIGINT   NOT NULL AUTO_INCREMENT,
+    `user_id`     BIGINT   NOT NULL,
+    `vaccine_id`  BIGINT   NOT NULL,
+    `rating`      INT      NOT NULL COMMENT '评分 1-5',
+    `content`     TEXT     NULL,
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_review_user` (`user_id`),
+    INDEX `idx_review_vaccine` (`vaccine_id`),
+    UNIQUE KEY `uk_review_user_vaccine` (`user_id`, `vaccine_id`),
+    CONSTRAINT `fk_review_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
+    CONSTRAINT `fk_review_vaccine` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- ============================================
+-- 9. 疫苗初始数据 (46 种)
 -- ============================================
 INSERT INTO `vaccine`
 (`id`, `name`, `manufacturer`, `description`, `stock_quantity`, `available`, `image_url`,

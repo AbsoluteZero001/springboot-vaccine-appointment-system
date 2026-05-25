@@ -8,12 +8,15 @@
 -- 包含内容:
 --   1. 字符集设置 (utf8mb4)
 --   2. 创建数据库
---   3. 五张核心业务表:
---      - sys_user          用户表 (管理员 + 用户共用)
---      - vaccine           疫苗表 (46 条初始数据)
---      - appointment       预约表
---      - vaccination_record 接种记录表
---      - appointment_log   预约操作日志表
+--   3. 八张核心业务表:
+--      - sys_user             用户表 (管理员 + 用户共用)
+--      - vaccine              疫苗表 (46 条初始数据)
+--      - family_member        家庭成员表
+--      - appointment          预约表
+--      - vaccination_record   接种记录表
+--      - appointment_log      预约操作日志表
+--      - vaccination_reminder 接种提醒表
+--      - review               疫苗评价表
 --   4. 初始数据:
 --      - 管理员 ×1  (admin / admin123)  ← 有且仅有一个管理员
 --      - 疫苗 ×46   (覆盖乙肝/HPV/流感/肺炎/带状疱疹/狂犬/百白破等)
@@ -222,7 +225,52 @@ CREATE TABLE `appointment_log`
 
 
 -- ============================================================================
--- 6. 疫苗初始数据 (46 种)
+-- 7. 接种提醒表 vaccination_reminder
+-- ============================================================================
+CREATE TABLE `vaccination_reminder`
+(
+    `id`            BIGINT       NOT NULL AUTO_INCREMENT,
+    `user_id`       BIGINT       NOT NULL,
+    `vaccine_id`    BIGINT       NOT NULL,
+    `dose_number`   INT          NULL COMMENT '第几剂次',
+    `total_doses`   INT          NULL COMMENT '总剂次数',
+    `reminder_date` DATE         NULL COMMENT '提醒日期',
+    `is_read`       BIT(1)       NOT NULL DEFAULT 0 COMMENT '0=未读 1=已读',
+    `message`       VARCHAR(200) NULL COMMENT '提醒消息内容',
+    `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_reminder_user` (`user_id`),
+    INDEX `idx_reminder_vaccine` (`vaccine_id`),
+    CONSTRAINT `fk_reminder_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
+    CONSTRAINT `fk_reminder_vaccine` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- ============================================================================
+-- 8. 疫苗评价表 review
+-- ============================================================================
+CREATE TABLE `review`
+(
+    `id`          BIGINT   NOT NULL AUTO_INCREMENT,
+    `user_id`     BIGINT   NOT NULL,
+    `vaccine_id`  BIGINT   NOT NULL,
+    `rating`      INT      NOT NULL COMMENT '评分 1-5',
+    `content`     TEXT     NULL COMMENT '评价内容',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_review_user_vaccine` (`user_id`, `vaccine_id`),
+    INDEX `idx_review_vaccine` (`vaccine_id`),
+    CONSTRAINT `fk_review_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
+    CONSTRAINT `fk_review_vaccine` FOREIGN KEY (`vaccine_id`) REFERENCES `vaccine` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- ============================================================================
+-- 9. 疫苗初始数据 (46 种)
 -- ============================================================================
 -- ⚠️ 图片说明:
 --    初始化使用 Unsplash 占位图片 URL，仅作展示引导
