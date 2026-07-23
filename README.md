@@ -461,17 +461,22 @@ vaccine-appointment-system/
 ## 用户端
 
 ### 用户查看疫苗列表
-
 ![用户疫苗列表](vaccine-appointment-system/docs/images/user-vaccine-list.png)
 
 ---
+### 用户实名认证
+![用户实名认证](vaccine-appointment-system/docs/images/user-Identity-Verification.png)
 
 ### 用户预约疫苗页面
-
 ![用户预约页面](vaccine-appointment-system/docs/images/user-appointment.png)
 
-### 用户修改个人资料
+### 用户添加家庭成员
+![用户添加家庭成员](vaccine-appointment-system/docs/images/user-familymembers.png)
 
+### 用户实现家属代约疫苗
+![用户家属预约疫苗](vaccine-appointment-system/docs/images/user-FamilyMemberBooking.png)
+
+### 用户修改个人资料
 ![用户修改个人资料](vaccine-appointment-system/docs/images/User-Profile-Update.png)
 
 ---
@@ -479,31 +484,26 @@ vaccine-appointment-system/
 ## 管理员端
 
 ### 疫苗管理列表
-
 ![管理员疫苗管理列表](vaccine-appointment-system/docs/images/admin-vaccine-list.png)
 
 ---
 
 ### 疫苗编辑
-
 ![管理员疫苗编辑](vaccine-appointment-system/docs/images/admin-vaccine-edit.png)
 
 ---
 
 ### 疫苗管理模块
-
 ![管理员疫苗管理](vaccine-appointment-system/docs/images/admin-vaccine-management.png)
 
 ---
 
 ### 预约审核列表
-
 ![管理员预约审核列表](vaccine-appointment-system/docs/images/admin-appointment-review-list.png)
 
 ---
 
 ### 管理员管理用户
-
 ![管理员用户管理](vaccine-appointment-system/docs/images/User-Management-Admin.png)
 
 ## License
