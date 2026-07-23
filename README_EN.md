@@ -444,7 +444,7 @@ The project includes a GitHub Actions pipeline (`.github/workflows/ci-cd.yml`):
               └──────────┘  └──────────┘
 ```
 
-## Screenshots
+## Project Screenshots
 
 ---
 
@@ -454,57 +454,57 @@ The project includes a GitHub Actions pipeline (`.github/workflows/ci-cd.yml`):
 
 ---
 
-## Password Brute-Force Protection
+## Password Brute Force Protection
 
-## ![Password Brute-Force Protection](vaccine-appointment-system/docs/images/Password-brute-force-protection.png)
+## ![Password Brute Force Protection](vaccine-appointment-system/docs/images/Password-brute-force-protection.png)
 
 ## User Side
 
 ### User Vaccine List
-
 ![User Vaccine List](vaccine-appointment-system/docs/images/user-vaccine-list.png)
 
 ---
+### User Identity Verification
+![User Identity Verification](vaccine-appointment-system/docs/images/user-Identity-Verification.png)
 
-### User Appointment Page
+### Vaccine Appointment Page
+![Vaccine Appointment Page](vaccine-appointment-system/docs/images/user-appointment.png)
 
-![User Appointment Page](vaccine-appointment-system/docs/images/user-appointment.png)
+### Add Family Members
+![Add Family Members](vaccine-appointment-system/docs/images/user-familymembers.png)
 
-### User Profile Update
+### Family Member Vaccine Booking
+![Family Member Vaccine Booking](vaccine-appointment-system/docs/images/user-FamilyMemberBooking.png)
 
-![User Profile Update](vaccine-appointment-system/docs/images/User-Profile-Update.png)
+### Update User Profile
+![Update User Profile](vaccine-appointment-system/docs/images/User-Profile-Update.png)
 
 ---
 
-## Admin Side
+## Administrator Side
 
 ### Vaccine Management List
-
-![Admin Vaccine Management List](vaccine-appointment-system/docs/images/admin-vaccine-list.png)
+![Vaccine Management List](vaccine-appointment-system/docs/images/admin-vaccine-list.png)
 
 ---
 
-### Vaccine Edit
-
-![Admin Vaccine Edit](vaccine-appointment-system/docs/images/admin-vaccine-edit.png)
+### Vaccine Editing
+![Vaccine Editing](vaccine-appointment-system/docs/images/admin-vaccine-edit.png)
 
 ---
 
 ### Vaccine Management Module
-
-![Admin Vaccine Management](vaccine-appointment-system/docs/images/admin-vaccine-management.png)
+![Vaccine Management Module](vaccine-appointment-system/docs/images/admin-vaccine-management.png)
 
 ---
 
 ### Appointment Review List
-
-![Admin Appointment Review List](vaccine-appointment-system/docs/images/admin-appointment-review-list.png)
+![Appointment Review List](vaccine-appointment-system/docs/images/admin-appointment-review-list.png)
 
 ---
 
 ### User Management
-
-![Admin User Management](vaccine-appointment-system/docs/images/User-Management-Admin.png)
+![User Management](vaccine-appointment-system/docs/images/User-Management-Admin.png)
 
 ## License
 
