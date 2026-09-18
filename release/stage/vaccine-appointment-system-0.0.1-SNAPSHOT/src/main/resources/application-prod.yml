@@ -1,0 +1,22 @@
+# =============================================================================
+# 生产环境配置 (spring.profiles.active=prod)
+# =============================================================================
+
+spring:
+  jpa:
+    show-sql: false
+
+  # 生产环境启用 Redis 缓存
+  cache:
+    type: redis
+
+server:
+  # 生产环境启用压缩
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+logging:
+  level:
+    root: WARN
+    com.springboot.vaccineappointmentsystem: INFO

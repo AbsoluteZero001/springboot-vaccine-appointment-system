@@ -1,0 +1,12 @@
+# =============================================================================
+# 开发环境配置 (spring.profiles.active=dev)
+# =============================================================================
+
+spring:
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.springboot.vaccineappointmentsystem: DEBUG
+    org.springframework.security: DEBUG

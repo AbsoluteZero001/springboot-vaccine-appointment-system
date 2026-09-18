@@ -1,0 +1,57 @@
+# =======================
+# Docker 构建忽略文件
+# =======================
+
+# Git
+.git/
+.gitattributes
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# Maven
+target/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Node
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+
+# Logs
+logs/
+*.log
+
+# Uploads (runtime)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env (sensitive)
+.env
+.env.local
+.env.*.local
+
+# Docs
+*.md
+!README.md
+
+# Claude
+.claude/
+
+# Temp
+*.tmp
+*.swp
+*.bak
