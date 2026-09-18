@@ -1,0 +1,211 @@
+name: Deploy Vaccine Appointment System
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: vaccine-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # =========================
+      # Java / Maven
+      # =========================
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Make Maven Wrapper executable
+        run: chmod +x mvnw
+
+      - name: Build backend
+        run: ./mvnw --batch-mode clean verify
+
+      # =========================
+      # Node / Vue
+      # =========================
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_OUT_DIR: dist
+        run: npm run build
+
+      # =========================
+      # Prepare artifacts
+      # =========================
+
+      - name: Prepare deployment artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p deploy-out
+
+          echo "===== Backend JAR candidates ====="
+
+          find target \
+            -maxdepth 1 \
+            -type f \
+            -name '*.jar' \
+            -print
+
+          JAR_FILE="$(find target \
+            -maxdepth 1 \
+            -type f \
+            -name '*.jar' \
+            ! -name '*.original' \
+            ! -name '*-sources.jar' \
+            ! -name '*-javadoc.jar' \
+            | head -n 1)"
+
+          if [ -z "$JAR_FILE" ]; then
+            echo "ERROR: Spring Boot JAR not found."
+            exit 1
+          fi
+
+          if [ ! -f frontend/dist/index.html ]; then
+            echo "ERROR: frontend/dist/index.html not found."
+            exit 1
+          fi
+
+          echo "Using backend JAR:"
+          echo "$JAR_FILE"
+
+          cp \
+            "$JAR_FILE" \
+            deploy-out/vaccine-appointment-system.jar
+
+          tar \
+            -C frontend/dist \
+            -czf deploy-out/frontend-dist.tar.gz \
+            .
+
+          cd deploy-out
+
+          sha256sum \
+            vaccine-appointment-system.jar \
+            frontend-dist.tar.gz \
+            > SHA256SUMS.txt
+
+          echo "===== Deployment artifacts ====="
+          ls -lah
+
+          echo "===== SHA256 ====="
+          cat SHA256SUMS.txt
+
+          sha256sum -c SHA256SUMS.txt
+
+      # =========================
+      # SSH
+      # =========================
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ECS_SSH_KEY }}
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_PORT: ${{ secrets.ECS_PORT }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" \
+            | tr -d '\r' \
+            > ~/.ssh/id_ed25519
+
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan \
+            -p "$ECS_PORT" \
+            -H "$ECS_HOST" \
+            >> ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        shell: bash
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_PORT: ${{ secrets.ECS_PORT }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -p "$ECS_PORT" \
+            -o BatchMode=yes \
+            "$ECS_USER@$ECS_HOST" \
+            "echo 'SSH connection OK'"
+
+      # =========================
+      # Upload
+      # =========================
+
+      - name: Upload deployment artifacts
+        shell: bash
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_PORT: ${{ secrets.ECS_PORT }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+        run: |
+          set -euo pipefail
+
+          scp \
+            -i ~/.ssh/id_ed25519 \
+            -P "$ECS_PORT" \
+            deploy-out/vaccine-appointment-system.jar \
+            deploy-out/frontend-dist.tar.gz \
+            deploy-out/SHA256SUMS.txt \
+            "$ECS_USER@$ECS_HOST:/opt/evezero/projects/vaccine-appointment-system/incoming/"
+
+      # =========================
+      # Deploy
+      # =========================
+
+      - name: Deploy production
+        shell: bash
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_PORT: ${{ secrets.ECS_PORT }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -p "$ECS_PORT" \
+            -o BatchMode=yes \
+            "$ECS_USER@$ECS_HOST" \
+            "sudo /opt/evezero/projects/vaccine-appointment-system/deploy.sh"
