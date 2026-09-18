@@ -1,1 +1,78 @@
+# ============================================================
+# 根目录 .gitignore（仓库根：springboot-vaccine-appointment-system）
+# 真正的 Maven 工程位于 vaccine-appointment-system/，其内部另有 .gitignore
+# ============================================================
+
+### 打包发布产物（jar / zip / tar.gz / stage 暂存目录，勿入库）###
 /release/
+/dist/
+/out/
+/build/
+
+### Java / Maven 构建产物（任意层级兜底）###
+target/
+*.class
+*.jar
+*.war
+*.ear
+!**/.mvn/wrapper/maven-wrapper.jar
+
+### Node / 前端 ###
+node_modules/
+*.vite/
+frontend/dist/
+frontend-dist/
+
+### 单体 JAR 内置的前端静态资源（构建生成物）###
+**/src/main/resources/static/assets/
+**/src/main/resources/static/index.html
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+
+### Eclipse / STS / NetBeans / VS Code ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+.vscode/
+
+### 环境变量与密钥（任何位置的 .env 都不入库，仅保留 .example）###
+.env
+.env.*
+!.env.example
+docker-compose.override.yml
+
+### 用户上传目录与运行日志 ###
+uploads/
+logs/
+*.log
+
+### 备份 / 临时 / 合并冲突文件 ###
+*.bak
+*.backup
+*.backup*
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.orig
+
+### 操作系统文件 ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### AI 工具本地目录 ###
+.claude/
