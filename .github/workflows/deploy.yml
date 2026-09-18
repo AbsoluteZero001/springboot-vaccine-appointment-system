@@ -20,8 +20,7 @@ jobs:
 
     # ============================================================
     # CI MySQL
-    # 仅用于 GitHub Actions 测试
-    # 与生产数据库完全隔离
+    # 仅用于 GitHub Actions 测试，与生产数据库隔离
     # ============================================================
     services:
       mysql:
@@ -41,9 +40,7 @@ jobs:
 
     # ============================================================
     # CI Test Environment
-    #
-    # 这里只影响 GitHub Actions Runner。
-    # 不会覆盖服务器 /etc/vaccine-appointment-system.env
+    # 仅影响 GitHub Actions Runner
     # ============================================================
     env:
       SPRING_PROFILES_ACTIVE: test
@@ -55,24 +52,17 @@ jobs:
       MYSQL_USER: vaccine_test
       MYSQL_PASSWORD: vaccine_test
 
-      # Hibernate 在 CI 中临时创建表，测试结束删除
       SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-
-      # CI 不依赖 Redis
       SPRING_CACHE_TYPE: simple
 
-      # 防止测试阶段尝试访问生产 Redis
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: "6379"
       REDIS_PASSWORD: ""
 
-      # 仅用于 CI，绝不能用于生产
       JWT_SECRET: ci-only-jwt-secret-0123456789-abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
-      # CI 上传目录
       UPLOAD_DIR: /tmp/vaccine-appointment-system/uploads
 
-      # CI Spring Boot 测试端口配置
       APP_PORT: "8080"
 
     steps:
@@ -147,6 +137,7 @@ jobs:
           fi
 
           echo "===== Frontend build ====="
+
           find frontend/dist \
             -maxdepth 2 \
             -type f \
@@ -229,6 +220,36 @@ jobs:
           sha256sum -c SHA256SUMS.txt
 
       # ==========================================================
+      # Validate Deployment Secrets
+      # ==========================================================
+      - name: Validate deployment secrets
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.ECS_SSH_KEY }}
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_PORT: ${{ secrets.ECS_PORT }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+        run: |
+          set -euo pipefail
+
+          : "${SSH_PRIVATE_KEY:?ECS_SSH_KEY is not configured}"
+          : "${ECS_HOST:?ECS_HOST is not configured}"
+          : "${ECS_PORT:?ECS_PORT is not configured}"
+          : "${ECS_USER:?ECS_USER is not configured}"
+
+          if ! [[ "$ECS_PORT" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: ECS_PORT must be numeric."
+            exit 1
+          fi
+
+          if [ "$ECS_PORT" -lt 1 ] || [ "$ECS_PORT" -gt 65535 ]; then
+            echo "ERROR: ECS_PORT must be between 1 and 65535."
+            exit 1
+          fi
+
+          echo "Deployment secrets validation passed."
+
+      # ==========================================================
       # SSH Configuration
       # ==========================================================
       - name: Configure SSH
@@ -278,10 +299,7 @@ jobs:
             "echo 'SSH connection OK'"
 
       # ==========================================================
-      # Clean Remote Incoming Directory
-      #
-      # 只删除本项目 CI 生成的三个固定发布文件。
-      # 不删除其他内容。
+      # Prepare Remote Incoming Directory
       # ==========================================================
       - name: Prepare remote incoming directory
         shell: bash
@@ -345,7 +363,6 @@ jobs:
 
       # ==========================================================
       # Production Deployment
-      #
       # deploy.sh 负责：
       # - 备份旧版本
       # - 安装新版本
@@ -381,7 +398,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          ssh \
+          RESPONSE="$(ssh \
             -i ~/.ssh/id_ed25519 \
             -p "$ECS_PORT" \
             -o BatchMode=yes \
@@ -390,7 +407,14 @@ jobs:
               -fsS \
               --connect-timeout 3 \
               --max-time 10 \
-              http://127.0.0.1:8081/actuator/health"
+              http://127.0.0.1:8081/actuator/health")"
+
+          echo "$RESPONSE"
+
+          if ! grep -q '"status"[[:space:]]*:[[:space:]]*"UP"' <<< "$RESPONSE"; then
+            echo "ERROR: Production health check did not return UP."
+            exit 1
+          fi
 
           echo
           echo "Production health check passed."
