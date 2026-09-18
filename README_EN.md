@@ -157,7 +157,7 @@ The Vite dev server automatically proxies `/api` and `/uploads` requests to the 
 mvn package -Pfrontend -DskipTests
 
 # Run
-java -jar target/vaccine-appointment-system-0.0.1-SNAPSHOT.jar
+java -jar target/vaccine-appointment-system-1.0.0.jar
 ```
 
 Visit `http://localhost:8080` — both frontend and backend are served by Spring Boot.
@@ -319,7 +319,7 @@ FRONTEND_PORT=80
 ## Project Structure
 
 ```
-vaccine-appointment-system/
+springboot-vaccine-appointment-system/   # repo root = project root
 ├── frontend/                          # Vue 3 Frontend
 │   ├── src/
 │   │   ├── views/                     # Page views
@@ -450,61 +450,61 @@ The project includes a GitHub Actions pipeline (`.github/workflows/ci-cd.yml`):
 
 ## Home Page
 
-![Home Page](vaccine-appointment-system/docs/images/home.png)
+![Home Page](docs/images/home.png)
 
 ---
 
 ## Password Brute Force Protection
 
-## ![Password Brute Force Protection](vaccine-appointment-system/docs/images/Password-brute-force-protection.png)
+## ![Password Brute Force Protection](docs/images/Password-brute-force-protection.png)
 
 ## User Side
 
 ### User Vaccine List
-![User Vaccine List](vaccine-appointment-system/docs/images/user-vaccine-list.png)
+![User Vaccine List](docs/images/user-vaccine-list.png)
 
 ---
 ### User Identity Verification
-![User Identity Verification](vaccine-appointment-system/docs/images/user-Identity-Verification.png)
+![User Identity Verification](docs/images/user-Identity-Verification.png)
 
 ### Vaccine Appointment Page
-![Vaccine Appointment Page](vaccine-appointment-system/docs/images/user-appointment.png)
+![Vaccine Appointment Page](docs/images/user-appointment.png)
 
 ### Add Family Members
-![Add Family Members](vaccine-appointment-system/docs/images/user-familymembers.png)
+![Add Family Members](docs/images/user-familymembers.png)
 
 ### Family Member Vaccine Booking
-![Family Member Vaccine Booking](vaccine-appointment-system/docs/images/user-FamilyMemberBooking.png)
+![Family Member Vaccine Booking](docs/images/user-FamilyMemberBooking.png)
 
 ### Update User Profile
-![Update User Profile](vaccine-appointment-system/docs/images/User-Profile-Update.png)
+![Update User Profile](docs/images/User-Profile-Update.png)
 
 ---
 
 ## Administrator Side
 
 ### Vaccine Management List
-![Vaccine Management List](vaccine-appointment-system/docs/images/admin-vaccine-list.png)
+![Vaccine Management List](docs/images/admin-vaccine-list.png)
 
 ---
 
 ### Vaccine Editing
-![Vaccine Editing](vaccine-appointment-system/docs/images/admin-vaccine-edit.png)
+![Vaccine Editing](docs/images/admin-vaccine-edit.png)
 
 ---
 
 ### Vaccine Management Module
-![Vaccine Management Module](vaccine-appointment-system/docs/images/admin-vaccine-management.png)
+![Vaccine Management Module](docs/images/admin-vaccine-management.png)
 
 ---
 
 ### Appointment Review List
-![Appointment Review List](vaccine-appointment-system/docs/images/admin-appointment-review-list.png)
+![Appointment Review List](docs/images/admin-appointment-review-list.png)
 
 ---
 
 ### User Management
-![User Management](vaccine-appointment-system/docs/images/User-Management-Admin.png)
+![User Management](docs/images/User-Management-Admin.png)
 
 ## License
 

@@ -1,53 +1,47 @@
 # ============================================================
-# 根目录 .gitignore（仓库根：springboot-vaccine-appointment-system）
-# 真正的 Maven 工程位于 vaccine-appointment-system/，其内部另有 .gitignore
+# .gitignore — 仓库根目录即项目根目录
+# 技术栈：Spring Boot 3 (Maven) + Vue 3 (Vite) + Docker
 # ============================================================
 
-### 打包发布产物（jar / zip / tar.gz / stage 暂存目录，勿入库）###
-/release/
-/dist/
-/out/
-/build/
-
-### Java / Maven 构建产物（任意层级兜底）###
+### Maven / Java 构建产物 ###
 target/
 *.class
 *.jar
 *.war
 *.ear
-!**/.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.jar
+HELP.md
 
-### Node / 前端 ###
+### 前端构建产物与依赖 ###
 node_modules/
-*.vite/
+frontend/node_modules/
 frontend/dist/
+*.vite/
 frontend-dist/
+dist/
+out/
+bin/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-### 单体 JAR 内置的前端静态资源（构建生成物）###
-**/src/main/resources/static/assets/
-**/src/main/resources/static/index.html
+### 单体 JAR 内嵌的前端静态资源（由 Vite 构建生成）###
+src/main/resources/static/assets/
+src/main/resources/static/index.html
 
-### IntelliJ IDEA ###
-.idea/
-*.iml
-*.iws
-*.ipr
+### 发布打包目录 ###
+/release/
 
-### Eclipse / STS / NetBeans / VS Code ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings/
-.springBeans
-.sts4-cache/
-nbproject/private/
-nbbuild/
-nbdist/
-.nb-gradle/
-.vscode/
+### Spring 本地配置 ###
+src/main/resources/application-local.yml
+src/main/resources/application-*.yml
+!src/main/resources/application.yml
+!src/main/resources/application-dev.yml
+!src/main/resources/application-prod.yml
+src/main/resources/application-*.properties
+!src/main/resources/application.properties
 
-### 环境变量与密钥（任何位置的 .env 都不入库，仅保留 .example）###
+### 环境变量与密钥（仅保留 .example 模板）###
 .env
 .env.*
 !.env.example
@@ -57,6 +51,37 @@ docker-compose.override.yml
 uploads/
 logs/
 *.log
+
+### 第三方依赖目录 ###
+lib/
+vendor/
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+
+### Eclipse / STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### AI 工具本地目录 ###
+.claude/
 
 ### 备份 / 临时 / 合并冲突文件 ###
 *.bak
@@ -73,6 +98,3 @@ logs/
 .DS_Store
 Thumbs.db
 desktop.ini
-
-### AI 工具本地目录 ###
-.claude/

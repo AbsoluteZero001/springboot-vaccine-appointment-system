@@ -2,7 +2,7 @@
 
 本目录同时包含两种部署产物：
 
-- `vaccine-appointment-system-0.0.1-SNAPSHOT.jar`：已内嵌前端页面的单体 JAR。
+- `vaccine-appointment-system-1.0.0.jar`：已内嵌前端页面的单体 JAR。
 - `frontend-dist/`：构建后的前端静态文件，可由 Nginx 单独托管。
 
 ## 前置要求
@@ -51,7 +51,7 @@ export REDIS_PASSWORD='替换为强密码或留空'
 export JWT_SECRET='替换为至少 64 位随机字符串'
 export UPLOAD_DIR=/opt/vaccine-app/uploads
 
-java -jar vaccine-appointment-system-0.0.1-SNAPSHOT.jar
+java -jar vaccine-appointment-system-1.0.0.jar
 ```
 
 应用默认监听 `8080` 端口，可通过 `APP_PORT` 修改。前端由 JAR 内置的 Spring Boot 静态资源服务提供。

@@ -13,7 +13,7 @@
 
     <groupId>com.SpringBoot</groupId>
     <artifactId>vaccine-appointment-system</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>vaccine-appointment-system</name>
     <description>疫苗预约管理系统 — Vue3 + Spring Boot 3 全栈项目</description>
 

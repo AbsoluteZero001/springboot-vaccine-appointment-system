@@ -157,7 +157,7 @@ Vite 开发服务器自动将 `/api` 和 `/uploads` 请求代理到后端 `local
 mvn package -Pfrontend -DskipTests
 
 # 运行
-java -jar target/vaccine-appointment-system-0.0.1-SNAPSHOT.jar
+java -jar target/vaccine-appointment-system-1.0.0.jar
 ```
 
 访问 `http://localhost:8080`，前后端均由 Spring Boot 提供服务。
@@ -319,7 +319,7 @@ FRONTEND_PORT=80
 ## 项目结构
 
 ```
-vaccine-appointment-system/
+springboot-vaccine-appointment-system/   # 仓库根目录即项目根目录
 ├── frontend/                          # Vue 3 前端工程
 │   ├── src/
 │   │   ├── views/                     # 页面视图
@@ -450,61 +450,61 @@ vaccine-appointment-system/
 
 ## 首页
 
-![首页](vaccine-appointment-system/docs/images/home.png)
+![首页](docs/images/home.png)
 
 ---
 
 ## 密码防暴力破解
 
-## ![密码防暴力破解](vaccine-appointment-system/docs/images/Password-brute-force-protection.png)
+## ![密码防暴力破解](docs/images/Password-brute-force-protection.png)
 
 ## 用户端
 
 ### 用户查看疫苗列表
-![用户疫苗列表](vaccine-appointment-system/docs/images/user-vaccine-list.png)
+![用户疫苗列表](docs/images/user-vaccine-list.png)
 
 ---
 ### 用户实名认证
-![用户实名认证](vaccine-appointment-system/docs/images/user-Identity-Verification.png)
+![用户实名认证](docs/images/user-Identity-Verification.png)
 
 ### 用户预约疫苗页面
-![用户预约页面](vaccine-appointment-system/docs/images/user-appointment.png)
+![用户预约页面](docs/images/user-appointment.png)
 
 ### 用户添加家庭成员
-![用户添加家庭成员](vaccine-appointment-system/docs/images/user-familymembers.png)
+![用户添加家庭成员](docs/images/user-familymembers.png)
 
 ### 用户实现家属代约疫苗
-![用户家属预约疫苗](vaccine-appointment-system/docs/images/user-FamilyMemberBooking.png)
+![用户家属预约疫苗](docs/images/user-FamilyMemberBooking.png)
 
 ### 用户修改个人资料
-![用户修改个人资料](vaccine-appointment-system/docs/images/User-Profile-Update.png)
+![用户修改个人资料](docs/images/User-Profile-Update.png)
 
 ---
 
 ## 管理员端
 
 ### 疫苗管理列表
-![管理员疫苗管理列表](vaccine-appointment-system/docs/images/admin-vaccine-list.png)
+![管理员疫苗管理列表](docs/images/admin-vaccine-list.png)
 
 ---
 
 ### 疫苗编辑
-![管理员疫苗编辑](vaccine-appointment-system/docs/images/admin-vaccine-edit.png)
+![管理员疫苗编辑](docs/images/admin-vaccine-edit.png)
 
 ---
 
 ### 疫苗管理模块
-![管理员疫苗管理](vaccine-appointment-system/docs/images/admin-vaccine-management.png)
+![管理员疫苗管理](docs/images/admin-vaccine-management.png)
 
 ---
 
 ### 预约审核列表
-![管理员预约审核列表](vaccine-appointment-system/docs/images/admin-appointment-review-list.png)
+![管理员预约审核列表](docs/images/admin-appointment-review-list.png)
 
 ---
 
 ### 管理员管理用户
-![管理员用户管理](vaccine-appointment-system/docs/images/User-Management-Admin.png)
+![管理员用户管理](docs/images/User-Management-Admin.png)
 
 ## License
 
